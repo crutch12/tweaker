@@ -1,0 +1,9 @@
+{
+  "name": "@tweaker/core",
+  "version": "0.0.1",
+  "scripts": {},
+  "author": "criitch@yandex.ru",
+  "dependencies": {
+    "micromatch": "^4.0.8"
+  }
+}

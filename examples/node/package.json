@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@tweaker/core": "workspace:*"
+  }
+}
