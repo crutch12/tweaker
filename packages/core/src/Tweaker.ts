@@ -1,3 +1,4 @@
+import { registerInstance } from "./global";
 import {
   RemoveListener,
   TweakerKey,
@@ -37,6 +38,7 @@ export class Tweaker {
 
   constructor({ name }: TweakerOptions) {
     this.name = name;
+    registerInstance(this);
   }
 
   private listeners = new Set<TweakListener<any>>([]);

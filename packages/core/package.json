@@ -5,7 +5,8 @@
   "types": "dist/index.d.ts",
   "module": "dist/index.js",
   "scripts": {
-    "build": "tsup"
+    "build": "tsup",
+    "build:dev": "tsup --watch"
   },
   "author": "criitch@yandex.ru",
   "dependencies": {

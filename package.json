@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "example:node": "tsx --watch examples/node/index.ts",
     "example:web": "cd examples/web && pnpm run dev",
-    "build": "cd packages/core && pnpm run build"
+    "build": "cd packages/core && pnpm run build",
+    "build:dev": "cd packages/core && pnpm run build:dev"
   },
   "author": "criitch@yandex.ru",
   "license": "ISC",
