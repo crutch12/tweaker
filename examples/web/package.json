@@ -1,0 +1,11 @@
+{
+  "name": "@examples/web",
+  "dependencies": {
+    "@tweaker/core": "workspace:*",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "scripts": {
+    "dev": "vite"
+  }
+}

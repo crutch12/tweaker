@@ -1,7 +1,12 @@
 {
   "name": "@tweaker/core",
   "version": "0.0.1",
-  "scripts": {},
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "module": "dist/index.js",
+  "scripts": {
+    "build": "tsup"
+  },
   "author": "criitch@yandex.ru",
   "dependencies": {
     "micromatch": "^4.0.8"

@@ -1,12 +1,12 @@
 import { Tweaker, TweakerSample } from "@tweaker/core";
 
-const tweaker = new Tweaker({ name: "node" });
+const tweaker = new Tweaker({ name: "web" });
 
 export function prepareTweakerSamples<T>(
   samples: TweakerSample<T>[],
 ): TweakerSample<T>[] {
   // Builder specific code to remove samples code from build
-  if (process.env.REMOVE_TWEAKER_SAMPLES) {
+  if (import.meta.env.REMOVE_TWEAKER_SAMPLES) {
     return [];
   }
   return samples;
