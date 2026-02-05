@@ -1,5 +1,9 @@
 {
   "name": "@examples/node",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx --watch index.ts"
+  },
   "dependencies": {
     "@tweaker/core": "workspace:*"
   }

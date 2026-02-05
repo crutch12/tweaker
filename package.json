@@ -5,10 +5,10 @@
   "packageManager": "pnpm@10.28.2",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "example:node": "tsx --watch examples/node/index.ts",
-    "example:web": "cd examples/web && pnpm run dev",
-    "build": "cd packages/core && pnpm run build",
-    "build:dev": "cd packages/core && pnpm run build:dev"
+    "build": "pnpm -r --filter '@tweaker/*' run build",
+    "build:dev": "pnpm -r --filter '@tweaker/*' run build:dev",
+    "example:node": "cd examples/node && pnpm run dev",
+    "example:web": "cd examples/web && pnpm run dev"
   },
   "author": "criitch@yandex.ru",
   "license": "ISC",

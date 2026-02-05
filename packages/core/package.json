@@ -11,5 +11,11 @@
   "author": "criitch@yandex.ru",
   "dependencies": {
     "micromatch": "^4.0.8"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
   }
 }
