@@ -16,36 +16,57 @@ function generateUser(): User {
 }
 
 export function App() {
-  const [user, setUser] = useState(() => generateUser());
+  const [users, setUsers] = useState(() => [generateUser()]);
   const [tweakerEnabled, setTweakerEnabled] = useState(false);
 
   useEffect(() => {
     if (tweakerEnabled) {
       return tweaker.intercept(
         "users.generate",
-        (): User => {
+        (key, value): User => {
           return {
-            id: 1,
-            name: "John",
+            ...value,
+            name: value.name + " (tweaked)",
             year: Math.ceil(Math.random() * 2000),
           };
         },
         {
           count: 5,
-          interactive: true,
+          interactive: false,
           once: true,
         },
       );
     }
   }, [tweakerEnabled]);
 
+  useEffect(() => {
+    return tweaker.subscribe("*", (key, value, result) => {
+      console.log(value);
+    });
+  }, []);
+
   return (
     <div>
-      <pre>{JSON.stringify(user, null, 2)}</pre>
-      <button onClick={() => setUser(generateUser())}>Update User</button>
-      <button onClick={() => setTweakerEnabled((v) => !v)}>
+      <button
+        style={{
+          marginRight: "10px",
+          backgroundColor: tweakerEnabled ? "#FFB18A" : "#CAFF8A",
+        }}
+        onClick={() => setTweakerEnabled((v) => !v)}
+      >
         {tweakerEnabled ? "Stop Tweaker" : "Start Tweaker"}
       </button>
+      <button
+        onClick={() => {
+          const user = generateUser();
+          setUsers((v) => {
+            return [...v, user];
+          });
+        }}
+      >
+        Add User
+      </button>
+      <pre>{JSON.stringify(users, null, 2)}</pre>
     </div>
   );
 }

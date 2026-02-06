@@ -6,6 +6,7 @@ import {
   TweakListener,
 } from "./types";
 import { minimatch } from "minimatch";
+import { EventEmitter } from "eventemitter3";
 
 export interface InterceptOptions {
   once: boolean;
@@ -33,8 +34,22 @@ export interface TweakerOptions {
   name: string;
 }
 
+export type EventKeys = "value";
+
+function keyMatchesPatterns(key: string, patterns: readonly string[]) {
+  for (const pattern of patterns) {
+    const found = minimatch(key, pattern);
+    if (found) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export class Tweaker {
   public readonly name: string;
+
+  private readonly eventEmitter = new EventEmitter<EventKeys>();
 
   constructor({ name }: TweakerOptions) {
     this.name = name;
@@ -91,11 +106,9 @@ export class Tweaker {
     const listeners: TweakListener<any>[] = [];
 
     for (const listener of this.listeners) {
-      for (const pattern of listener.patterns) {
-        const found = minimatch(key, pattern);
-        if (found) {
-          listeners.push(listener);
-        }
+      const found = keyMatchesPatterns(key, listener.patterns);
+      if (found) {
+        listeners.push(listener);
       }
     }
 
@@ -129,6 +142,8 @@ export class Tweaker {
         debugger; // @TODO: check availability via performance call
       }
 
+      this.eventEmitter.emit("value", key, value, result);
+
       return [true, result];
     } catch (err) {
       this.log(key, "error", err);
@@ -144,7 +159,25 @@ export class Tweaker {
   //   this.debug(key, "value", value);
   // }
 
+  public subscribe(
+    patterns: string | readonly string[],
+    fn: (key: string, originalValue: unknown, result: unknown) => void,
+  ) {
+    patterns = Array.isArray(patterns) ? patterns : [patterns];
+    const handler: typeof fn = (key, originalValue, result) => {
+      const found = keyMatchesPatterns(key, patterns);
+      if (found) {
+        fn(key, originalValue, result);
+      }
+    };
+    this.eventEmitter.addListener("value", handler);
+    return () => {
+      this.eventEmitter.removeListener("value", handler);
+    };
+  }
+
   public reset() {
     this.listeners.clear();
+    // this.eventEmitter.removeAllListeners(); // @TODO: should we?
   }
 }

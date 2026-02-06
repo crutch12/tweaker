@@ -16,6 +16,7 @@
     }
   },
   "dependencies": {
+    "eventemitter3": "^5.0.4",
     "minimatch": "^10.1.2"
   }
 }
