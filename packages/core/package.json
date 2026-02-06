@@ -9,13 +9,13 @@
     "build:dev": "tsup --watch"
   },
   "author": "criitch@yandex.ru",
-  "dependencies": {
-    "micromatch": "^4.0.8"
-  },
   "exports": {
     ".": {
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     }
+  },
+  "dependencies": {
+    "minimatch": "^10.1.2"
   }
 }

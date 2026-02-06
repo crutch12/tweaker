@@ -12,8 +12,4 @@ export default defineConfig({
   build: {
     outDir: "dist",
   },
-
-  define: {
-    "process.platform": JSON.stringify("browser"),
-  },
 });

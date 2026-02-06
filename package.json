@@ -5,15 +5,14 @@
   "packageManager": "pnpm@10.28.2",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "pnpm -r --filter '@tweaker/*' run build",
-    "build:dev": "pnpm -r --filter '@tweaker/*' run build:dev",
+    "build": "pnpm --filter '@tweaker/*' run build",
+    "build:dev": "pnpm --filter '@tweaker/*' run build:dev",
     "example:node": "cd examples/node && pnpm run dev",
     "example:web": "cd examples/web && pnpm run dev"
   },
   "author": "criitch@yandex.ru",
   "license": "ISC",
   "devDependencies": {
-    "@types/micromatch": "^4.0.10",
     "@types/node": "^25.2.0",
     "@types/react": "^19.2.11",
     "@types/react-dom": "^19.2.3",

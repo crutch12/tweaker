@@ -5,7 +5,7 @@ import {
   TweakHandler,
   TweakListener,
 } from "./types";
-import micromatch from "micromatch";
+import { minimatch } from "minimatch";
 
 export interface InterceptOptions {
   once: boolean;
@@ -91,9 +91,11 @@ export class Tweaker {
     const listeners: TweakListener<any>[] = [];
 
     for (const listener of this.listeners) {
-      const keys = micromatch([key], listener.patterns);
-      if (keys.length > 0) {
-        listeners.push(listener);
+      for (const pattern of listener.patterns) {
+        const found = minimatch(key, pattern);
+        if (found) {
+          listeners.push(listener);
+        }
       }
     }
 
