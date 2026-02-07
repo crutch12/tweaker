@@ -17,6 +17,7 @@ export interface TweakerMessage {
   version: string;
   type: "value";
   payload: {
+    name: string;
     key: string;
     originalValue: unknown;
     result: unknown;

@@ -61,22 +61,23 @@ export class Tweaker {
   }
 
   private setup() {
-    this.subscribe("*", (key, originalValue, result) => {
-      globalThis.postMessage(
-        {
+    if ("postMessage" in globalThis) {
+      this.subscribe("*", (key, originalValue, result) => {
+        const message: TweakerMessage = {
           source: "@tweaker/core",
           version,
           type: "value",
           payload: {
+            name: this.name,
             key,
             originalValue: klona(originalValue),
             result: klona(result),
             timestamp: Date.now(),
           },
-        } as TweakerMessage,
-        "*",
-      );
-    });
+        };
+        globalThis.postMessage(message, "*");
+      });
+    }
   }
 
   private listeners = new Set<TweakListener<any>>([]);
