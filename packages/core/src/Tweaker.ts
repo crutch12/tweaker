@@ -1,4 +1,8 @@
-import { registerInstance } from "./global";
+import {
+  notifyExtensionNewIntercept,
+  notifyExtensionRemoveIntercept,
+  registerInstance,
+} from "./global";
 import {
   RemoveListener,
   TweakerKey,
@@ -10,6 +14,7 @@ import { minimatch } from "minimatch";
 import { EventEmitter } from "eventemitter3";
 import { version } from "../package.json";
 import { klona } from "klona/json";
+import { TweakerValueMessage } from "../dist";
 
 export interface InterceptOptions {
   once: boolean;
@@ -20,10 +25,16 @@ export interface InterceptOptions {
   interactive: boolean;
 }
 
+export interface SubscribeOptions {
+  /**
+   * @default 'tweaked'
+   */
+  mode: "all" | "tweaked" | "non-tweaked";
+}
+
 export interface TweakerSample<T> {
   id: string;
-  value: T;
-  throw?: Error;
+  value(): T;
 }
 
 export interface TweakerValueOptions<T> {
@@ -52,7 +63,14 @@ function keyMatchesPatterns(key: string, patterns: readonly string[]) {
 export class Tweaker {
   public readonly name: string;
 
-  private readonly eventEmitter = new EventEmitter<EventKeys>();
+  private readonly eventEmitter = new EventEmitter<{
+    value: (
+      key: string,
+      tweaked: boolean,
+      originalValue: unknown,
+      result?: unknown,
+    ) => void;
+  }>();
 
   constructor({ name }: TweakerOptions) {
     this.name = name;
@@ -62,21 +80,26 @@ export class Tweaker {
 
   private setup() {
     if ("postMessage" in globalThis) {
-      this.subscribe("*", (key, originalValue, result) => {
-        const message: TweakerMessage = {
-          source: "@tweaker/core",
-          version,
-          type: "value",
-          payload: {
-            name: this.name,
-            key,
-            originalValue: klona(originalValue),
-            result: klona(result),
-            timestamp: Date.now(),
-          },
-        };
-        globalThis.postMessage(message, "*");
-      });
+      this.subscribe(
+        "*",
+        (key, tweaked, originalValue, result) => {
+          const message: TweakerValueMessage = {
+            source: "@tweaker/core",
+            version,
+            type: "value",
+            payload: {
+              name: this.name,
+              key,
+              originalValue: klona(originalValue),
+              result: klona(result),
+              timestamp: Date.now(),
+              tweaked,
+            },
+          };
+          globalThis.postMessage(message, "*");
+        },
+        { mode: "all" },
+      );
     }
   }
 
@@ -98,6 +121,7 @@ export class Tweaker {
     options: InterceptOptions,
   ): RemoveListener {
     const listener: TweakListener<T> = {
+      id: Math.ceil(Math.random() * 1_000_000),
       interactive: options.interactive,
       patterns: Array.isArray(patterns) ? patterns : [patterns],
       handler,
@@ -105,8 +129,11 @@ export class Tweaker {
 
     this.listeners.add(listener);
 
+    notifyExtensionNewIntercept(this, listener);
+
     return () => {
       this.listeners.delete(listener);
+      notifyExtensionRemoveIntercept(this, listener);
     };
   }
 
@@ -149,6 +176,7 @@ export class Tweaker {
 
     if (listeners.length === 0) {
       this.debug(key, "value", "no listeners found");
+      this.eventEmitter.emit("value", key, false, value);
       return [false, undefined];
     }
 
@@ -166,7 +194,7 @@ export class Tweaker {
         debugger; // @TODO: check availability via performance call
       }
 
-      this.eventEmitter.emit("value", key, value, result);
+      this.eventEmitter.emit("value", key, true, value, result);
 
       return [true, result];
     } catch (err) {
@@ -185,13 +213,24 @@ export class Tweaker {
 
   public subscribe(
     patterns: string | readonly string[],
-    fn: (key: string, originalValue: unknown, result: unknown) => void,
+    fn: (
+      key: string,
+      tweaked: boolean,
+      originalValue: unknown,
+      result?: unknown,
+    ) => void,
+    options?: Partial<SubscribeOptions>,
   ) {
     patterns = Array.isArray(patterns) ? patterns : [patterns];
-    const handler: typeof fn = (key, originalValue, result) => {
+    options = {
+      mode: "tweaked",
+      ...options,
+    };
+
+    const handler: typeof fn = (key, tweaked, originalValue, result) => {
       const found = keyMatchesPatterns(key, patterns);
       if (found) {
-        fn(key, originalValue, result);
+        fn(key, tweaked, originalValue, result);
       }
     };
     this.eventEmitter.addListener("value", handler);

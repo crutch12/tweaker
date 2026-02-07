@@ -8,11 +8,44 @@ interface User {
 }
 
 function generateUser(): User {
-  return tweaker.value("users.generate", {
-    id: Math.ceil(Math.random() * 1000),
-    name: "Glep",
-    year: 2001,
-  });
+  return tweaker.value<User>(
+    "users.generate",
+    {
+      id: Math.ceil(Math.random() * 1000),
+      name: "Glep",
+      year: 2001,
+    },
+    {
+      samples: [
+        {
+          id: "john",
+          value() {
+            return {
+              id: 1,
+              name: "John",
+              year: 2000,
+            };
+          },
+        },
+        {
+          id: "sam",
+          value() {
+            return {
+              id: 2,
+              name: "Sam",
+              year: 3000,
+            };
+          },
+        },
+        {
+          id: "not-found-error",
+          value() {
+            throw new Error("User not found!");
+          },
+        },
+      ],
+    },
+  );
 }
 
 export function App() {
@@ -22,7 +55,7 @@ export function App() {
   useEffect(() => {
     if (tweakerEnabled) {
       return tweaker.intercept(
-        "users.generate",
+        "users.gen*",
         (key, value): User => {
           return {
             ...value,
@@ -31,16 +64,16 @@ export function App() {
           };
         },
         {
-          count: 5,
+          count: 0,
           interactive: false,
-          once: true,
+          once: false,
         },
       );
     }
   }, [tweakerEnabled]);
 
   useEffect(() => {
-    return tweaker.subscribe("*", (key, value, result) => {
+    return tweaker.subscribe("*", (key, tweaked, value, result) => {
       console.log(value);
     });
   }, []);

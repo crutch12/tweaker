@@ -37,16 +37,28 @@ function sendMessageToDevTools(tabId, data) {
   }
 }
 
-chrome.runtime.onMessage.addListener((message, sender) => {
-  if (message.source === "@tweaker/core") {
-    saveMessage(message);
-    if (sender.tab && sender.tab.id) {
-      const tabId = sender.tab.id;
-      sendMessageToDevTools(tabId, { ...message, tabId });
+chrome.runtime.onMessage.addListener(
+  (/** @type {import('@tweaker/core').TweakerMessage} */ message, sender) => {
+    const tabId = sender.tab?.id;
+    if (message.source === "@tweaker/core") {
+      switch (message.type) {
+        case "value": {
+          saveMessage(message);
+          if (tabId) {
+            sendMessageToDevTools(tabId, { ...message, tabId });
+          }
+          break;
+        }
+        default: {
+          if (tabId) {
+            sendMessageToDevTools(tabId, { ...message, tabId });
+          }
+        }
+      }
     }
-  }
-  return false;
-});
+    return false;
+  },
+);
 
 async function saveMessage(message) {
   const { messages = [] } = await chrome.storage.session.get({ messages: [] });

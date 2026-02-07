@@ -8,6 +8,7 @@ import { css, keyframes } from "@emotion/css";
 export interface MessagesTableProps extends HTMLAttributes<HTMLElement> {
   messages: TweakerMessage["payload"][];
   ref?: MutableRefObject<any>;
+  onTweak?: (payload: TweakerMessage["payload"]) => void;
 }
 
 function textToIndex(text: string, length: number) {
@@ -37,11 +38,62 @@ function getTextColor(text: string) {
     "#AAFFC3",
     "#FFD8B1",
     "#000075",
+    "#FF0000",
+    "#00FF00",
+    "#0000FF",
+    "#FFFF00",
+    "#FF00FF",
+    "#00FFFF",
+    "#FF8000",
+    "#8000FF",
+    "#00FF80",
+    "#FF0080",
+    "#80FF00",
+    "#0080FF",
+    "#FFD700",
+    "#FF5733",
+    "#33FF57",
+    "#3357FF",
+    "#F0E68C",
+    "#E6E6FA",
+    "#008080",
+    "#FF1493",
   ];
   return colors[textToIndex(text, colors.length)];
 }
 
-export function MessagesTable({ messages, ref, ...props }: MessagesTableProps) {
+function BlueButton({ onClick, children, disabled }) {
+  return (
+    <button
+      disabled={disabled}
+      onClick={onClick}
+      className={css`
+        background-color: rgb(26, 115, 232);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 5px 12px;
+        font-size: 12px;
+        cursor: pointer;
+        font-weight: 500;
+
+        :disabled {
+          opacity: 0.5;
+          cursor: default;
+        }
+      `}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function MessagesTable({
+  messages,
+  ref,
+  onTweak,
+  ...props
+}: MessagesTableProps) {
   return (
     <div ref={ref} {...props}>
       <Table>
@@ -52,6 +104,7 @@ export function MessagesTable({ messages, ref, ...props }: MessagesTableProps) {
             <Table.HeadCell>Original Value</Table.HeadCell>
             <Table.HeadCell>Tweaked Value</Table.HeadCell>
             <Table.HeadCell style={{ width: "10%" }}>Timestamp</Table.HeadCell>
+            <Table.HeadCell style={{ width: "15%" }}>Actions</Table.HeadCell>
           </Table.Row>
         </Table.Head>
         <Table.Body>
@@ -77,16 +130,38 @@ export function MessagesTable({ messages, ref, ...props }: MessagesTableProps) {
                   data={message.originalValue as any}
                 />
               </Table.Cell>
-              <Table.Cell title={safeStringify(message.result, null, 2)}>
-                <ObjectInspector
-                  sortKeys={false}
-                  expandLevel={0}
-                  includePrototypes={false}
-                  data={message.result as any}
-                />
-              </Table.Cell>
+              {message.tweaked ? (
+                <Table.Cell title={safeStringify(message.result, null, 2)}>
+                  <ObjectInspector
+                    sortKeys={false}
+                    expandLevel={0}
+                    includePrototypes={false}
+                    data={message.result as any}
+                  />
+                </Table.Cell>
+              ) : (
+                <Table.Cell>
+                  <span style={{ opacity: 0.5, cursor: "default" }}>empty</span>
+                </Table.Cell>
+              )}
+
               <Table.Cell title={String(message.timestamp)}>
                 {message.timestamp}
+              </Table.Cell>
+              <Table.Cell>
+                <div
+                  className={css`
+                    display: flex;
+                    gap: "10px";
+                  `}
+                >
+                  <BlueButton
+                    disabled={message.tweaked}
+                    onClick={() => onTweak(message)}
+                  >
+                    Tweak
+                  </BlueButton>
+                </div>
               </Table.Cell>
             </Table.Row>
           ))}

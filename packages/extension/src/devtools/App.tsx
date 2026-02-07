@@ -1,8 +1,9 @@
-import { TweakerMessage } from "@tweaker/core";
+import { TweakerMessage, TweakerValueMessage } from "@tweaker/core";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MessagesTable } from "./MessagesTable";
 import { useStickToBottom } from "use-stick-to-bottom";
 import { useVisibilityChange } from "@uidotdev/usehooks";
+import { InterceptorsList, Interceptor } from "./InterceptorsList";
 
 export function App() {
   const reloadPage = () => {
@@ -34,15 +35,15 @@ export function App() {
 
   const clearData = () => {
     chrome.storage.session.set({ messages: [] }).then(() => {
-      setInterceptedValues([]);
+      setMessages([]);
     });
   };
 
   const date = useMemo(() => new Date(), []);
 
-  const [interceptedValues, setInterceptedValues] = useState<
-    TweakerMessage["payload"][]
-  >([]);
+  const [messages, setMessages] = useState<TweakerMessage["payload"][]>([]);
+
+  const [interceptors, setInterceptors] = useState<Interceptor[]>([]);
 
   const portRef = useRef<chrome.runtime.Port>(undefined);
 
@@ -53,8 +54,31 @@ export function App() {
 
     const handleMessage = (message: TweakerMessage) => {
       // const currentTabId = chrome.devtools.inspectedWindow.tabId;
-      if (message.source === "@tweaker/core" && message.type === "value") {
-        setInterceptedValues((v) => [...v, message.payload]);
+      if (message.source === "@tweaker/core") {
+        switch (message.type) {
+          case "value": {
+            setMessages((v) => [...v, message.payload]);
+            break;
+          }
+          case "new-intercept": {
+            addInterceptor({
+              appName: message.payload.name,
+              enabled: true,
+              id: message.payload.id,
+              interactive: message.payload.interactive,
+              patterns: message.payload.patterns,
+              expression: undefined,
+              fromKey: undefined,
+              sampleId: undefined,
+              sampleIds: undefined,
+            });
+            break;
+          }
+          case "remove-intercept": {
+            removeInterceptor(message.payload.name, message.payload.id);
+            break;
+          }
+        }
       }
     };
 
@@ -68,10 +92,7 @@ export function App() {
     chrome.storage.session
       .get<{ messages: TweakerMessage[] }>({ messages: [] })
       .then((result) => {
-        setInterceptedValues((v) => [
-          ...v,
-          ...result.messages.map((x) => x.payload),
-        ]);
+        setMessages((v) => [...v, ...result.messages.map((x) => x.payload)]);
       });
 
     return () => {
@@ -103,6 +124,40 @@ export function App() {
     mass: 1,
   });
 
+  function newTweak(message: TweakerValueMessage["payload"]) {
+    addInterceptor({
+      id: 1,
+      appName: message.name,
+      patterns: [message.key],
+      fromKey: message.key,
+      sampleIds: [],
+      sampleId: undefined,
+      interactive: false,
+      enabled: true,
+      expression: undefined,
+    });
+  }
+
+  function addInterceptor(interceptor: Interceptor) {
+    debugger;
+    setInterceptors((v) => {
+      const prev = v[v.length - 1];
+      return [
+        ...v,
+        {
+          ...interceptor,
+          id: prev ? prev.id : interceptor.id,
+        },
+      ];
+    });
+  }
+
+  function removeInterceptor(appName: string, id: number) {
+    setInterceptors((v) =>
+      v.filter((i) => i.id !== id && i.appName !== appName),
+    );
+  }
+
   return (
     <div
       style={{
@@ -123,14 +178,44 @@ export function App() {
         <button onClick={sendMessage}>Send Message</button>
       </div>
       <div>
-        {interceptedValues.length > 0 ? (
-          <div ref={scrollRef} style={{ maxHeight: "80vh", overflow: "auto" }}>
-            <MessagesTable ref={contentRef} messages={interceptedValues} />
+        {messages.length > 0 ? (
+          <div
+            ref={scrollRef}
+            style={{ maxHeight: "40vh", minHeight: "40vh", overflow: "auto" }}
+          >
+            <MessagesTable
+              onTweak={newTweak}
+              ref={contentRef}
+              messages={messages}
+            />
           </div>
         ) : (
-          <span style={{ fontSize: "16px" }}>
-            Intercept some events to see logs...
-          </span>
+          <div
+            style={{
+              fontSize: "16px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              gap: "4px",
+            }}
+          >
+            <span>Call</span>
+            <span style={{ color: "red" }}>tweaker.value()</span>
+            <span>from in-page code to see logs...</span>
+          </div>
+        )}
+        {interceptors.length > 0 && (
+          <div
+            style={{ maxHeight: "40vh", minHeight: "40vh", overflow: "auto" }}
+          >
+            <InterceptorsList
+              interceptors={interceptors}
+              onInterceptorChange={() => {
+                debugger;
+              }}
+              onInterceptorRemove={(i) => removeInterceptor(i.appName, i.id)}
+            />
+          </div>
         )}
       </div>
     </div>

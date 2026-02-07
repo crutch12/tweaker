@@ -4,8 +4,8 @@ window.addEventListener("message", (event) => {
   }
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.source === "@tweaker/extension") {
-    window.postMessage(message, "*");
-  }
-});
+// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+//   if (message.source === "@tweaker/extension") {
+//     window.postMessage(message, "*");
+//   }
+// });
