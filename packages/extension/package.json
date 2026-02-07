@@ -11,6 +11,7 @@
     "@devtools-ds/table": "^1.2.1",
     "@emotion/css": "^11.13.5",
     "@tweaker/core": "workspace:*",
+    "@uidotdev/usehooks": "^2.4.1",
     "fast-safe-stringify": "^2.1.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

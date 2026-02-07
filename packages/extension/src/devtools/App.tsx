@@ -1,7 +1,8 @@
 import { TweakerMessage } from "@tweaker/core";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MessagesTable } from "./MessagesTable";
 import { useStickToBottom } from "use-stick-to-bottom";
+import { useVisibilityChange } from "@uidotdev/usehooks";
 
 export function App() {
   const reloadPage = () => {
@@ -43,8 +44,12 @@ export function App() {
     TweakerMessage["payload"][]
   >([]);
 
+  const portRef = useRef<chrome.runtime.Port>(undefined);
+
   useEffect(() => {
-    const port = chrome.runtime.connect({ name: "tweaker-devtools-relay" });
+    portRef.current = chrome.runtime.connect({
+      name: "tweaker-devtools-relay",
+    });
 
     const handleMessage = (message: TweakerMessage) => {
       // const currentTabId = chrome.devtools.inspectedWindow.tabId;
@@ -53,9 +58,9 @@ export function App() {
       }
     };
 
-    port.onMessage.addListener(handleMessage);
+    portRef.current.onMessage.addListener(handleMessage);
 
-    port.postMessage({
+    portRef.current.postMessage({
       action: "init",
       tabId: chrome.devtools.inspectedWindow.tabId,
     });
@@ -70,10 +75,21 @@ export function App() {
       });
 
     return () => {
-      port.onMessage.removeListener(handleMessage);
-      port.disconnect();
+      portRef.current.onMessage.removeListener(handleMessage);
+      portRef.current.disconnect();
     };
   }, []);
+
+  const documentVisible = useVisibilityChange();
+
+  useEffect(() => {
+    if (portRef.current && documentVisible) {
+      portRef.current.postMessage({
+        action: "keep-alive",
+        tabId: chrome.devtools.inspectedWindow.tabId,
+      });
+    }
+  }, [documentVisible]);
 
   function sendMessage() {
     const currentTabId = chrome.devtools.inspectedWindow.tabId;
