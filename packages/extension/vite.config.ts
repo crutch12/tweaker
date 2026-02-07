@@ -6,7 +6,10 @@ export default defineConfig({
   build: {
     minify: false,
     rollupOptions: {
-      input: ["src/devtools/index.html"],
+      input: [
+        "src/devtools/index.html",
+        // "src/content-script.ts"
+      ],
     },
   },
   server: {

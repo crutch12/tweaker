@@ -2,11 +2,14 @@ import { registerInstance } from "./global";
 import {
   RemoveListener,
   TweakerKey,
+  TweakerMessage,
   TweakHandler,
   TweakListener,
 } from "./types";
 import { minimatch } from "minimatch";
 import { EventEmitter } from "eventemitter3";
+import { version } from "../package.json";
+import { klona } from "klona/json";
 
 export interface InterceptOptions {
   once: boolean;
@@ -54,6 +57,26 @@ export class Tweaker {
   constructor({ name }: TweakerOptions) {
     this.name = name;
     registerInstance(this);
+    this.setup();
+  }
+
+  private setup() {
+    this.subscribe("*", (key, originalValue, result) => {
+      globalThis.postMessage(
+        {
+          source: "@tweaker/core",
+          version,
+          type: "value",
+          payload: {
+            key,
+            originalValue: klona(originalValue),
+            result: klona(result),
+            timestamp: Date.now(),
+          },
+        } as TweakerMessage,
+        "*",
+      );
+    });
   }
 
   private listeners = new Set<TweakListener<any>>([]);

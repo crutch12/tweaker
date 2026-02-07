@@ -11,3 +11,15 @@ export interface TweakListener<T> {
 export type TweakHandler<T> = (key: TweakerKey, value: T) => T;
 
 export type RemoveListener = () => void;
+
+export interface TweakerMessage {
+  source: "@tweaker/core";
+  version: string;
+  type: "value";
+  payload: {
+    key: string;
+    originalValue: unknown;
+    result: unknown;
+    timestamp: number;
+  };
+}
