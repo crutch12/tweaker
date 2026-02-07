@@ -1,5 +1,7 @@
 import { TweakerMessage } from "@tweaker/core";
 import { useEffect, useMemo, useState } from "react";
+import { MessagesTable } from "./MessagesTable";
+import { useStickToBottom } from "use-stick-to-bottom";
 
 export function App() {
   const reloadPage = () => {
@@ -73,6 +75,8 @@ export function App() {
     };
   }, []);
 
+  const { scrollRef, contentRef } = useStickToBottom();
+
   return (
     <div
       style={{
@@ -93,22 +97,8 @@ export function App() {
       </div>
       <div>
         {interceptedValues.length > 0 ? (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              overflowY: "auto",
-              maxHeight: "80vh",
-              border: "1px solid black",
-              padding: "10px",
-            }}
-          >
-            {interceptedValues.map((interceptedValue) => (
-              <div key={interceptedValue.key + interceptedValue.timestamp}>
-                {interceptedValue.name} - {interceptedValue.key} -{" "}
-                {interceptedValue.timestamp}
-              </div>
-            ))}
+          <div ref={scrollRef} style={{ maxHeight: "80vh", overflow: "auto" }}>
+            <MessagesTable ref={contentRef} messages={interceptedValues} />
           </div>
         ) : (
           <span style={{ fontSize: "16px" }}>
