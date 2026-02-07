@@ -32,7 +32,7 @@ export function App() {
   };
 
   const clearData = () => {
-    chrome.storage.local.set({ messages: [] }).then(() => {
+    chrome.storage.session.set({ messages: [] }).then(() => {
       setInterceptedValues([]);
     });
   };
@@ -60,7 +60,7 @@ export function App() {
       tabId: chrome.devtools.inspectedWindow.tabId,
     });
 
-    chrome.storage.local
+    chrome.storage.session
       .get<{ messages: TweakerMessage[] }>({ messages: [] })
       .then((result) => {
         setInterceptedValues((v) => [
@@ -75,7 +75,17 @@ export function App() {
     };
   }, []);
 
-  const { scrollRef, contentRef } = useStickToBottom();
+  function sendMessage() {
+    const currentTabId = chrome.devtools.inspectedWindow.tabId;
+    chrome.tabs.sendMessage(currentTabId, {
+      source: "@tweaker/extension",
+      payload: "Message from extension!",
+    });
+  }
+
+  const { scrollRef, contentRef } = useStickToBottom({
+    mass: 1,
+  });
 
   return (
     <div
@@ -94,6 +104,7 @@ export function App() {
         <button onClick={checkPageTitle}>Check page title</button>
         <button onClick={evalTweaker}>Eval Tweaker</button>
         <button onClick={clearData}>Clear Data</button>
+        <button onClick={sendMessage}>Send Message</button>
       </div>
       <div>
         {interceptedValues.length > 0 ? (

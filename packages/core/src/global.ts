@@ -14,6 +14,14 @@ function getGlobalRegistry() {
       version,
       instances: {},
     };
+
+    if ("addEventListener" in globalThis) {
+      globalThis.addEventListener("message", (event) => {
+        if (event.data && event.data.source === "@tweaker/extension") {
+          console.log(event.data.payload);
+        }
+      });
+    }
   }
   return globalThis.__TWEAKER__;
 }

@@ -45,15 +45,15 @@ chrome.runtime.onMessage.addListener((message, sender) => {
       sendMessageToDevTools(tabId, { ...message, tabId });
     }
   }
-  return true;
+  return false;
 });
 
 async function saveMessage(message) {
-  const { messages = [] } = await chrome.storage.local.get({ messages: [] });
+  const { messages = [] } = await chrome.storage.session.get({ messages: [] });
 
   messages.push(message);
 
   const MAX_LENGTH = 1000;
 
-  await chrome.storage.local.set({ messages: messages.slice(-MAX_LENGTH) });
+  await chrome.storage.session.set({ messages: messages.slice(-MAX_LENGTH) });
 }

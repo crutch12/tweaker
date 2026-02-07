@@ -9,6 +9,7 @@
   "dependencies": {
     "@devtools-ds/object-inspector": "^1.2.1",
     "@devtools-ds/table": "^1.2.1",
+    "@emotion/css": "^11.13.5",
     "@tweaker/core": "workspace:*",
     "fast-safe-stringify": "^2.1.1",
     "react": "^19.2.4",
