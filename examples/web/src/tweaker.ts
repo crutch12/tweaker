@@ -1,6 +1,7 @@
 import { Tweaker, TweakerSample } from "@tweaker/core";
+import { extensionPlugin } from "@tweaker/extension-plugin";
 
-const tweaker = new Tweaker({ name: "web" });
+const tweaker = new Tweaker({ name: "web", plugins: [extensionPlugin()] });
 
 export function prepareTweakerSamples<T>(
   samples: TweakerSample<T>[],

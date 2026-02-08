@@ -78,6 +78,12 @@ export function App() {
     });
   }, []);
 
+  useEffect(() => {
+    tweaker.ready().then(() => {
+      debugger;
+    });
+  }, []);
+
   return (
     <div>
       <button

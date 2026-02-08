@@ -1,5 +1,5 @@
 {
-  "name": "@tweaker/core",
+  "name": "@tweaker/extension-plugin",
   "version": "0.0.1",
   "type": "module",
   "types": "dist/index.d.ts",
@@ -14,15 +14,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
-    },
-    "./plugin": {
-      "types": "./dist/plugin.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
     }
   },
   "dependencies": {
-    "eventemitter3": "^5.0.4",
-    "minimatch": "^10.1.2"
+    "@tweaker/core": "workspace:*",
+    "klona": "^2.0.6"
   }
 }

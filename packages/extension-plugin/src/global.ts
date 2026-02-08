@@ -1,10 +1,6 @@
-import { Tweaker } from "./Tweaker";
+import { Tweaker, TweakListener } from "@tweaker/core";
 import { version } from "../package.json";
-import {
-  TweakerNewInterceptMessage,
-  TweakerRemoveInterceptMessage,
-  TweakListener,
-} from "./types";
+import { PluginMessages } from "./messages";
 
 declare global {
   var __TWEAKER__: {
@@ -19,14 +15,6 @@ function getGlobalRegistry() {
       version,
       instances: {},
     };
-
-    if ("addEventListener" in globalThis) {
-      globalThis.addEventListener("message", (event) => {
-        if (event.data && event.data.source === "@tweaker/extension") {
-          console.log(event.data.payload);
-        }
-      });
-    }
   }
   return globalThis.__TWEAKER__;
 }
@@ -41,8 +29,8 @@ export function notifyExtensionNewIntercept<T>(
   listener: TweakListener<T>,
 ) {
   if ("postMessage" in globalThis) {
-    const message: TweakerNewInterceptMessage = {
-      source: "@tweaker/core",
+    const message: PluginMessages.NewInterceptMessage = {
+      source: "@tweaker/extension-plugin",
       version,
       type: "new-intercept",
       payload: {
@@ -61,8 +49,8 @@ export function notifyExtensionRemoveIntercept<T>(
   listener: TweakListener<T>,
 ) {
   if ("postMessage" in globalThis) {
-    const message: TweakerRemoveInterceptMessage = {
-      source: "@tweaker/core",
+    const message: PluginMessages.RemoveInterceptMessage = {
+      source: "@tweaker/extension-plugin",
       version,
       type: "remove-intercept",
       payload: {

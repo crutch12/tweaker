@@ -1,14 +1,14 @@
-import { TweakerMessage } from "@tweaker/core";
 import { Table } from "@devtools-ds/table";
 import { ObjectInspector } from "@devtools-ds/object-inspector";
 import { HTMLAttributes, MutableRefObject } from "react";
 import safeStringify from "fast-safe-stringify";
 import { css, keyframes } from "@emotion/css";
+import { PluginMessages } from "@tweaker/extension-plugin";
 
 export interface MessagesTableProps extends HTMLAttributes<HTMLElement> {
-  messages: TweakerMessage["payload"][];
+  messages: PluginMessages.ValueMessage["payload"][];
   ref?: MutableRefObject<any>;
-  onTweak?: (payload: TweakerMessage["payload"]) => void;
+  onTweak?: (payload: PluginMessages.ValueMessage["payload"]) => void;
 }
 
 function textToIndex(text: string, length: number) {
@@ -62,9 +62,14 @@ function getTextColor(text: string) {
   return colors[textToIndex(text, colors.length)];
 }
 
-function BlueButton({ onClick, children, disabled }) {
+interface BlueButtonProps extends HTMLAttributes<HTMLButtonElement> {
+  disabled?: boolean;
+}
+
+function BlueButton({ onClick, children, disabled, ...rest }: BlueButtonProps) {
   return (
     <button
+      {...rest}
       disabled={disabled}
       onClick={onClick}
       className={css`
@@ -122,7 +127,9 @@ export function MessagesTable({
                 <strong>{message.name}</strong>
               </Table.Cell>
               <Table.Cell title={message.key}>{message.key}</Table.Cell>
-              <Table.Cell title={safeStringify(message.originalValue, null, 2)}>
+              <Table.Cell
+                title={safeStringify(message.originalValue, undefined, 2)}
+              >
                 <ObjectInspector
                   sortKeys={false}
                   expandLevel={0}
@@ -131,7 +138,7 @@ export function MessagesTable({
                 />
               </Table.Cell>
               {message.tweaked ? (
-                <Table.Cell title={safeStringify(message.result, null, 2)}>
+                <Table.Cell title={safeStringify(message.result, undefined, 2)}>
                   <ObjectInspector
                     sortKeys={false}
                     expandLevel={0}
@@ -157,7 +164,7 @@ export function MessagesTable({
                 >
                   <BlueButton
                     disabled={message.tweaked}
-                    onClick={() => onTweak(message)}
+                    onClick={() => onTweak?.(message)}
                   >
                     Tweak
                   </BlueButton>

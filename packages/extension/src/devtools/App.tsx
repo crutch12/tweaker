@@ -1,9 +1,10 @@
-import { TweakerMessage, TweakerValueMessage } from "@tweaker/core";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MessagesTable } from "./MessagesTable";
 import { useStickToBottom } from "use-stick-to-bottom";
 import { useVisibilityChange } from "@uidotdev/usehooks";
 import { InterceptorsList, Interceptor } from "./InterceptorsList";
+import { ExtensionMessages, PluginMessages } from "@tweaker/extension-plugin";
+import { version } from "../../package.json";
 
 export function App() {
   const reloadPage = () => {
@@ -41,7 +42,9 @@ export function App() {
 
   const date = useMemo(() => new Date(), []);
 
-  const [messages, setMessages] = useState<TweakerMessage["payload"][]>([]);
+  const [messages, setMessages] = useState<
+    PluginMessages.ValueMessage["payload"][]
+  >([]);
 
   const [interceptors, setInterceptors] = useState<Interceptor[]>([]);
 
@@ -52,9 +55,10 @@ export function App() {
       name: "tweaker-devtools-relay",
     });
 
-    const handleMessage = (message: TweakerMessage) => {
+    const handleMessage = (message: PluginMessages.Message) => {
+      debugger;
       // const currentTabId = chrome.devtools.inspectedWindow.tabId;
-      if (message.source === "@tweaker/core") {
+      if (message.source === "@tweaker/extension-plugin") {
         switch (message.type) {
           case "value": {
             setMessages((v) => [...v, message.payload]);
@@ -84,20 +88,31 @@ export function App() {
 
     portRef.current.onMessage.addListener(handleMessage);
 
+    const initMessage: ExtensionMessages.InitMessage = {
+      source: "@tweaker/extension",
+      version,
+      type: "init",
+      payload: {
+        data: [],
+        name: "wtf",
+        timestamp: Date.now(),
+      },
+    };
+    debugger;
     portRef.current.postMessage({
-      action: "init",
+      ...initMessage,
       tabId: chrome.devtools.inspectedWindow.tabId,
     });
 
     chrome.storage.session
-      .get<{ messages: TweakerMessage[] }>({ messages: [] })
+      .get<{ messages: PluginMessages.ValueMessage[] }>({ messages: [] })
       .then((result) => {
         setMessages((v) => [...v, ...result.messages.map((x) => x.payload)]);
       });
 
     return () => {
-      portRef.current.onMessage.removeListener(handleMessage);
-      portRef.current.disconnect();
+      portRef.current?.onMessage.removeListener(handleMessage);
+      portRef.current?.disconnect();
     };
   }, []);
 
@@ -114,17 +129,28 @@ export function App() {
 
   function sendMessage() {
     const currentTabId = chrome.devtools.inspectedWindow.tabId;
-    chrome.tabs.sendMessage(currentTabId, {
+    const message: ExtensionMessages.InitMessage = {
       source: "@tweaker/extension",
-      payload: "Message from extension!",
-    });
+      version,
+      type: "init",
+      payload: {
+        name: "test",
+        timestamp: Date.now(),
+        data: ["Message from extension!"],
+      },
+    };
+    chrome.tabs.sendMessage(currentTabId, message);
   }
+
+  useEffect(() => {
+    sendMessage();
+  }, []);
 
   const { scrollRef, contentRef } = useStickToBottom({
     mass: 1,
   });
 
-  function newTweak(message: TweakerValueMessage["payload"]) {
+  function newTweak(message: PluginMessages.ValueMessage["payload"]) {
     addInterceptor({
       id: 1,
       appName: message.name,
@@ -139,7 +165,6 @@ export function App() {
   }
 
   function addInterceptor(interceptor: Interceptor) {
-    debugger;
     setInterceptors((v) => {
       const prev = v[v.length - 1];
       return [

@@ -22,8 +22,8 @@ export interface InterceptorsListProps {
 
 export interface InterceptorItemProps {
   interceptor: Interceptor;
-  onChange: (interceptor: Interceptor) => void;
-  onRemove: (interceptor: Interceptor) => void;
+  onChange?: (interceptor: Interceptor) => void;
+  onRemove?: (interceptor: Interceptor) => void;
 }
 
 export function InterceptorItem({
@@ -49,7 +49,7 @@ export function InterceptorItem({
     >
       <div>
         {editableInterceptor.id} - {editableInterceptor.appName} -{" "}
-        {safeStringify(editableInterceptor.patterns, null, 2)}
+        {safeStringify(editableInterceptor.patterns, undefined, 2)}
       </div>
       <div>
         <input
@@ -62,11 +62,11 @@ export function InterceptorItem({
         <input type="text" placeholder="Expression to tweak value" />
       </div>
       <div>
-        <button onClick={() => onChange(editableInterceptor)}>Save</button>
+        <button onClick={() => onChange?.(editableInterceptor)}>Save</button>
         <button onClick={() => setEditableInterceptor(interceptor)}>
           Discard
         </button>
-        <button onClick={() => onRemove(interceptor)}>Remove</button>
+        <button onClick={() => onRemove?.(interceptor)}>Remove</button>
       </div>
     </div>
   );

@@ -5,8 +5,11 @@ const connections = {};
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name !== "tweaker-devtools-relay") return;
 
-  const extensionListener = (message, sender) => {
-    if (message.action === "init") {
+  const extensionListener = (
+    /** @type {import('@tweaker/extension-plugin').ExtensionMessages.InitMessage} */ message,
+    sender,
+  ) => {
+    if (message.source === "@tweaker/extension" && message.type === "init") {
       connections[message.tabId] = port;
       return;
     }
@@ -38,9 +41,12 @@ function sendMessageToDevTools(tabId, data) {
 }
 
 chrome.runtime.onMessage.addListener(
-  (/** @type {import('@tweaker/core').TweakerMessage} */ message, sender) => {
+  (
+    /** @type {import('@tweaker/extension-plugin').PluginMessages.Message} */ message,
+    sender,
+  ) => {
     const tabId = sender.tab?.id;
-    if (message.source === "@tweaker/core") {
+    if (message.source === "@tweaker/extension-plugin") {
       switch (message.type) {
         case "value": {
           saveMessage(message);

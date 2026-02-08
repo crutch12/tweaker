@@ -47,6 +47,9 @@ importers:
       '@tweaker/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@tweaker/extension-plugin':
+        specifier: workspace:*
+        version: link:../../packages/extension-plugin
       react:
         specifier: ^19.2.4
         version: 19.2.4
@@ -59,9 +62,6 @@ importers:
       eventemitter3:
         specifier: ^5.0.4
         version: 5.0.4
-      klona:
-        specifier: ^2.0.6
-        version: 2.0.6
       minimatch:
         specifier: ^10.1.2
         version: 10.1.2
@@ -80,6 +80,9 @@ importers:
       '@tweaker/core':
         specifier: workspace:*
         version: link:../core
+      '@tweaker/extension-plugin':
+        specifier: workspace:*
+        version: link:../extension-plugin
       '@uidotdev/usehooks':
         specifier: ^2.4.1
         version: 2.4.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -95,6 +98,15 @@ importers:
       use-stick-to-bottom:
         specifier: ^1.1.3
         version: 1.1.3(react@19.2.4)
+
+  packages/extension-plugin:
+    dependencies:
+      '@tweaker/core':
+        specifier: workspace:*
+        version: link:../core
+      klona:
+        specifier: ^2.0.6
+        version: 2.0.6
 
 packages:
 

@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "pnpm --filter '@tweaker/*' run build",
-    "build:dev": "pnpm --filter '@tweaker/*' run build:dev",
+    "build:dev": "pnpm --parallel --filter '@tweaker/*' run build:dev",
     "example:node": "cd examples/node && pnpm run dev",
     "example:web": "cd examples/web && pnpm run dev"
   },

@@ -1,20 +1,12 @@
 import {
-  notifyExtensionNewIntercept,
-  notifyExtensionRemoveIntercept,
-  registerInstance,
-} from "./global";
-import {
   RemoveListener,
   TweakerKey,
-  TweakerMessage,
   TweakHandler,
   TweakListener,
 } from "./types";
 import { minimatch } from "minimatch";
 import { EventEmitter } from "eventemitter3";
-import { version } from "../package.json";
-import { klona } from "klona/json";
-import { TweakerValueMessage } from "../dist";
+import { TweakerPlugin } from "./plugin";
 
 export interface InterceptOptions {
   once: boolean;
@@ -46,9 +38,11 @@ export interface TweakerOptions {
    * Unique Tweaker name
    */
   name: string;
+  /**
+   * Extra plugins (e.g. @tweaker/extension-plugin)
+   */
+  plugins?: TweakerPlugin[];
 }
-
-export type EventKeys = "value";
 
 function keyMatchesPatterns(key: string, patterns: readonly string[]) {
   for (const pattern of patterns) {
@@ -62,6 +56,7 @@ function keyMatchesPatterns(key: string, patterns: readonly string[]) {
 
 export class Tweaker {
   public readonly name: string;
+  public readonly plugins: TweakerPlugin[];
 
   private readonly eventEmitter = new EventEmitter<{
     value: (
@@ -70,42 +65,29 @@ export class Tweaker {
       originalValue: unknown,
       result?: unknown,
     ) => void;
+    "intercept.new": <T>(listener: TweakListener<T>) => void;
+    "intercept.remove": <T>(listener: TweakListener<T>) => void;
   }>();
 
-  constructor({ name }: TweakerOptions) {
+  constructor({ name, plugins }: TweakerOptions) {
     this.name = name;
-    registerInstance(this);
+    this.plugins = plugins ?? [];
     this.setup();
   }
 
   private setup() {
-    if ("postMessage" in globalThis) {
-      this.subscribe(
-        "*",
-        (key, tweaked, originalValue, result) => {
-          const message: TweakerValueMessage = {
-            source: "@tweaker/core",
-            version,
-            type: "value",
-            payload: {
-              name: this.name,
-              key,
-              originalValue: klona(originalValue),
-              result: klona(result),
-              timestamp: Date.now(),
-              tweaked,
-            },
-          };
-          globalThis.postMessage(message, "*");
-        },
-        { mode: "all" },
-      );
-    }
+    this.plugins.forEach((plugin) => {
+      plugin.setup(this);
+    });
+  }
+
+  public async ready() {
+    return Promise.all(this.plugins.map((plugin) => plugin.ready()));
   }
 
   private listeners = new Set<TweakListener<any>>([]);
 
-  value<T>(
+  public value<T>(
     key: TweakerKey,
     value: T,
     options?: Partial<TweakerValueOptions<T>>,
@@ -115,7 +97,7 @@ export class Tweaker {
     return value;
   }
 
-  intercept<T>(
+  public intercept<T>(
     patterns: string | readonly string[],
     handler: TweakHandler<T>,
     options: InterceptOptions,
@@ -129,16 +111,15 @@ export class Tweaker {
 
     this.listeners.add(listener);
 
-    notifyExtensionNewIntercept(this, listener);
+    this.eventEmitter.emit("intercept.new", listener as TweakListener<unknown>);
 
     return () => {
       this.listeners.delete(listener);
-      notifyExtensionRemoveIntercept(this, listener);
+      this.eventEmitter.emit(
+        "intercept.remove",
+        listener as TweakListener<unknown>,
+      );
     };
-  }
-
-  interceptAfter(): RemoveListener {
-    return () => {};
   }
 
   private debug(...args: any[]) {
@@ -203,14 +184,6 @@ export class Tweaker {
     }
   }
 
-  // private async handleAfter(key: TweakerKey, result: unknown): boolean {
-  //   this.debug(key, "after", result);
-  // }
-
-  // private handleValue(key: TweakerKey, value: unknown) {
-  //   this.debug(key, "value", value);
-  // }
-
   public subscribe(
     patterns: string | readonly string[],
     fn: (
@@ -236,6 +209,16 @@ export class Tweaker {
     this.eventEmitter.addListener("value", handler);
     return () => {
       this.eventEmitter.removeListener("value", handler);
+    };
+  }
+
+  public on(
+    event: "intercept.new" | "intercept.remove",
+    fn: <T>(listener: TweakListener<T>) => void,
+  ) {
+    this.eventEmitter.addListener(event, fn);
+    return () => {
+      this.eventEmitter.removeListener(event, fn);
     };
   }
 
