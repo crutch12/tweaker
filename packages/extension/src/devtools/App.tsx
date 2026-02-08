@@ -57,6 +57,7 @@ export function App() {
 
     const handleMessage = (message: PluginMessages.Message) => {
       // const currentTabId = chrome.devtools.inspectedWindow.tabId;
+      debugger;
       if (message.source === "@tweaker/extension-plugin") {
         switch (message.type) {
           case "value": {
@@ -97,7 +98,7 @@ export function App() {
         timestamp: Date.now(),
       },
     };
-    debugger;
+    // debugger;
     portRef.current.postMessage({
       ...initMessage,
       tabId: chrome.devtools.inspectedWindow.tabId,
@@ -235,7 +236,7 @@ export function App() {
             <InterceptorsList
               interceptors={interceptors}
               onInterceptorChange={() => {
-                debugger;
+                // debugger;
               }}
               onInterceptorRemove={(i) => removeInterceptor(i.appName, i.id)}
             />

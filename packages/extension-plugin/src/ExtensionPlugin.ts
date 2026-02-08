@@ -54,38 +54,39 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
     if (!("addEventListener" in globalThis)) return;
     if (!("postMessage" in globalThis)) return;
 
-    const promise = new Promise<void>((resolve) => {
-      globalThis.addEventListener(
-        "message",
-        (event: MessageEvent<ExtensionMessages.Message>) => {
-          if (
-            event.data &&
-            event.data.source === "@tweaker/extension" &&
-            event.data.type === "init"
-          ) {
-            debugger;
-            resolve();
-          }
+    function notify() {
+      debugger;
+      const message: PluginMessages.InitMessage = {
+        source: "@tweaker/extension-plugin",
+        version,
+        type: "init",
+        payload: {
+          name: _instance.name,
+          timestamp: Date.now(),
         },
-      );
-    }).then(() => {
-      // const message: PluginMessages.InitMessage = {
-      //   source: "@tweaker/extension-plugin",
-      //   version,
-      //   type: "init",
-      //   payload: {
-      //     name: _instance.name,
-      //     timestamp: Date.now(),
-      //   },
-      // };
-      // globalThis.postMessage(message, "*");
-    });
+      };
+      globalThis.postMessage(message, "*");
+    }
+
+    const promise = new Promise<void>((resolve) => {
+      const handler = (event: MessageEvent<ExtensionMessages.Message>) => {
+        if (
+          event.data &&
+          event.data.source === "@tweaker/extension" &&
+          event.data.type === "init"
+        ) {
+          globalThis.removeEventListener("message", handler);
+          resolve();
+        }
+      };
+      globalThis.addEventListener("message", handler);
+    }).then(() => notify());
 
     promises.push(promise);
 
     globalThis.addEventListener("message", (event) => {
       if (event.data && event.data.source === "@tweaker/extension") {
-        debugger;
+        // debugger;
         console.log(event.data.payload);
       }
     });
