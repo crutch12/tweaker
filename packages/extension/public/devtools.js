@@ -6,12 +6,12 @@ chrome.devtools.inspectedWindow.eval(
         "Tweaker",
         "icon.png",
         "src/devtools/index.html",
-        (panel) => {
-          panel.onShown(() => {
-            alert("shown");
-          });
-          panel.show();
-        },
+        // (panel) => {
+        //   panel.onShown(() => {
+        //     alert("shown");
+        //   });
+        //   panel.show();
+        // },
       );
     }
   },

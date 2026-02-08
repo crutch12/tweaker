@@ -1,13 +1,14 @@
 /// <reference lib="webworker" />
 
-const connections = {};
+import { ExtensionMessages, PluginMessages } from "@tweaker/extension-plugin";
+
+const connections: Record<number, chrome.runtime.Port> = {};
 
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name !== "tweaker-devtools-relay") return;
 
   const extensionListener = (
-    /** @type {import('@tweaker/extension-plugin').ExtensionMessages.InitMessage} */ message,
-    sender,
+    message: ExtensionMessages.InitMessage & { tabId: number },
   ) => {
     if (message.source === "@tweaker/extension" && message.type === "init") {
       connections[message.tabId] = port;
@@ -34,17 +35,17 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-function sendMessageToDevTools(tabId, data) {
+function sendMessageToDevTools(
+  tabId: number,
+  data: PluginMessages.Message & { tabId: number },
+) {
   if (connections[tabId]) {
     connections[tabId].postMessage(data);
   }
 }
 
 chrome.runtime.onMessage.addListener(
-  (
-    /** @type {import('@tweaker/extension-plugin').PluginMessages.Message} */ message,
-    sender,
-  ) => {
+  (message: PluginMessages.Message, sender) => {
     const tabId = sender.tab?.id;
     if (message.source === "@tweaker/extension-plugin") {
       switch (message.type) {
@@ -66,8 +67,10 @@ chrome.runtime.onMessage.addListener(
   },
 );
 
-async function saveMessage(message) {
-  const { messages = [] } = await chrome.storage.session.get({ messages: [] });
+async function saveMessage(message: PluginMessages.ValueMessage) {
+  const { messages = [] } = await chrome.storage.session.get<{
+    messages: PluginMessages.ValueMessage[];
+  }>({ messages: [] });
 
   messages.push(message);
 

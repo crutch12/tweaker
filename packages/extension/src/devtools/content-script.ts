@@ -1,8 +1,8 @@
+import { PluginMessages } from "@tweaker/extension-plugin";
+
 window.addEventListener(
   "message",
-  (
-    /** @type {MessageEvent<import('@tweaker/extension-plugin').PluginMessages.Message>} */ event,
-  ) => {
+  (event: MessageEvent<PluginMessages.Message>) => {
     if (event.data && event.data.source === "@tweaker/extension-plugin") {
       chrome.runtime.sendMessage(event.data);
     }
