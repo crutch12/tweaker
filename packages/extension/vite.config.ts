@@ -1,8 +1,9 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { pollReloadPlugin } from "../../vite-plugins/pollReloadPlugin";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), pollReloadPlugin()],
 
   build: {
     minify: false,
