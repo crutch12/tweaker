@@ -56,7 +56,6 @@ export function App() {
     });
 
     const handleMessage = (message: PluginMessages.Message) => {
-      debugger;
       // const currentTabId = chrome.devtools.inspectedWindow.tabId;
       if (message.source === "@tweaker/extension-plugin") {
         switch (message.type) {
@@ -142,9 +141,9 @@ export function App() {
     chrome.tabs.sendMessage(currentTabId, message);
   }
 
-  useEffect(() => {
-    sendMessage();
-  }, []);
+  // useEffect(() => {
+  //   sendMessage();
+  // }, []);
 
   const { scrollRef, contentRef } = useStickToBottom({
     mass: 1,

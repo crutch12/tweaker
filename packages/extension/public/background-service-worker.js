@@ -75,3 +75,24 @@ async function saveMessage(message) {
 
   await chrome.storage.session.set({ messages: messages.slice(-MAX_LENGTH) });
 }
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  // We look for 'complete' status so the content script is likely ready
+  if (changeInfo.status === "complete") {
+    // console.log('App opened/refreshed in tab:', tabId);
+
+    // debugger;
+
+    // Trigger something in the content script
+    chrome.tabs.sendMessage(tabId, {
+      source: "@tweaker/extension",
+      version: "123",
+      type: "init",
+      payload: {
+        data: [],
+        name: "wtf",
+        timestamp: Date.now(),
+      },
+    });
+  }
+});

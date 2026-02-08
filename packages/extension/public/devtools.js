@@ -6,7 +6,37 @@ chrome.devtools.inspectedWindow.eval(
         "Tweaker",
         "icon.png",
         "src/devtools/index.html",
+        (panel) => {
+          panel.onShown(() => {
+            alert("shown");
+          });
+          panel.show();
+        },
       );
     }
   },
 );
+
+// const currentTabId = chrome.devtools.inspectedWindow.tabId;
+
+// alert(currentTabId);
+
+// const message = {
+//   source: "@tweaker/extension",
+//   version,
+//   type: "init",
+//   payload: {
+//     name: "test",
+//     timestamp: Date.now(),
+//     data: ["Message from extension!"],
+//   },
+// };
+
+// chrome.tabs
+//   .sendMessage(currentTabId, message)
+//   .then(() => {
+//     alert("message sent");
+//   })
+//   .catch((err) => {
+//     alert(err);
+//   });

@@ -11,6 +11,7 @@ window.addEventListener(
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.source === "@tweaker/extension") {
+    // alert("tweaker/extension");
     window.postMessage(message, "*");
   }
 });
