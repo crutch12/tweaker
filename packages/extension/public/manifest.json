@@ -10,7 +10,8 @@
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
-      "js": ["tweaker-content-script.js"]
+      "js": ["tweaker-content-script.js"],
+      "type": "module"
     }
   ],
   "background": {

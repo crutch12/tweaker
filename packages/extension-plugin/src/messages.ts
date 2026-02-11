@@ -6,11 +6,28 @@ interface PluginAnyMessage<T, P> {
 }
 
 export namespace PluginMessages {
+  export type PingMessage = PluginAnyMessage<
+    "ping",
+    {
+      name: string;
+      timestamp: number;
+    }
+  >;
+
+  export type PongMessage = PluginAnyMessage<
+    "pong",
+    {
+      name: string;
+      timestamp: number;
+    }
+  >;
+
   export type InitMessage = PluginAnyMessage<
     "init",
     {
       name: string;
       timestamp: number;
+      data: string[];
     }
   >;
 
@@ -45,6 +62,8 @@ export namespace PluginMessages {
   >;
 
   export type Message =
+    | PingMessage
+    | PongMessage
     | InitMessage
     | ValueMessage
     | NewInterceptMessage
@@ -59,6 +78,21 @@ interface ExtensionAnyMessage<T, P> {
 }
 
 export namespace ExtensionMessages {
+  export type PingMessage = ExtensionAnyMessage<
+    "ping",
+    {
+      timestamp: number;
+    }
+  >;
+
+  export type PongMessage = ExtensionAnyMessage<
+    "pong",
+    {
+      name: string;
+      timestamp: number;
+    }
+  >;
+
   export type InitMessage = ExtensionAnyMessage<
     "init",
     {
@@ -68,5 +102,5 @@ export namespace ExtensionMessages {
     }
   >;
 
-  export type Message = InitMessage;
+  export type Message = PingMessage | PongMessage | InitMessage;
 }

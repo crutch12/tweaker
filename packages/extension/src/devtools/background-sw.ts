@@ -82,20 +82,24 @@ async function saveMessage(message: PluginMessages.ValueMessage) {
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   // We look for 'complete' status so the content script is likely ready
   if (changeInfo.status === "complete") {
+    // chrome.tabs.get(tabId).then((r) => {
+    //   debugger;
+    // });
+    // chrome.devtools.inspectedWindow.eval("document.title", (result) => {
+    //   alert("Page title: " + result);
+    // });
     // console.log('App opened/refreshed in tab:', tabId);
-
     // debugger;
-
     // Trigger something in the content script
-    chrome.tabs.sendMessage(tabId, {
-      source: "@tweaker/extension",
-      version: "123",
-      type: "init",
-      payload: {
-        data: [],
-        name: "wtf",
-        timestamp: Date.now(),
-      },
-    });
+    // chrome.tabs.sendMessage(tabId, {
+    //   source: "@tweaker/extension",
+    //   version: "123",
+    //   type: "init",
+    //   payload: {
+    //     data: [],
+    //     name: "wtf",
+    //     timestamp: Date.now(),
+    //   },
+    // });
   }
 });

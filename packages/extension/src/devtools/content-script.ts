@@ -1,4 +1,10 @@
-import { PluginMessages } from "@tweaker/extension-plugin";
+import type {
+  PluginMessages,
+  ExtensionMessages,
+} from "@tweaker/extension-plugin";
+// import { version } from "../../package.json";
+
+const version = "0.0.1"; // @FIXME
 
 window.addEventListener(
   "message",
@@ -15,3 +21,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     window.postMessage(message, "*");
   }
 });
+
+function init() {
+  const message: ExtensionMessages.PingMessage = {
+    type: "ping",
+    payload: {
+      timestamp: Date.now(),
+    },
+    source: "@tweaker/extension",
+    version,
+  };
+  window.postMessage(message, "*");
+}
+
+// document.addEventListener("DOMContentLoaded", () => {
+//   debugger;
+// });
+
+init();

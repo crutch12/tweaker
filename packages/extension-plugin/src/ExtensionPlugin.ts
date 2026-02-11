@@ -8,7 +8,7 @@ import {
   notifyExtensionNewIntercept,
   notifyExtensionRemoveIntercept,
 } from "./global";
-import { ExtensionMessages } from "../dist";
+import { ExtensionMessages } from "./messages";
 
 export interface ExtensionPluginOptions {}
 
@@ -54,12 +54,11 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
     if (!("addEventListener" in globalThis)) return;
     if (!("postMessage" in globalThis)) return;
 
-    function notify() {
-      debugger;
-      const message: PluginMessages.InitMessage = {
+    function notify(type: "ping" | "pong") {
+      const message: PluginMessages.PingMessage | PluginMessages.PongMessage = {
         source: "@tweaker/extension-plugin",
         version,
-        type: "init",
+        type,
         payload: {
           name: _instance.name,
           timestamp: Date.now(),
@@ -68,19 +67,46 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
       globalThis.postMessage(message, "*");
     }
 
+    function init() {
+      const message: PluginMessages.InitMessage = {
+        source: "@tweaker/extension-plugin",
+        version,
+        type: "init",
+        payload: {
+          name: _instance.name,
+          timestamp: Date.now(),
+          data: ["test from plugin"],
+        },
+      };
+      globalThis.postMessage(message, "*");
+    }
+
     const promise = new Promise<void>((resolve) => {
-      const handler = (event: MessageEvent<ExtensionMessages.Message>) => {
+      const handler = (
+        event: MessageEvent<
+          ExtensionMessages.PongMessage | ExtensionMessages.PingMessage
+        >,
+      ) => {
         if (
           event.data &&
           event.data.source === "@tweaker/extension" &&
-          event.data.type === "init"
+          event.data.type === "ping"
+        ) {
+          debugger;
+          notify("pong");
+        }
+
+        if (
+          event.data &&
+          event.data.source === "@tweaker/extension" &&
+          event.data.type === "pong"
         ) {
           globalThis.removeEventListener("message", handler);
           resolve();
         }
       };
       globalThis.addEventListener("message", handler);
-    }).then(() => notify());
+    }).then(() => init());
 
     promises.push(promise);
 
