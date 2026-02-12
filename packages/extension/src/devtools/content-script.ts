@@ -2,9 +2,10 @@ import type {
   PluginMessages,
   ExtensionMessages,
 } from "@tweaker/extension-plugin";
-// import { version } from "../../package.json";
 
-const version = "0.0.1"; // @FIXME
+// @TODO: restrict any import (except types)
+
+const version = import.meta.env.VERSION;
 
 window.addEventListener(
   "message",

@@ -1,6 +1,6 @@
 import { TweakerPlugin } from "@tweaker/core/plugin";
 import { version, name } from "../package.json";
-import { PluginMessages } from "./messages";
+import { ExtensionMessages, PluginMessages } from "./messages";
 import { klona } from "klona/json";
 import { Tweaker } from "@tweaker/core";
 import {
@@ -8,7 +8,6 @@ import {
   notifyExtensionNewIntercept,
   notifyExtensionRemoveIntercept,
 } from "./global";
-import { ExtensionMessages } from "./messages";
 
 export interface ExtensionPluginOptions {}
 

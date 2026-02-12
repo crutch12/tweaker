@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
     "types": ["vite/client", "chrome"],
-    "moduleResolution": "nodenext",
-    "module": "nodenext",
+    "moduleResolution": "bundler",
+    "target": "es2020",
+    "module": "es2020",
     "jsx": "react-jsx",
     "strict": true
   },

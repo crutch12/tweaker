@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
     "types": ["vite/client"],
-    "moduleResolution": "nodenext",
-    "module": "nodenext",
+    "moduleResolution": "bundler",
+    "target": "es2020",
+    "module": "es2020",
     "jsx": "react-jsx"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/vite-env.d.ts"]
