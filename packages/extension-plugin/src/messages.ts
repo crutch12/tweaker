@@ -49,6 +49,7 @@ export namespace PluginMessages {
       name: string;
       patterns: string[];
       interactive: boolean;
+      source: string;
     }[]
   >;
 
@@ -59,6 +60,7 @@ export namespace PluginMessages {
       name: string;
       patterns: string[];
       interactive: boolean;
+      source: string;
     }
   >;
 
@@ -112,5 +114,24 @@ export namespace ExtensionMessages {
     }
   >;
 
-  export type Message = PingMessage | PongMessage | InitMessage;
+  export type InterceptersMessage = ExtensionAnyMessage<
+    "intercepters",
+    {
+      name: string;
+      timestamp: number;
+      data: {
+        id: number;
+        name: string;
+        patterns: string[];
+        interactive: boolean;
+        expression?: string;
+      }[];
+    }
+  >;
+
+  export type Message =
+    | PingMessage
+    | PongMessage
+    | InitMessage
+    | InterceptersMessage;
 }

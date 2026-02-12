@@ -43,11 +43,15 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
     );
 
     _instance.on("intercept.new", (listener) => {
-      notifyExtensionNewIntercept(_instance, listener);
+      if (listener.source === "@tweaker/core") {
+        notifyExtensionNewIntercept(_instance, listener);
+      }
     });
 
     _instance.on("intercept.remove", (listener) => {
-      notifyExtensionRemoveIntercept(_instance, listener);
+      if (listener.source === "@tweaker/core") {
+        notifyExtensionRemoveIntercept(_instance, listener);
+      }
     });
   }
 
@@ -104,12 +108,39 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
 
     promises.push(promise);
 
-    globalThis.addEventListener("message", (event) => {
-      if (event.data && event.data.source === "@tweaker/extension") {
-        // debugger;
-        console.log(event.data.payload);
-      }
-    });
+    globalThis.addEventListener(
+      "message",
+      (event: MessageEvent<ExtensionMessages.Message>) => {
+        if (event.data && event.data.source === "@tweaker/extension") {
+          debugger;
+          console.log(event.data.payload);
+          switch (event.data.type) {
+            case "intercepters": {
+              debugger;
+              for (const listener of event.data.payload.data) {
+                if (_instance.hasListener(listener.id)) {
+                  _instance.removeListener(listener.id);
+                }
+                _instance.intercept(
+                  listener.patterns,
+                  (key, value) => {
+                    if (listener.expression) {
+                      return eval(listener.expression);
+                    }
+                  },
+                  {
+                    id: listener.id,
+                    source: event.data.source,
+                    interactive: listener.interactive,
+                  },
+                );
+              }
+              break;
+            }
+          }
+        }
+      },
+    );
   }
 
   return {

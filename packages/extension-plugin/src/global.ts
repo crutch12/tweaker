@@ -73,6 +73,7 @@ export function notifyExtensionNewIntercept<T>(
         name: instance.name,
         patterns: listener.patterns,
         interactive: listener.interactive,
+        source: "@tweaker/extension-plugin",
       },
     };
     globalThis.postMessage(message, "*");

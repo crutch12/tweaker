@@ -2,9 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { MessagesTable } from "./MessagesTable";
 import { useStickToBottom } from "use-stick-to-bottom";
 import { useVisibilityChange } from "@uidotdev/usehooks";
-import { InterceptorsList, Interceptor } from "./InterceptorsList";
+import { InterceptersList, Intercepter } from "./InterceptersList";
 import { ExtensionMessages, PluginMessages } from "@tweaker/extension-plugin";
-import { version } from "../../package.json";
+import { version, name } from "../../package.json";
+import { useInterceptersStore } from "./useInterceptersStore";
+import { css } from "@emotion/css";
 
 export function App() {
   const reloadPage = () => {
@@ -46,7 +48,9 @@ export function App() {
     PluginMessages.ValueMessage["payload"][]
   >([]);
 
-  const [interceptors, setInterceptors] = useState<Interceptor[]>([]);
+  const intercepters = useInterceptersStore((state) => state.intercepters);
+  const addIntercepters = useInterceptersStore((state) => state.add);
+  const removeIntercepters = useInterceptersStore((state) => state.remove);
 
   const portRef = useRef<chrome.runtime.Port>(undefined);
 
@@ -57,7 +61,7 @@ export function App() {
 
     const handleMessage = (message: PluginMessages.Message) => {
       // const currentTabId = chrome.devtools.inspectedWindow.tabId;
-      debugger;
+      // debugger;
       if (message.source === "@tweaker/extension-plugin") {
         switch (message.type) {
           case "value": {
@@ -65,21 +69,24 @@ export function App() {
             break;
           }
           case "new-intercept": {
-            addInterceptor({
-              appName: message.payload.name,
-              enabled: true,
-              id: message.payload.id,
-              interactive: message.payload.interactive,
-              patterns: message.payload.patterns,
-              expression: undefined,
-              fromKey: undefined,
-              sampleId: undefined,
-              sampleIds: undefined,
-            });
+            addIntercepters([
+              {
+                appName: message.payload.name,
+                enabled: true,
+                id: message.payload.id,
+                interactive: message.payload.interactive,
+                patterns: message.payload.patterns,
+                expression: undefined,
+                fromKey: undefined,
+                sampleId: undefined,
+                sampleIds: undefined,
+                source: message.payload.source,
+              },
+            ]);
             break;
           }
           case "remove-intercept": {
-            removeInterceptor(message.payload.name, message.payload.id);
+            removeIntercepters([{ id: message.payload.id }]);
             break;
           }
         }
@@ -151,37 +158,46 @@ export function App() {
   });
 
   function newTweak(message: PluginMessages.ValueMessage["payload"]) {
-    addInterceptor({
-      id: 1,
-      appName: message.name,
-      patterns: [message.key],
-      fromKey: message.key,
-      sampleIds: [],
-      sampleId: undefined,
-      interactive: false,
-      enabled: true,
-      expression: undefined,
-    });
+    addIntercepters([
+      {
+        id: Math.ceil(Math.random() * 1_000_000_000),
+        appName: message.name,
+        patterns: [message.key],
+        fromKey: message.key,
+        sampleIds: [],
+        sampleId: undefined,
+        interactive: false,
+        enabled: true,
+        expression: undefined,
+        source: "@tweaker/extension",
+      },
+    ]);
   }
 
-  function addInterceptor(interceptor: Interceptor) {
-    setInterceptors((v) => {
-      const prev = v[v.length - 1];
-      return [
-        ...v,
-        {
-          ...interceptor,
-          id: prev ? prev.id : interceptor.id,
+  useEffect(() => {
+    if (portRef.current) {
+      const message: ExtensionMessages.InterceptersMessage = {
+        type: "intercepters",
+        version,
+        source: "@tweaker/extension",
+        payload: {
+          name: "test",
+          timestamp: Date.now(),
+          data: intercepters.map((intercepter) => ({
+            id: intercepter.id,
+            name: intercepter.appName,
+            patterns: intercepter.patterns,
+            interactive: intercepter.interactive,
+            expression: intercepter.expression,
+          })),
         },
-      ];
-    });
-  }
-
-  function removeInterceptor(appName: string, id: number) {
-    setInterceptors((v) =>
-      v.filter((i) => i.id !== id && i.appName !== appName),
-    );
-  }
+      };
+      portRef.current.postMessage({
+        ...message,
+        tabId: chrome.devtools.inspectedWindow.tabId,
+      });
+    }
+  }, [intercepters]);
 
   return (
     <div
@@ -202,12 +218,21 @@ export function App() {
         <button onClick={clearData}>Clear Data</button>
         <button onClick={sendMessage}>Send Message</button>
       </div>
-      <div>
+      <div
+        className={css`
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          height: calc(100vh - 100px);
+
+          > div {
+            flex: 1;
+            overflow: auto;
+          }
+        `}
+      >
         {messages.length > 0 ? (
-          <div
-            ref={scrollRef}
-            style={{ maxHeight: "40vh", minHeight: "40vh", overflow: "auto" }}
-          >
+          <div ref={scrollRef}>
             <MessagesTable
               onTweak={newTweak}
               ref={contentRef}
@@ -229,18 +254,18 @@ export function App() {
             <span>from in-page code to see logs...</span>
           </div>
         )}
-        {interceptors.length > 0 && (
-          <div
-            style={{ maxHeight: "40vh", minHeight: "40vh", overflow: "auto" }}
-          >
-            <InterceptorsList
-              interceptors={interceptors}
-              onInterceptorChange={() => {
+        {intercepters.length > 0 ? (
+          <div>
+            <InterceptersList
+              intercepters={intercepters}
+              onIntercepterChange={() => {
                 // debugger;
               }}
-              onInterceptorRemove={(i) => removeInterceptor(i.appName, i.id)}
+              onIntercepterRemove={(i) => removeIntercepters([i])}
             />
           </div>
+        ) : (
+          <div>Intercepters are empty</div>
         )}
       </div>
     </div>

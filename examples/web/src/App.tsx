@@ -55,7 +55,7 @@ export function App() {
   useEffect(() => {
     if (tweakerEnabled) {
       return tweaker.intercept(
-        "users.gen*",
+        "users.*",
         (key, value): User => {
           return {
             ...value,

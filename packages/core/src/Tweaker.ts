@@ -11,12 +11,14 @@ import { TweakerPlugin } from "./plugin";
 const source = "@tweaker/core";
 
 export interface InterceptOptions {
-  once: boolean;
-  count: number;
+  once?: boolean;
+  count?: number;
   /**
    * Calls "debugger" when tweaks result
    */
   interactive: boolean;
+  source?: string;
+  id?: number;
 }
 
 export interface SubscribeOptions {
@@ -87,7 +89,7 @@ export class Tweaker {
     return Promise.all(this.plugins.map((plugin) => plugin.ready()));
   }
 
-  private listeners = new Set<TweakListener<any>>([]);
+  private listeners = new Map<number, TweakListener<any>>([]);
 
   public value<T>(
     key: TweakerKey,
@@ -105,20 +107,20 @@ export class Tweaker {
     options: InterceptOptions,
   ): RemoveListener {
     const listener: TweakListener<T> = {
-      id: Math.ceil(Math.random() * 1_000_000_000),
+      id: options.id ?? Math.ceil(Math.random() * 1_000_000_000),
       interactive: options.interactive,
       patterns: Array.isArray(patterns) ? patterns : [patterns],
       handler,
-      source,
+      source: options.source || source,
       enabled: true,
     };
 
-    this.listeners.add(listener);
+    this.listeners.set(listener.id, listener);
 
     this.eventEmitter.emit("intercept.new", listener as TweakListener<unknown>);
 
     return () => {
-      this.listeners.delete(listener);
+      this.listeners.delete(listener.id);
       this.eventEmitter.emit(
         "intercept.remove",
         listener as TweakListener<unknown>,
@@ -141,7 +143,7 @@ export class Tweaker {
   private findListeners(key: TweakerKey) {
     const listeners: TweakListener<any>[] = [];
 
-    for (const listener of this.listeners) {
+    for (const listener of this.listeners.values()) {
       const found = keyMatchesPatterns(key, listener.patterns);
       if (found) {
         listeners.push(listener);
@@ -233,5 +235,13 @@ export class Tweaker {
 
   public getListeners(): TweakListener<any>[] {
     return Array.from(this.listeners.values());
+  }
+
+  public hasListener(id: number) {
+    return this.listeners.has(id);
+  }
+
+  public removeListener(id: number) {
+    return this.listeners.delete(id);
   }
 }
