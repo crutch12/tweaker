@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 
 import { ExtensionMessages, PluginMessages } from "@tweaker/extension-plugin";
+import { version } from "../../package.json";
 
 const connections: Record<number, chrome.runtime.Port> = {};
 
@@ -49,6 +50,19 @@ chrome.runtime.onMessage.addListener(
     const tabId = sender.tab?.id;
     if (message.source === "@tweaker/extension-plugin") {
       switch (message.type) {
+        case "ping": {
+          const _message: ExtensionMessages.PongMessage = {
+            source: "@tweaker/extension",
+            version,
+            type: "pong",
+            payload: {
+              name: message.payload.name,
+              timestamp: Date.now(),
+            },
+          };
+          chrome.tabs.sendMessage(tabId!, _message);
+          break;
+        }
         case "value": {
           saveMessage(message);
           if (tabId) {

@@ -24,6 +24,41 @@ export function registerInstance(instance: Tweaker) {
   registry.instances[instance.name] = instance;
 }
 
+export function notifyExtensionInit<T>(instance: Tweaker) {
+  if ("postMessage" in globalThis) {
+    const message: PluginMessages.InitMessage = {
+      source: "@tweaker/extension-plugin",
+      version,
+      type: "init",
+      payload: {
+        name: instance.name,
+        timestamp: Date.now(),
+      },
+    };
+    globalThis.postMessage(message, "*");
+  }
+}
+
+export function notifyExtensionIntercepters<T>(
+  instance: Tweaker,
+  listeners: TweakListener<T>[],
+) {
+  if ("postMessage" in globalThis) {
+    const message: PluginMessages.InterceptersMessage = {
+      source: "@tweaker/extension-plugin",
+      version,
+      type: "intercepters",
+      payload: listeners.map((listener) => ({
+        id: listener.id,
+        name: instance.name,
+        patterns: listener.patterns,
+        interactive: listener.interactive,
+      })),
+    };
+    globalThis.postMessage(message, "*");
+  }
+}
+
 export function notifyExtensionNewIntercept<T>(
   instance: Tweaker,
   listener: TweakListener<T>,
@@ -40,7 +75,7 @@ export function notifyExtensionNewIntercept<T>(
         interactive: listener.interactive,
       },
     };
-    globalThis.postMessage(message);
+    globalThis.postMessage(message, "*");
   }
 }
 
@@ -58,6 +93,6 @@ export function notifyExtensionRemoveIntercept<T>(
         id: listener.id,
       },
     };
-    globalThis.postMessage(message);
+    globalThis.postMessage(message, "*");
   }
 }

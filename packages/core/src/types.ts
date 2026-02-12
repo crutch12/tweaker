@@ -2,9 +2,11 @@ export type TweakerKey = string;
 
 export interface TweakListener<T> {
   id: number;
+  source: string;
   interactive: boolean;
   patterns: string[];
   handler: TweakHandler<T>;
+  enabled: boolean;
 }
 
 // type SyncOnly<T> = T extends Promise<any> ? "Error: Async functions are not allowed" : T;

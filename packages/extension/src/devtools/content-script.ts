@@ -7,6 +7,7 @@ import type {
 
 const version = import.meta.env.VERSION;
 
+// plugin -> extension
 window.addEventListener(
   "message",
   (event: MessageEvent<PluginMessages.Message>) => {
@@ -16,6 +17,7 @@ window.addEventListener(
   },
 );
 
+// extension -> plugin
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.source === "@tweaker/extension") {
     // alert("tweaker/extension");

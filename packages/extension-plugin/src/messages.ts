@@ -27,7 +27,6 @@ export namespace PluginMessages {
     {
       name: string;
       timestamp: number;
-      data: string[];
     }
   >;
 
@@ -41,6 +40,16 @@ export namespace PluginMessages {
       timestamp: number;
       tweaked: boolean;
     }
+  >;
+
+  export type InterceptersMessage = PluginAnyMessage<
+    "intercepters",
+    {
+      id: number;
+      name: string;
+      patterns: string[];
+      interactive: boolean;
+    }[]
   >;
 
   export type NewInterceptMessage = PluginAnyMessage<
@@ -66,6 +75,7 @@ export namespace PluginMessages {
     | PongMessage
     | InitMessage
     | ValueMessage
+    | InterceptersMessage
     | NewInterceptMessage
     | RemoveInterceptMessage;
 }

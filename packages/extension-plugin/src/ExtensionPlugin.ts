@@ -7,6 +7,8 @@ import {
   registerInstance,
   notifyExtensionNewIntercept,
   notifyExtensionRemoveIntercept,
+  notifyExtensionInit,
+  notifyExtensionIntercepters,
 } from "./global";
 
 export interface ExtensionPluginOptions {}
@@ -67,20 +69,12 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
     }
 
     function init() {
-      const message: PluginMessages.InitMessage = {
-        source: "@tweaker/extension-plugin",
-        version,
-        type: "init",
-        payload: {
-          name: _instance.name,
-          timestamp: Date.now(),
-          data: ["test from plugin"],
-        },
-      };
-      globalThis.postMessage(message, "*");
+      notifyExtensionInit(_instance);
+      notifyExtensionIntercepters(_instance, _instance.getListeners());
     }
 
     const promise = new Promise<void>((resolve) => {
+      notify("ping");
       const handler = (
         event: MessageEvent<
           ExtensionMessages.PongMessage | ExtensionMessages.PingMessage
@@ -91,8 +85,9 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
           event.data.source === "@tweaker/extension" &&
           event.data.type === "ping"
         ) {
-          debugger;
           notify("pong");
+          globalThis.removeEventListener("message", handler);
+          resolve();
         }
 
         if (

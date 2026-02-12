@@ -8,6 +8,8 @@ import { minimatch } from "minimatch";
 import { EventEmitter } from "eventemitter3";
 import { TweakerPlugin } from "./plugin";
 
+const source = "@tweaker/core";
+
 export interface InterceptOptions {
   once: boolean;
   count: number;
@@ -103,10 +105,12 @@ export class Tweaker {
     options: InterceptOptions,
   ): RemoveListener {
     const listener: TweakListener<T> = {
-      id: Math.ceil(Math.random() * 1_000_000),
+      id: Math.ceil(Math.random() * 1_000_000_000),
       interactive: options.interactive,
       patterns: Array.isArray(patterns) ? patterns : [patterns],
       handler,
+      source,
+      enabled: true,
     };
 
     this.listeners.add(listener);
@@ -225,5 +229,9 @@ export class Tweaker {
   public reset() {
     this.listeners.clear();
     // this.eventEmitter.removeAllListeners(); // @TODO: should we?
+  }
+
+  public getListeners(): TweakListener<any>[] {
+    return Array.from(this.listeners.values());
   }
 }
