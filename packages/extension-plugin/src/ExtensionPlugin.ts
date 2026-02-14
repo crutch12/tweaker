@@ -2,7 +2,7 @@ import { TweakerPlugin } from "@tweaker/core/plugin";
 import { version, name } from "../package.json";
 import { ExtensionMessages, PluginMessages } from "./messages";
 import { klona } from "klona/json";
-import { Tweaker } from "@tweaker/core";
+import { Tweaker, TWEAKER_OWNER } from "@tweaker/core";
 import {
   registerInstance,
   notifyExtensionNewIntercept,
@@ -10,6 +10,11 @@ import {
   notifyExtensionInit,
   notifyExtensionIntercepters,
 } from "./global";
+import {
+  EXTENSION_OWNER,
+  EXTENSION_PLUGIN_SOURCE,
+  EXTENSION_SOURCE,
+} from "./const";
 
 export interface ExtensionPluginOptions {}
 
@@ -25,7 +30,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
       "*",
       (key, tweaked, originalValue, result) => {
         const message: PluginMessages.ValueMessage = {
-          source: "@tweaker/extension-plugin",
+          source: EXTENSION_PLUGIN_SOURCE,
           version,
           type: "value",
           payload: {
@@ -43,13 +48,13 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
     );
 
     _instance.on("intercept.new", (listener) => {
-      if (listener.source === "@tweaker/core") {
+      if (listener.owner === TWEAKER_OWNER) {
         notifyExtensionNewIntercept(_instance, listener);
       }
     });
 
     _instance.on("intercept.remove", (listener) => {
-      if (listener.source === "@tweaker/core") {
+      if (listener.owner === TWEAKER_OWNER) {
         notifyExtensionRemoveIntercept(_instance, listener);
       }
     });
@@ -61,7 +66,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
 
     function notify(type: "ping" | "pong") {
       const message: PluginMessages.PingMessage | PluginMessages.PongMessage = {
-        source: "@tweaker/extension-plugin",
+        source: EXTENSION_PLUGIN_SOURCE,
         version,
         type,
         payload: {
@@ -86,7 +91,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
       ) => {
         if (
           event.data &&
-          event.data.source === "@tweaker/extension" &&
+          event.data.source === EXTENSION_SOURCE &&
           event.data.type === "ping"
         ) {
           notify("pong");
@@ -96,7 +101,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
 
         if (
           event.data &&
-          event.data.source === "@tweaker/extension" &&
+          event.data.source === EXTENSION_SOURCE &&
           event.data.type === "pong"
         ) {
           globalThis.removeEventListener("message", handler);
@@ -111,29 +116,45 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
     globalThis.addEventListener(
       "message",
       (event: MessageEvent<ExtensionMessages.Message>) => {
-        if (event.data && event.data.source === "@tweaker/extension") {
-          debugger;
+        if (event.data && event.data.source === EXTENSION_SOURCE) {
+          // debugger;
           console.log(event.data.payload);
           switch (event.data.type) {
             case "intercepters": {
-              debugger;
+              const listeners = _instance.getListeners();
+
+              for (const listener of listeners) {
+                if (listener.owner === EXTENSION_OWNER) {
+                  _instance.removeListener(listener.id);
+                }
+              }
+
               for (const listener of event.data.payload.data) {
+                if (listener.owner !== EXTENSION_OWNER) {
+                  continue;
+                }
                 if (_instance.hasListener(listener.id)) {
                   _instance.removeListener(listener.id);
                 }
-                _instance.intercept(
-                  listener.patterns,
-                  (key, value) => {
-                    if (listener.expression) {
-                      return eval(listener.expression);
-                    }
-                  },
-                  {
-                    id: listener.id,
-                    source: event.data.source,
-                    interactive: listener.interactive,
-                  },
-                );
+                if (listener.expression) {
+                  _instance.intercept(
+                    listener.patterns,
+                    (key, value) => {
+                      if (listener.expression) {
+                        return new Function(
+                          "key",
+                          "value",
+                          listener.expression,
+                        )(key, value);
+                      }
+                    },
+                    {
+                      id: listener.id,
+                      owner: listener.owner,
+                      interactive: listener.interactive,
+                    },
+                  );
+                }
               }
               break;
             }

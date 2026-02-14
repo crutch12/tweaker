@@ -1,4 +1,4 @@
-import { Tweaker, TweakListener } from "@tweaker/core";
+import { Tweaker, TweakListener, TWEAKER_OWNER } from "@tweaker/core";
 import { version } from "../package.json";
 import { PluginMessages } from "./messages";
 
@@ -53,6 +53,7 @@ export function notifyExtensionIntercepters<T>(
         name: instance.name,
         patterns: listener.patterns,
         interactive: listener.interactive,
+        owner: EXTENSION_OWNER,
       })),
     };
     globalThis.postMessage(message, "*");
@@ -73,7 +74,7 @@ export function notifyExtensionNewIntercept<T>(
         name: instance.name,
         patterns: listener.patterns,
         interactive: listener.interactive,
-        source: "@tweaker/extension-plugin",
+        owner: TWEAKER_OWNER,
       },
     };
     globalThis.postMessage(message, "*");

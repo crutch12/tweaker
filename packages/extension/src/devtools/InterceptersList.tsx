@@ -1,6 +1,7 @@
 import { css } from "@emotion/css";
 import safeStringify from "fast-safe-stringify";
 import { useEffect, useState } from "react";
+import { EXTENSION_OWNER } from "@tweaker/extension-plugin";
 
 export interface Intercepter {
   id: number;
@@ -12,7 +13,7 @@ export interface Intercepter {
   enabled: boolean;
   interactive: boolean;
   expression?: string;
-  source: string;
+  owner: string;
 }
 
 export interface InterceptersListProps {
@@ -36,7 +37,7 @@ export function IntercepterItem({
     () => intercepter,
   );
 
-  const readOnly = intercepter.source !== "@tweaker/extension";
+  const readOnly = intercepter.owner !== EXTENSION_OWNER;
 
   useEffect(() => {
     setEditableIntercepter(intercepter);
@@ -55,7 +56,7 @@ export function IntercepterItem({
     >
       <div>
         id: {editableIntercepter.id} - name: {editableIntercepter.appName} -{" "}
-        {`${intercepter.source}`}
+        {`${intercepter.owner}`}
         {/* {safeStringify(editableIntercepter.patterns, undefined, 2)} */}
       </div>
       <div>
@@ -63,7 +64,11 @@ export function IntercepterItem({
         <input
           type="text"
           placeholder="Pattern"
-          value={editableIntercepter.patterns[0]}
+          value={
+            readOnly
+              ? editableIntercepter.patterns.join(", ")
+              : editableIntercepter.patterns[0]
+          }
           disabled={readOnly}
           onChange={(ev) =>
             setEditableIntercepter((v) => ({
@@ -75,7 +80,17 @@ export function IntercepterItem({
       </div>
       {!readOnly && (
         <div>
-          <input type="text" placeholder="Expression to tweak value" />
+          <input
+            type="text"
+            placeholder="Expression to tweak value"
+            value={editableIntercepter.expression}
+            onChange={(ev) =>
+              setEditableIntercepter((v) => ({
+                ...v,
+                expression: ev.target.value,
+              }))
+            }
+          />
         </div>
       )}
       {!readOnly && (

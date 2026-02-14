@@ -1,9 +1,8 @@
 import { defineConfig } from "tsup";
 
-export default defineConfig({
+export default defineConfig((options) => ({
   entry: ["src/index.ts"],
 
-  // Форматы временный стандарт
   format: ["esm"],
 
   dts: true,
@@ -12,7 +11,7 @@ export default defineConfig({
 
   sourcemap: true,
 
-  clean: true,
+  clean: !options.watch,
 
   // target: 'esnext',
-});
+}));

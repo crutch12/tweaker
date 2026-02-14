@@ -2,7 +2,7 @@ export type TweakerKey = string;
 
 export interface TweakListener<T> {
   id: number;
-  source: string;
+  owner: string;
   interactive: boolean;
   patterns: string[];
   handler: TweakHandler<T>;

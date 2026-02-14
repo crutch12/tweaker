@@ -3,7 +3,13 @@ import { MessagesTable } from "./MessagesTable";
 import { useStickToBottom } from "use-stick-to-bottom";
 import { useVisibilityChange } from "@uidotdev/usehooks";
 import { InterceptersList, Intercepter } from "./InterceptersList";
-import { ExtensionMessages, PluginMessages } from "@tweaker/extension-plugin";
+import {
+  ExtensionMessages,
+  PluginMessages,
+  EXTENSION_OWNER,
+  EXTENSION_SOURCE,
+  EXTENSION_PLUGIN_SOURCE,
+} from "@tweaker/extension-plugin";
 import { version, name } from "../../package.json";
 import { useInterceptersStore } from "./useInterceptersStore";
 import { css } from "@emotion/css";
@@ -50,6 +56,7 @@ export function App() {
 
   const intercepters = useInterceptersStore((state) => state.intercepters);
   const addIntercepters = useInterceptersStore((state) => state.add);
+  const updateIntercepter = useInterceptersStore((state) => state.update);
   const removeIntercepters = useInterceptersStore((state) => state.remove);
 
   const portRef = useRef<chrome.runtime.Port>(undefined);
@@ -62,7 +69,7 @@ export function App() {
     const handleMessage = (message: PluginMessages.Message) => {
       // const currentTabId = chrome.devtools.inspectedWindow.tabId;
       // debugger;
-      if (message.source === "@tweaker/extension-plugin") {
+      if (message.source === EXTENSION_PLUGIN_SOURCE) {
         switch (message.type) {
           case "value": {
             setMessages((v) => [...v, message.payload]);
@@ -80,7 +87,7 @@ export function App() {
                 fromKey: undefined,
                 sampleId: undefined,
                 sampleIds: undefined,
-                source: message.payload.source,
+                owner: message.payload.owner,
               },
             ]);
             break;
@@ -96,7 +103,7 @@ export function App() {
     portRef.current.onMessage.addListener(handleMessage);
 
     const initMessage: ExtensionMessages.InitMessage = {
-      source: "@tweaker/extension",
+      source: EXTENSION_SOURCE,
       version,
       type: "init",
       payload: {
@@ -117,9 +124,17 @@ export function App() {
         setMessages((v) => [...v, ...result.messages.map((x) => x.payload)]);
       });
 
+    const onDisconnect = () => {
+      portRef.current?.onMessage.removeListener(handleMessage);
+      portRef.current = undefined;
+    };
+
+    portRef.current.onDisconnect.addListener(onDisconnect);
+
     return () => {
       portRef.current?.onMessage.removeListener(handleMessage);
       portRef.current?.disconnect();
+      portRef.current = undefined;
     };
   }, []);
 
@@ -137,7 +152,7 @@ export function App() {
   function sendMessage() {
     const currentTabId = chrome.devtools.inspectedWindow.tabId;
     const message: ExtensionMessages.InitMessage = {
-      source: "@tweaker/extension",
+      source: EXTENSION_SOURCE,
       version,
       type: "init",
       payload: {
@@ -169,34 +184,31 @@ export function App() {
         interactive: false,
         enabled: true,
         expression: undefined,
-        source: "@tweaker/extension",
+        owner: EXTENSION_OWNER,
       },
     ]);
   }
 
   useEffect(() => {
-    if (portRef.current) {
-      const message: ExtensionMessages.InterceptersMessage = {
-        type: "intercepters",
-        version,
-        source: "@tweaker/extension",
-        payload: {
-          name: "test",
-          timestamp: Date.now(),
-          data: intercepters.map((intercepter) => ({
-            id: intercepter.id,
-            name: intercepter.appName,
-            patterns: intercepter.patterns,
-            interactive: intercepter.interactive,
-            expression: intercepter.expression,
-          })),
-        },
-      };
-      portRef.current.postMessage({
-        ...message,
-        tabId: chrome.devtools.inspectedWindow.tabId,
-      });
-    }
+    const message: ExtensionMessages.InterceptersMessage = {
+      type: "intercepters",
+      version,
+      source: EXTENSION_SOURCE,
+      payload: {
+        name: "test",
+        timestamp: Date.now(),
+        data: intercepters.map((intercepter) => ({
+          id: intercepter.id,
+          name: intercepter.appName,
+          patterns: intercepter.patterns,
+          interactive: intercepter.interactive,
+          expression: intercepter.expression,
+          owner: intercepter.owner,
+        })),
+      },
+    };
+
+    chrome.tabs.sendMessage(chrome.devtools.inspectedWindow.tabId, message);
   }, [intercepters]);
 
   return (
@@ -258,8 +270,8 @@ export function App() {
           <div>
             <InterceptersList
               intercepters={intercepters}
-              onIntercepterChange={() => {
-                // debugger;
+              onIntercepterChange={(i) => {
+                updateIntercepter(i);
               }}
               onIntercepterRemove={(i) => removeIntercepters([i])}
             />

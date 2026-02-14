@@ -7,8 +7,7 @@ import {
 import { minimatch } from "minimatch";
 import { EventEmitter } from "eventemitter3";
 import { TweakerPlugin } from "./plugin";
-
-const source = "@tweaker/core";
+import { TWEAKER_OWNER } from "./const";
 
 export interface InterceptOptions {
   once?: boolean;
@@ -17,7 +16,7 @@ export interface InterceptOptions {
    * Calls "debugger" when tweaks result
    */
   interactive: boolean;
-  source?: string;
+  owner?: string;
   id?: number;
 }
 
@@ -111,7 +110,7 @@ export class Tweaker {
       interactive: options.interactive,
       patterns: Array.isArray(patterns) ? patterns : [patterns],
       handler,
-      source: options.source || source,
+      owner: options.owner || TWEAKER_OWNER,
       enabled: true,
     };
 
@@ -231,6 +230,10 @@ export class Tweaker {
   public reset() {
     this.listeners.clear();
     // this.eventEmitter.removeAllListeners(); // @TODO: should we?
+  }
+
+  public getListener(id: number): TweakListener<any> | undefined {
+    return this.listeners.get(id);
   }
 
   public getListeners(): TweakListener<any>[] {

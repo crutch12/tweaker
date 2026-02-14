@@ -1,6 +1,11 @@
 /// <reference lib="webworker" />
 
-import { ExtensionMessages, PluginMessages } from "@tweaker/extension-plugin";
+import {
+  ExtensionMessages,
+  PluginMessages,
+  EXTENSION_PLUGIN_SOURCE,
+  EXTENSION_SOURCE,
+} from "@tweaker/extension-plugin";
 import { version } from "../../package.json";
 
 const connections: Record<number, chrome.runtime.Port> = {};
@@ -11,7 +16,7 @@ chrome.runtime.onConnect.addListener((port) => {
   const extensionListener = (
     message: ExtensionMessages.InitMessage & { tabId: number },
   ) => {
-    if (message.source === "@tweaker/extension" && message.type === "init") {
+    if (message.source === EXTENSION_SOURCE && message.type === "init") {
       connections[message.tabId] = port;
       return;
     }
@@ -48,11 +53,11 @@ function sendMessageToDevTools(
 chrome.runtime.onMessage.addListener(
   (message: PluginMessages.Message, sender) => {
     const tabId = sender.tab?.id;
-    if (message.source === "@tweaker/extension-plugin") {
+    if (message.source === EXTENSION_PLUGIN_SOURCE) {
       switch (message.type) {
         case "ping": {
           const _message: ExtensionMessages.PongMessage = {
-            source: "@tweaker/extension",
+            source: EXTENSION_SOURCE,
             version,
             type: "pong",
             payload: {

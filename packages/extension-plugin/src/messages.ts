@@ -1,5 +1,7 @@
+import type { EXTENSION_PLUGIN_SOURCE, EXTENSION_SOURCE } from "./const";
+
 interface PluginAnyMessage<T, P> {
-  source: "@tweaker/extension-plugin";
+  source: typeof EXTENSION_PLUGIN_SOURCE;
   version: string;
   type: T;
   payload: P;
@@ -49,7 +51,7 @@ export namespace PluginMessages {
       name: string;
       patterns: string[];
       interactive: boolean;
-      source: string;
+      owner: string;
     }[]
   >;
 
@@ -60,7 +62,7 @@ export namespace PluginMessages {
       name: string;
       patterns: string[];
       interactive: boolean;
-      source: string;
+      owner: string;
     }
   >;
 
@@ -83,7 +85,7 @@ export namespace PluginMessages {
 }
 
 interface ExtensionAnyMessage<T, P> {
-  source: "@tweaker/extension";
+  source: typeof EXTENSION_SOURCE;
   version: string;
   type: T;
   payload: P;
@@ -125,6 +127,7 @@ export namespace ExtensionMessages {
         patterns: string[];
         interactive: boolean;
         expression?: string;
+        owner: string;
       }[];
     }
   >;
