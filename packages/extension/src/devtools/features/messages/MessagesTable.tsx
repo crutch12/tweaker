@@ -72,7 +72,7 @@ export function MessagesTable({
                 </Table.Cell>
               )}
 
-              <Table.Cell title={String(message.timestamp)}>
+              <Table.Cell title={new Date(message.timestamp).toLocaleString()}>
                 {message.timestamp}
               </Table.Cell>
               <Table.Cell>

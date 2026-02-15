@@ -1,12 +1,22 @@
 import { css } from "@emotion/css";
 import safeStringify from "fast-safe-stringify";
-import { useEffect, useMemo, useState } from "react";
+import {
+  MutableRefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { EXTENSION_OWNER, IntercepterPayload } from "@tweaker/extension-plugin";
 import { getTextColor } from "../../utils/colors";
 import equal from "fast-deep-equal";
 import { Badge } from "../../components/Badge";
 import { DeleteIcon } from "@devtools-ds/icon";
 import { ButtonIcon } from "../../components/ButtonIcon";
+import {
+  ExpressionCodeBlock,
+  ExpressionCodeBlockContainer,
+} from "./ExpressionCodeBlock";
 
 export type ExtensionIntercepter = IntercepterPayload<unknown> & {
   // sampleIds?: string[];
@@ -18,6 +28,7 @@ export interface InterceptersListProps {
   intercepters: ExtensionIntercepter[];
   onIntercepterChange?: (intercepter: ExtensionIntercepter) => void;
   onIntercepterRemove?: (intercepter: ExtensionIntercepter) => void;
+  ref?: MutableRefObject<any>;
 }
 
 export interface IntercepterItemProps {
@@ -45,6 +56,20 @@ export function IntercepterItem({
     return !equal(intercepter, editableIntercepter);
   }, [intercepter, editableIntercepter]);
 
+  const onCodeUpdate = useCallback((code: string) => {
+    setEditableIntercepter((v) => ({
+      ...v,
+      expression: code || undefined,
+    }));
+  }, []);
+
+  const [updatesCount, setUpdatesCount] = useState(0);
+
+  const discardChanges = useCallback(() => {
+    setEditableIntercepter(intercepter);
+    setUpdatesCount((c) => c + 1);
+  }, [intercepter]);
+
   return (
     <div
       className={css`
@@ -56,6 +81,7 @@ export function IntercepterItem({
         padding: 10px;
         font-size: 16px;
         position: relative;
+        opacity: ${intercepter.enabled ? undefined : 0.6};
       `}
     >
       <div
@@ -66,6 +92,21 @@ export function IntercepterItem({
           gap: 4px;
         `}
       >
+        <input
+          type="checkbox"
+          disabled={readOnly}
+          checked={editableIntercepter.enabled}
+          onChange={(ev) => {
+            setEditableIntercepter((v) => ({
+              ...v,
+              enabled: ev.target.checked,
+            }));
+            onChange?.({
+              ...editableIntercepter,
+              enabled: ev.target.checked,
+            });
+          }}
+        />
         <i>{editableIntercepter.id}</i>
         <span
           style={{
@@ -105,32 +146,16 @@ export function IntercepterItem({
       {!readOnly && (
         <div>
           <label>Expression </label>
-          <input
-            type="text"
-            placeholder="Expression to tweak value"
-            value={editableIntercepter.expression}
-            onChange={(ev) =>
-              setEditableIntercepter((v) => ({
-                ...v,
-                expression: ev.target.value || undefined,
-              }))
-            }
-          />
-        </div>
-      )}
-      {!readOnly && (
-        <div>
-          <label>Enabled </label>
-          <input
-            type="checkbox"
-            checked={editableIntercepter.enabled}
-            onChange={(ev) =>
-              setEditableIntercepter((v) => ({
-                ...v,
-                enabled: ev.target.checked,
-              }))
-            }
-          />
+          <ExpressionCodeBlockContainer
+            codeBefore="function (key, value) {"
+            codeAfter="}"
+          >
+            <ExpressionCodeBlock
+              key={updatesCount}
+              code={intercepter.expression ?? ""}
+              onUpdate={onCodeUpdate}
+            />
+          </ExpressionCodeBlockContainer>
         </div>
       )}
       {!readOnly && (
@@ -141,9 +166,7 @@ export function IntercepterItem({
             </button>
           )}
           {hasChanges && (
-            <button onClick={() => setEditableIntercepter(intercepter)}>
-              Discard changes
-            </button>
+            <button onClick={discardChanges}>Discard changes</button>
           )}
         </div>
       )}
@@ -161,9 +184,11 @@ export function InterceptersList({
   intercepters: intercepters,
   onIntercepterChange,
   onIntercepterRemove,
+  ref,
 }: InterceptersListProps) {
   return (
     <div
+      ref={ref}
       className={css`
         display: flex;
         flex-direction: column;

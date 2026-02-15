@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MessagesTable } from "./features/messages/MessagesTable";
-import { useStickToBottom } from "use-stick-to-bottom";
 import { useVisibilityChange } from "@uidotdev/usehooks";
 import {
   InterceptersList,
@@ -18,6 +17,8 @@ import { useInterceptersStore } from "./features/intercepters/useInterceptersSto
 import { css } from "@emotion/css";
 import { sendMessageToPlugin } from "./utils/sendMessageToPlugin";
 import { useDevtoolsConnection } from "./hooks/useDevtoolsConnection";
+import { MessagesTableContainer } from "./features/messages/MessagesTableContainer";
+import { InterceptersListContainer } from "./features/intercepters/InterceptersListContainer";
 
 export function App() {
   const reloadPage = () => {
@@ -107,17 +108,18 @@ export function App() {
           }
           case "intercepters": {
             // message.payload
-            setIntercepters(message.payload);
+            setIntercepters(
+              message.payload.map((intercepter) => ({
+                ...intercepter,
+                expression: intercepter.expression ?? "  return value",
+              })),
+            );
             break;
           }
         }
       }
     });
   }, []);
-
-  const { scrollRef, contentRef } = useStickToBottom({
-    mass: 1,
-  });
 
   function newTweak(message: PluginMessages.ValueMessage["payload"]) {
     addIntercepters([
@@ -130,7 +132,8 @@ export function App() {
         // sampleId: undefined,
         interactive: false,
         enabled: true,
-        expression: undefined,
+        expression: "  return value",
+        // expression: undefined,
         owner: EXTENSION_OWNER,
         timestamp: Date.now(),
       },
@@ -174,7 +177,7 @@ export function App() {
         <button
           onClick={() =>
             sendMessageToPlugin("init", {
-              name: "test",
+              // name: "test",
               timestamp: Date.now(),
               data: ["Message from extension!"],
             })
@@ -196,48 +199,14 @@ export function App() {
           }
         `}
       >
-        {messages.length > 0 ? (
-          <div ref={scrollRef}>
-            <MessagesTable
-              onTweak={newTweak}
-              ref={contentRef}
-              messages={messages}
-            />
-          </div>
-        ) : (
-          <div
-            style={{
-              fontSize: "16px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-start",
-              gap: "4px",
-            }}
-          >
-            <span>Call</span>
-            <span style={{ color: "red" }}>tweaker.value()</span>
-            <span>from in-page code to see logs...</span>
-          </div>
-        )}
-        {intercepters.length > 0 ? (
-          <div>
-            <InterceptersList
-              intercepters={intercepters}
-              onIntercepterChange={(i) => {
-                updateIntercepter(i);
-              }}
-              onIntercepterRemove={(i) => removeIntercepters([i])}
-            />
-          </div>
-        ) : (
-          <div
-            style={{
-              fontSize: "16px",
-            }}
-          >
-            Intercepters are empty
-          </div>
-        )}
+        <MessagesTableContainer onTweak={newTweak} messages={messages} />
+        <InterceptersListContainer
+          intercepters={intercepters}
+          onIntercepterChange={(i) => {
+            updateIntercepter(i);
+          }}
+          onIntercepterRemove={(i) => removeIntercepters([i])}
+        />
       </div>
     </div>
   );

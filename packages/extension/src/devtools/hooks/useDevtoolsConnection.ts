@@ -77,6 +77,12 @@ export function useDevtoolsConnection() {
     }
   }, [documentVisible]);
 
+  useEffect(() => {
+    return () => {
+      subscribers.current.clear();
+    };
+  }, []);
+
   return {
     subscribe,
   };

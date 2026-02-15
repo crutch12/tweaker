@@ -23,6 +23,8 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
 
   let _instance: Tweaker;
 
+  let expressions = new Map<number, string>();
+
   function subscribe(instance: Tweaker) {
     if (!("postMessage" in globalThis)) return;
 
@@ -137,6 +139,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
                   _instance.removeListener(listener.id);
                 }
                 if (listener.expression) {
+                  expressions.set(listener.id, listener.expression);
                   _instance.intercept(
                     listener.patterns,
                     (key, value) => {
@@ -155,13 +158,26 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
                       interactive: listener.interactive,
                     },
                   );
+                } else {
+                  expressions.delete(listener.id);
                 }
               }
               break;
             }
             case "ping":
             case "pong": {
-              notifyExtensionIntercepters(_instance, _instance.getListeners());
+              notifyExtensionIntercepters(
+                _instance.getListeners().map((listener) => ({
+                  id: listener.id,
+                  name: _instance.name,
+                  patterns: listener.patterns,
+                  interactive: listener.interactive,
+                  owner: listener.owner,
+                  enabled: listener.enabled,
+                  timestamp: listener.timestamp,
+                  expression: expressions.get(listener.id),
+                })),
+              );
               break;
             }
           }
