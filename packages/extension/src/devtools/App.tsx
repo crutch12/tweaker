@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MessagesTable } from "./MessagesTable";
+import { MessagesTable } from "./features/messages/MessagesTable";
 import { useStickToBottom } from "use-stick-to-bottom";
 import { useVisibilityChange } from "@uidotdev/usehooks";
-import { InterceptersList, ExtensionIntercepter } from "./InterceptersList";
+import {
+  InterceptersList,
+  ExtensionIntercepter,
+} from "./features/intercepters/InterceptersList";
 import {
   ExtensionMessages,
   PluginMessages,
@@ -11,22 +14,10 @@ import {
   EXTENSION_PLUGIN_SOURCE,
 } from "@tweaker/extension-plugin";
 import { version, name } from "../../package.json";
-import { useInterceptersStore } from "./useInterceptersStore";
+import { useInterceptersStore } from "./features/intercepters/useInterceptersStore";
 import { css } from "@emotion/css";
-
-function sendMessage<T extends ExtensionMessages.Message["type"]>(
-  type: T,
-  payload: Extract<ExtensionMessages.Message, { type: T }>["payload"],
-) {
-  const currentTabId = chrome.devtools.inspectedWindow.tabId;
-  const message = {
-    source: EXTENSION_SOURCE,
-    version,
-    type,
-    payload,
-  } as ExtensionMessages.Message;
-  chrome.tabs.sendMessage(currentTabId, message);
-}
+import { sendMessageToPlugin } from "./utils/sendMessageToPlugin";
+import { useDevtoolsConnection } from "./hooks/useDevtoolsConnection";
 
 export function App() {
   const reloadPage = () => {
@@ -74,16 +65,24 @@ export function App() {
   const updateIntercepter = useInterceptersStore((state) => state.update);
   const removeIntercepters = useInterceptersStore((state) => state.remove);
 
-  const portRef = useRef<chrome.runtime.Port>(undefined);
+  useEffect(() => {
+    chrome.storage.session
+      .get<{ messages: PluginMessages.ValueMessage[] }>({ messages: [] })
+      .then((result) => {
+        setMessages((v) => [...v, ...result.messages.map((x) => x.payload)]);
+      });
+  }, []);
 
   useEffect(() => {
-    portRef.current = chrome.runtime.connect({
-      name: "tweaker-devtools-relay",
+    sendMessageToPlugin("ping", {
+      timestamp: Date.now(),
     });
+  }, []);
 
-    const handleMessage = (message: PluginMessages.Message) => {
-      // const currentTabId = chrome.devtools.inspectedWindow.tabId;
-      // debugger;
+  const { subscribe } = useDevtoolsConnection();
+
+  useEffect(() => {
+    return subscribe((message) => {
       if (message.source === EXTENSION_PLUGIN_SOURCE) {
         switch (message.type) {
           case "value": {
@@ -113,60 +112,6 @@ export function App() {
           }
         }
       }
-    };
-
-    portRef.current.onMessage.addListener(handleMessage);
-
-    const initMessage: ExtensionMessages.InitMessage = {
-      source: EXTENSION_SOURCE,
-      version,
-      type: "init",
-      payload: {
-        data: [],
-        name: "wtf",
-        timestamp: Date.now(),
-      },
-    };
-    // debugger;
-    portRef.current.postMessage({
-      ...initMessage,
-      tabId: chrome.devtools.inspectedWindow.tabId,
-    });
-
-    chrome.storage.session
-      .get<{ messages: PluginMessages.ValueMessage[] }>({ messages: [] })
-      .then((result) => {
-        setMessages((v) => [...v, ...result.messages.map((x) => x.payload)]);
-      });
-
-    const onDisconnect = () => {
-      portRef.current?.onMessage.removeListener(handleMessage);
-      portRef.current = undefined;
-    };
-
-    portRef.current.onDisconnect.addListener(onDisconnect);
-
-    return () => {
-      portRef.current?.onMessage.removeListener(handleMessage);
-      portRef.current?.disconnect();
-      portRef.current = undefined;
-    };
-  }, []);
-
-  const documentVisible = useVisibilityChange();
-
-  useEffect(() => {
-    if (portRef.current && documentVisible) {
-      portRef.current.postMessage({
-        action: "keep-alive",
-        tabId: chrome.devtools.inspectedWindow.tabId,
-      });
-    }
-  }, [documentVisible]);
-
-  useEffect(() => {
-    sendMessage("ping", {
-      timestamp: Date.now(),
     });
   }, []);
 
@@ -228,7 +173,7 @@ export function App() {
         <button onClick={clearData}>Clear Data</button>
         <button
           onClick={() =>
-            sendMessage("init", {
+            sendMessageToPlugin("init", {
               name: "test",
               timestamp: Date.now(),
               data: ["Message from extension!"],

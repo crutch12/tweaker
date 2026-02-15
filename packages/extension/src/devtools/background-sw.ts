@@ -69,7 +69,7 @@ chrome.runtime.onMessage.addListener(
           break;
         }
         case "value": {
-          saveMessage(message);
+          saveValueMessage(message);
           if (tabId) {
             sendMessageToDevTools(tabId, { ...message, tabId });
           }
@@ -86,7 +86,7 @@ chrome.runtime.onMessage.addListener(
   },
 );
 
-async function saveMessage(message: PluginMessages.ValueMessage) {
+async function saveValueMessage(message: PluginMessages.ValueMessage) {
   const { messages = [] } = await chrome.storage.session.get<{
     messages: PluginMessages.ValueMessage[];
   }>({ messages: [] });

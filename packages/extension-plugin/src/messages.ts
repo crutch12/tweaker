@@ -107,7 +107,6 @@ export namespace ExtensionMessages {
   export type InitMessage = ExtensionAnyMessage<
     "init",
     {
-      name: string;
       timestamp: number;
       data: string[];
     }

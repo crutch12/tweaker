@@ -1,7 +1,12 @@
 import { css } from "@emotion/css";
 import safeStringify from "fast-safe-stringify";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { EXTENSION_OWNER, IntercepterPayload } from "@tweaker/extension-plugin";
+import { getTextColor } from "../../utils/colors";
+import equal from "fast-deep-equal";
+import { Badge } from "../../components/Badge";
+import { DeleteIcon } from "@devtools-ds/icon";
+import { ButtonIcon } from "../../components/ButtonIcon";
 
 export type ExtensionIntercepter = IntercepterPayload<unknown> & {
   // sampleIds?: string[];
@@ -36,6 +41,10 @@ export function IntercepterItem({
     setEditableIntercepter(intercepter);
   }, [intercepter]);
 
+  const hasChanges = useMemo(() => {
+    return !equal(intercepter, editableIntercepter);
+  }, [intercepter, editableIntercepter]);
+
   return (
     <div
       className={css`
@@ -45,15 +54,37 @@ export function IntercepterItem({
         border: 1px solid green;
         border-radius: 5px;
         padding: 10px;
+        font-size: 16px;
+        position: relative;
       `}
     >
-      <div>
-        id: {editableIntercepter.id} - name: {editableIntercepter.name} -{" "}
-        {`${intercepter.owner}`}
-        {/* {safeStringify(editableIntercepter.patterns, undefined, 2)} */}
+      <div
+        className={css`
+          display: flex;
+          align-items: center;
+          justify-content: flex-start;
+          gap: 4px;
+        `}
+      >
+        <i>{editableIntercepter.id}</i>
+        <span
+          style={{
+            color: getTextColor(editableIntercepter.name),
+            fontWeight: 700,
+          }}
+        >
+          {editableIntercepter.name}
+        </span>
+        <ButtonIcon
+          title="Remove intercepter"
+          disabled={readOnly}
+          onClick={() => onRemove?.(intercepter)}
+        >
+          <DeleteIcon size="medium" />
+        </ButtonIcon>
       </div>
       <div>
-        <label>Patterns</label>
+        <label>Patterns </label>
         <input
           type="text"
           placeholder="Patterns"
@@ -73,6 +104,7 @@ export function IntercepterItem({
       </div>
       {!readOnly && (
         <div>
+          <label>Expression </label>
           <input
             type="text"
             placeholder="Expression to tweak value"
@@ -80,7 +112,7 @@ export function IntercepterItem({
             onChange={(ev) =>
               setEditableIntercepter((v) => ({
                 ...v,
-                expression: ev.target.value,
+                expression: ev.target.value || undefined,
               }))
             }
           />
@@ -88,15 +120,39 @@ export function IntercepterItem({
       )}
       {!readOnly && (
         <div>
-          <button onClick={() => onChange?.(editableIntercepter)}>Save</button>
-          <button onClick={() => setEditableIntercepter(intercepter)}>
-            Discard
-          </button>
-          <button disabled={readOnly} onClick={() => onRemove?.(intercepter)}>
-            Remove
-          </button>
+          <label>Enabled </label>
+          <input
+            type="checkbox"
+            checked={editableIntercepter.enabled}
+            onChange={(ev) =>
+              setEditableIntercepter((v) => ({
+                ...v,
+                enabled: ev.target.checked,
+              }))
+            }
+          />
         </div>
       )}
+      {!readOnly && (
+        <div>
+          {hasChanges && (
+            <button onClick={() => onChange?.(editableIntercepter)}>
+              Save changes
+            </button>
+          )}
+          {hasChanges && (
+            <button onClick={() => setEditableIntercepter(intercepter)}>
+              Discard changes
+            </button>
+          )}
+        </div>
+      )}
+      <Badge
+        position="bottom-right"
+        appearance={readOnly ? "secondary" : "primary"}
+      >
+        {intercepter.owner}
+      </Badge>
     </div>
   );
 }
