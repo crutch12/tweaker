@@ -11,6 +11,10 @@ export function InterceptersListContainer(props: InterceptersListProps) {
       <div
         style={{
           fontSize: "16px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-start",
+          gap: "4px",
         }}
       >
         Intercepters are empty

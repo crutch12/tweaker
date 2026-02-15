@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { tweaker } from "./tweaker";
 
 interface User {
@@ -12,7 +12,7 @@ function generateUser(): User {
     "users.generate",
     {
       id: Math.ceil(Math.random() * 1000),
-      name: "Glep",
+      name: "Glep 🥸",
       year: 2001,
     },
     {
@@ -22,7 +22,7 @@ function generateUser(): User {
           value() {
             return {
               id: 1,
-              name: "John",
+              name: "John 🧔",
               year: 2000,
             };
           },
@@ -32,7 +32,7 @@ function generateUser(): User {
           value() {
             return {
               id: 2,
-              name: "Sam",
+              name: "Sam 🙎",
               year: 3000,
             };
           },
@@ -40,7 +40,7 @@ function generateUser(): User {
         {
           id: "not-found-error",
           value() {
-            throw new Error("User not found!");
+            throw new Error("User not found! 💀");
           },
         },
       ],
@@ -48,9 +48,60 @@ function generateUser(): User {
   );
 }
 
+interface Dog {
+  id: number;
+  name: string;
+  type: "male" | "female";
+}
+
+function generateDog(): Dog {
+  return tweaker.value<Dog>(
+    "dogs.generate",
+    {
+      id: Math.ceil(Math.random() * 1000),
+      name: "Barkley 🐶",
+      type: "male",
+    },
+    {
+      samples: [
+        {
+          id: "luna",
+          value() {
+            return {
+              id: 1,
+              name: "Luna 🐩",
+              type: "female",
+            };
+          },
+        },
+        {
+          id: "not-found-error",
+          value() {
+            throw new Error("Dog not found! ⚰️");
+          },
+        },
+      ],
+    },
+  );
+}
+
+function getReplacedDog(dog: Dog): Dog {
+  return tweaker.value<Dog>(`dogs.replace.${dog.id}`, {
+    ...dog,
+    id: Math.ceil(Math.random() * 1000),
+  });
+}
+
 export function App() {
-  const [users, setUsers] = useState(() => [generateUser()]);
+  const [entities, setEntities] = useState<Array<User | Dog>>(() => [
+    generateUser(),
+    generateDog(),
+  ]);
   const [tweakerEnabled, setTweakerEnabled] = useState(false);
+
+  const lastDog = useMemo(() => {
+    return entities.reverse().find((x) => "type" in x);
+  }, [entities]);
 
   useEffect(() => {
     if (tweakerEnabled) {
@@ -73,8 +124,50 @@ export function App() {
   }, [tweakerEnabled]);
 
   useEffect(() => {
-    return tweaker.subscribe("*", (key, tweaked, value, result) => {
-      console.log(value);
+    if (tweakerEnabled) {
+      return tweaker.intercept(
+        `dogs.generate`,
+        (key, value): Dog => {
+          return {
+            ...value,
+            name: value.name + " (tweaked)",
+            type: Math.random() > 0.5 ? "male" : "female",
+          };
+        },
+        {
+          count: 0,
+          interactive: false,
+          once: false,
+        },
+      );
+    }
+  }, [tweakerEnabled]);
+
+  useEffect(() => {
+    if (tweakerEnabled) {
+      return tweaker.intercept(
+        `dogs.replace.*`,
+        (key, value): Dog => {
+          return {
+            ...value,
+            name: value.name.includes("tweaked")
+              ? value.name
+              : value.name + " (tweaked)",
+            type: Math.random() > 0.5 ? "male" : "female",
+          };
+        },
+        {
+          count: 0,
+          interactive: false,
+          once: false,
+        },
+      );
+    }
+  }, [tweakerEnabled]);
+
+  useEffect(() => {
+    return tweaker.subscribe("*", ({ key, tweaked, originalValue, result }) => {
+      console.log(originalValue);
     });
   }, []);
 
@@ -86,26 +179,49 @@ export function App() {
 
   return (
     <div>
-      <button
-        style={{
-          marginRight: "10px",
-          backgroundColor: tweakerEnabled ? "#FFB18A" : "#CAFF8A",
-        }}
-        onClick={() => setTweakerEnabled((v) => !v)}
-      >
-        {tweakerEnabled ? "Stop Tweaker" : "Start Tweaker"}
-      </button>
-      <button
-        onClick={() => {
-          const user = generateUser();
-          setUsers((v) => {
-            return [...v, user];
-          });
-        }}
-      >
-        Add User
-      </button>
-      <pre>{JSON.stringify(users, null, 2)}</pre>
+      <div style={{ display: "flex", gap: "10px" }}>
+        <button
+          style={{
+            backgroundColor: tweakerEnabled ? "#FFB18A" : "#CAFF8A",
+          }}
+          onClick={() => setTweakerEnabled((v) => !v)}
+        >
+          {tweakerEnabled ? "Stop Tweaker" : "Start Tweaker"}
+        </button>
+        <button
+          onClick={() => {
+            const user = generateUser();
+            setEntities((v) => {
+              return [...v, user];
+            });
+          }}
+        >
+          Add User
+        </button>
+        <button
+          onClick={() => {
+            const dog = generateDog();
+            setEntities((v) => {
+              return [...v, dog];
+            });
+          }}
+        >
+          Add Dog
+        </button>
+        {lastDog && (
+          <button
+            onClick={() => {
+              const dog = getReplacedDog(lastDog);
+              setEntities((v) => {
+                return v.map((x) => (x.id !== lastDog.id ? x : dog));
+              });
+            }}
+          >
+            Replace Last Dog ({lastDog.id})
+          </button>
+        )}
+      </div>
+      <pre>{JSON.stringify(entities, null, 2)}</pre>
     </div>
   );
 }

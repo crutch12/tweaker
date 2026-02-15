@@ -6,33 +6,30 @@ import { css } from "@emotion/react";
 const APPEARANCES = {
   primary: "rgb(26, 115, 232)",
   secondary: "rgb(88, 119, 160)",
+  warn: "rgb(236, 143, 45)",
 };
 
 const POSITIONS = {
-  "top-left": {
-    top: 0,
-    bottom: undefined,
-    left: 0,
-    right: undefined,
-  },
-  "top-right": {
-    top: 0,
-    bottom: undefined,
-    left: undefined,
-    right: 0,
-  },
-  "bottom-left": {
-    top: undefined,
-    bottom: 0,
-    left: 0,
-    right: undefined,
-  },
-  "bottom-right": {
-    top: undefined,
-    bottom: 0,
-    left: undefined,
-    right: 0,
-  },
+  "top-left": css`
+    top: 0;
+    left: 0;
+    border-bottom-right-radius: 10px;
+  `,
+  "top-right": css`
+    top: 0;
+    right: 0;
+    border-bottom-left-radius: 10px;
+  `,
+  "bottom-left": css`
+    bottom: 0;
+    left: 0;
+    border-top-right-radius: 10px;
+  `,
+  "bottom-right": css`
+    bottom: 0;
+    right: 0;
+    border-top-left-radius: 10px;
+  `,
 };
 
 export interface BadgeProps {
@@ -51,9 +48,5 @@ const BadgeContainer = styled.div<BadgeProps>`
   font-weight: 700;
   background-color: ${({ appearance }) => APPEARANCES[appearance]};
   padding: 5px 10px;
-  border-top-left-radius: 10px;
-  top: ${({ position }) => POSITIONS[position].top};
-  bottom: ${({ position }) => POSITIONS[position].bottom};
-  left: ${({ position }) => POSITIONS[position].left};
-  right: ${({ position }) => POSITIONS[position].right};
+  ${({ position }) => POSITIONS[position]}
 `;

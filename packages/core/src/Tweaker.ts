@@ -4,10 +4,10 @@ import {
   TweakHandler,
   TweakerIntercepter,
 } from "./types";
-import { minimatch } from "minimatch";
 import { EventEmitter } from "eventemitter3";
 import { TweakerPlugin } from "./plugin";
 import { TWEAKER_OWNER } from "./const";
+import { keyMatchesPatterns } from "./utils";
 
 export interface InterceptOptions {
   once?: boolean;
@@ -46,22 +46,6 @@ export interface TweakerOptions {
    * Extra plugins (e.g. @tweaker/extension-plugin)
    */
   plugins?: TweakerPlugin[];
-}
-
-function keyMatchesPatterns(
-  key: string,
-  patterns: readonly string[],
-): false | "exact" | "pattern" {
-  for (const pattern of patterns) {
-    if (key.trim() === pattern.trim()) {
-      return "exact";
-    }
-    const found = minimatch(key, pattern);
-    if (found) {
-      return "pattern";
-    }
-  }
-  return false;
 }
 
 type ValueEventOptions = {

@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { keyMatchesPatterns } from "@tweaker/core/utils";
 import { MessagesTable } from "./features/messages/MessagesTable";
 import { useVisibilityChange } from "@uidotdev/usehooks";
 import {
@@ -54,6 +55,10 @@ export function App() {
     });
   };
 
+  const clearFilters = () => {
+    setFilterPatterns(undefined);
+  };
+
   const date = useMemo(() => new Date(), []);
 
   const [messages, setMessages] = useState<
@@ -65,6 +70,23 @@ export function App() {
   const setIntercepters = useInterceptersStore((state) => state.set);
   const updateIntercepter = useInterceptersStore((state) => state.update);
   const removeIntercepters = useInterceptersStore((state) => state.remove);
+
+  const [filterPatterns, setFilterPatterns] = useState<string[] | undefined>(
+    undefined,
+  );
+
+  const filteredMessages = useMemo(() => {
+    if (filterPatterns) {
+      return messages.filter((msg) =>
+        keyMatchesPatterns(msg.key, filterPatterns),
+      );
+    }
+    return messages;
+  }, [filterPatterns, messages]);
+
+  const onFilterMessages = useCallback((pattenrs: string[] | undefined) => {
+    setFilterPatterns(pattenrs);
+  }, []);
 
   useEffect(() => {
     chrome.storage.session
@@ -185,6 +207,12 @@ export function App() {
         >
           Send Message
         </button>
+        {filterPatterns && (
+          <>
+            <button onClick={clearFilters}>Clear Filters</button>
+            <input type="text" value={filterPatterns.join(", ")} readOnly />
+          </>
+        )}
       </div>
       <div
         className={css`
@@ -199,13 +227,17 @@ export function App() {
           }
         `}
       >
-        <MessagesTableContainer onTweak={newTweak} messages={messages} />
+        <MessagesTableContainer
+          onTweak={newTweak}
+          messages={filteredMessages}
+        />
         <InterceptersListContainer
           intercepters={intercepters}
           onIntercepterChange={(i) => {
             updateIntercepter(i);
           }}
           onIntercepterRemove={(i) => removeIntercepters([i])}
+          onFilterMessages={(patterns) => onFilterMessages(patterns)}
         />
       </div>
     </div>
