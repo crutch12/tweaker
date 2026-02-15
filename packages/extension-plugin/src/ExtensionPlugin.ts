@@ -3,6 +3,7 @@ import { version, name } from "../package.json";
 import { ExtensionMessages, PluginMessages } from "./messages";
 import { klona } from "klona/json";
 import { Tweaker, TWEAKER_OWNER } from "@tweaker/core";
+import { serializeError, isErrorLike } from "serialize-error";
 import {
   registerInstance,
   notifyExtensionNewIntercept,
@@ -30,7 +31,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
 
     instance.subscribe(
       "*",
-      (key, tweaked, originalValue, result) => {
+      ({ key, tweaked, originalValue, result, error }) => {
         const message: PluginMessages.ValueMessage = {
           source: EXTENSION_PLUGIN_SOURCE,
           version,
@@ -38,10 +39,15 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
           payload: {
             name: instance.name,
             key,
-            originalValue: klona(originalValue),
-            result: klona(result),
+            originalValue: isErrorLike(originalValue)
+              ? serializeError(originalValue)
+              : klona(originalValue),
+            result: isErrorLike(result)
+              ? serializeError(result)
+              : klona(result),
             timestamp: Date.now(),
             tweaked,
+            error: error ?? false,
           },
         };
         globalThis.postMessage(message, "*");
@@ -79,9 +85,22 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
       globalThis.postMessage(message, "*");
     }
 
+    function getListeners() {
+      return _instance.getListeners().map((listener) => ({
+        id: listener.id,
+        name: _instance.name,
+        patterns: listener.patterns,
+        interactive: listener.interactive,
+        owner: listener.owner,
+        enabled: listener.enabled,
+        timestamp: listener.timestamp,
+        expression: expressions.get(listener.id),
+      }));
+    }
+
     function init() {
       notifyExtensionInit(_instance);
-      notifyExtensionIntercepters(_instance, _instance.getListeners());
+      notifyExtensionIntercepters(getListeners());
     }
 
     const promise = new Promise<void>((resolve) => {
@@ -135,6 +154,8 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
                 if (listener.owner !== EXTENSION_OWNER) {
                   continue;
                 }
+
+                expressions.delete(listener.id);
                 if (_instance.hasListener(listener.id)) {
                   _instance.removeListener(listener.id);
                 }
@@ -156,28 +177,16 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
                       id: listener.id,
                       owner: listener.owner,
                       interactive: listener.interactive,
+                      enabled: listener.enabled,
                     },
                   );
-                } else {
-                  expressions.delete(listener.id);
                 }
               }
               break;
             }
             case "ping":
             case "pong": {
-              notifyExtensionIntercepters(
-                _instance.getListeners().map((listener) => ({
-                  id: listener.id,
-                  name: _instance.name,
-                  patterns: listener.patterns,
-                  interactive: listener.interactive,
-                  owner: listener.owner,
-                  enabled: listener.enabled,
-                  timestamp: listener.timestamp,
-                  expression: expressions.get(listener.id),
-                })),
-              );
+              notifyExtensionIntercepters(getListeners());
               break;
             }
           }

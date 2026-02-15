@@ -18,6 +18,7 @@ export interface InterceptOptions {
   interactive: boolean;
   owner?: string;
   id?: number;
+  enabled?: boolean;
 }
 
 export interface SubscribeOptions {
@@ -63,17 +64,20 @@ function keyMatchesPatterns(
   return false;
 }
 
+type ValueEventOptions = {
+  key: string;
+  tweaked: boolean;
+  originalValue: unknown;
+  result?: unknown;
+  error?: boolean;
+};
+
 export class Tweaker {
   public readonly name: string;
   public readonly plugins: TweakerPlugin[];
 
   private readonly eventEmitter = new EventEmitter<{
-    value: (
-      key: string,
-      tweaked: boolean,
-      originalValue: unknown,
-      result?: unknown,
-    ) => void;
+    value: (options: ValueEventOptions) => void;
     "intercept.new": <T>(listener: TweakerIntercepter<T>) => void;
     "intercept.remove": <T>(listener: TweakerIntercepter<T>) => void;
   }>();
@@ -117,7 +121,7 @@ export class Tweaker {
       patterns: Array.isArray(patterns) ? patterns : [patterns],
       handler,
       owner: options.owner || TWEAKER_OWNER,
-      enabled: true,
+      enabled: options.enabled ?? true,
       timestamp: Date.now(),
     };
 
@@ -154,6 +158,7 @@ export class Tweaker {
     const patternListeners: TweakerIntercepter<any>[] = [];
 
     for (const listener of this.listeners.values()) {
+      if (!listener.enabled) continue;
       const found = keyMatchesPatterns(key, listener.patterns);
       switch (found) {
         case "exact": {
@@ -182,7 +187,11 @@ export class Tweaker {
 
     if (listeners.length === 0) {
       this.debug(key, "value", "no listeners found");
-      this.eventEmitter.emit("value", key, false, value);
+      this.eventEmitter.emit("value", {
+        key,
+        tweaked: false,
+        originalValue: value,
+      });
       return [false, undefined];
     }
 
@@ -200,23 +209,37 @@ export class Tweaker {
         debugger; // @TODO: check availability via performance call
       }
 
-      this.eventEmitter.emit("value", key, true, value, result);
+      this.eventEmitter.emit("value", {
+        key,
+        tweaked: true,
+        originalValue: value,
+        result,
+      });
 
       return [true, result];
     } catch (err) {
       this.log(key, "error", err);
+
+      if (listener.interactive) {
+        this.log(key, "interactive", [value, err]);
+        debugger; // @TODO: check availability via performance call
+      }
+
+      this.eventEmitter.emit("value", {
+        key,
+        tweaked: true,
+        originalValue: value,
+        result: err,
+        error: true,
+      });
+
       throw err;
     }
   }
 
   public subscribe(
     patterns: string | readonly string[],
-    fn: (
-      key: string,
-      tweaked: boolean,
-      originalValue: unknown,
-      result?: unknown,
-    ) => void,
+    fn: (options: ValueEventOptions) => void,
     options?: Partial<SubscribeOptions>,
   ) {
     patterns = Array.isArray(patterns) ? patterns : [patterns];
@@ -225,10 +248,16 @@ export class Tweaker {
       ...options,
     };
 
-    const handler: typeof fn = (key, tweaked, originalValue, result) => {
+    const handler: typeof fn = ({
+      key,
+      tweaked,
+      originalValue,
+      result,
+      error,
+    }: ValueEventOptions) => {
       const found = keyMatchesPatterns(key, patterns);
       if (found) {
-        fn(key, tweaked, originalValue, result);
+        fn({ key, tweaked, originalValue, result, error });
       }
     };
     this.eventEmitter.addListener("value", handler);

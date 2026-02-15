@@ -50,6 +50,7 @@ export namespace PluginMessages {
       result: unknown;
       timestamp: number;
       tweaked: boolean;
+      error: boolean;
     }
   >;
 

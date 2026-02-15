@@ -18,6 +18,7 @@ export interface ExpressionCodeBlockProps {
   onUpdate?: (code: string) => void;
   language?: string;
   readOnly?: boolean;
+  disabled?: boolean;
 }
 
 export function ExpressionCodeBlock({
@@ -25,10 +26,14 @@ export function ExpressionCodeBlock({
   onUpdate,
   language = "js",
   readOnly = false,
+  disabled,
 }: ExpressionCodeBlockProps) {
   return (
     <Editor
       className={css`
+        opacity: ${disabled ? 0.5 : undefined};
+        cursor: ${disabled ? "default" : undefined};
+
         .pce-wrapper {
           margin: 0;
         }
@@ -60,11 +65,21 @@ export function ExpressionCodeBlockContainer({
   return (
     <ExpressionCodeBlockContainerStyled>
       {codeBefore && (
-        <ExpressionCodeBlock language={language} readOnly code={codeBefore} />
+        <ExpressionCodeBlock
+          disabled
+          language={language}
+          readOnly
+          code={codeBefore}
+        />
       )}
       {children}
       {codeAfter && (
-        <ExpressionCodeBlock language={language} readOnly code={codeAfter} />
+        <ExpressionCodeBlock
+          disabled
+          language={language}
+          readOnly
+          code={codeAfter}
+        />
       )}
     </ExpressionCodeBlockContainerStyled>
   );

@@ -6,6 +6,7 @@ import { css, keyframes } from "@emotion/css";
 import { PluginMessages } from "@tweaker/extension-plugin";
 import { getTextColor } from "../../utils/colors";
 import { BlueButton } from "../../components/BlueButton";
+import { deserializeError, isErrorLike } from "serialize-error";
 
 export interface MessagesTableProps extends HTMLAttributes<HTMLElement> {
   messages: PluginMessages.ValueMessage["payload"][];
@@ -53,17 +54,30 @@ export function MessagesTable({
                 <ObjectInspector
                   sortKeys={false}
                   expandLevel={0}
-                  includePrototypes={false}
-                  data={message.originalValue as any}
+                  includePrototypes={true}
+                  data={
+                    isErrorLike(message.originalValue)
+                      ? deserializeError(message.originalValue)
+                      : (message.originalValue as any)
+                  }
                 />
               </Table.Cell>
               {message.tweaked ? (
                 <Table.Cell title={safeStringify(message.result, undefined, 2)}>
+                  {message.error && (
+                    <span style={{ opacity: 0.5, cursor: "default" }}>
+                      error
+                    </span>
+                  )}
                   <ObjectInspector
                     sortKeys={false}
                     expandLevel={0}
                     includePrototypes={false}
-                    data={message.result as any}
+                    data={
+                      isErrorLike(message.result)
+                        ? deserializeError(message.result)
+                        : (message.result as any)
+                    }
                   />
                 </Table.Cell>
               ) : (
