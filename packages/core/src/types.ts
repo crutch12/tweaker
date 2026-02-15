@@ -1,16 +1,28 @@
 export type TweakerKey = string;
 
-export interface TweakListener<T> {
+export interface TweakerIntercepter<T> {
   id: number;
+  /**
+   * "Creator" of intercepter (e.g. 'tweaker', 'extension')
+   * @default 'tweaker'
+   */
   owner: string;
-  interactive: boolean;
+  /**
+   * Pattern (glob) to match the key
+   * @example ['users.*.update']
+   */
   patterns: string[];
+  /**
+   * Should stop via "debugger" during interception
+   */
+  interactive: boolean;
   handler: TweakHandler<T>;
   enabled: boolean;
+  timestamp: number;
 }
 
 // type SyncOnly<T> = T extends Promise<any> ? "Error: Async functions are not allowed" : T;
 
-export type TweakHandler<T> = (key: TweakerKey, value: T) => T;
+export type TweakHandler<T> = (key: TweakerKey, originalValue: T) => T;
 
 export type RemoveListener = () => void;

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { MessagesTable } from "./MessagesTable";
 import { useStickToBottom } from "use-stick-to-bottom";
 import { useVisibilityChange } from "@uidotdev/usehooks";
-import { InterceptersList, Intercepter } from "./InterceptersList";
+import { InterceptersList, ExtensionIntercepter } from "./InterceptersList";
 import {
   ExtensionMessages,
   PluginMessages,
@@ -13,6 +13,20 @@ import {
 import { version, name } from "../../package.json";
 import { useInterceptersStore } from "./useInterceptersStore";
 import { css } from "@emotion/css";
+
+function sendMessage<T extends ExtensionMessages.Message["type"]>(
+  type: T,
+  payload: Extract<ExtensionMessages.Message, { type: T }>["payload"],
+) {
+  const currentTabId = chrome.devtools.inspectedWindow.tabId;
+  const message = {
+    source: EXTENSION_SOURCE,
+    version,
+    type,
+    payload,
+  } as ExtensionMessages.Message;
+  chrome.tabs.sendMessage(currentTabId, message);
+}
 
 export function App() {
   const reloadPage = () => {
@@ -56,6 +70,7 @@ export function App() {
 
   const intercepters = useInterceptersStore((state) => state.intercepters);
   const addIntercepters = useInterceptersStore((state) => state.add);
+  const setIntercepters = useInterceptersStore((state) => state.set);
   const updateIntercepter = useInterceptersStore((state) => state.update);
   const removeIntercepters = useInterceptersStore((state) => state.remove);
 
@@ -78,22 +93,22 @@ export function App() {
           case "new-intercept": {
             addIntercepters([
               {
-                appName: message.payload.name,
-                enabled: true,
-                id: message.payload.id,
-                interactive: message.payload.interactive,
-                patterns: message.payload.patterns,
+                ...message.payload,
                 expression: undefined,
-                fromKey: undefined,
-                sampleId: undefined,
-                sampleIds: undefined,
-                owner: message.payload.owner,
+                // fromKey: undefined,
+                // sampleId: undefined,
+                // sampleIds: undefined,
               },
             ]);
             break;
           }
           case "remove-intercept": {
             removeIntercepters([{ id: message.payload.id }]);
+            break;
+          }
+          case "intercepters": {
+            // message.payload
+            setIntercepters(message.payload);
             break;
           }
         }
@@ -149,24 +164,11 @@ export function App() {
     }
   }, [documentVisible]);
 
-  function sendMessage() {
-    const currentTabId = chrome.devtools.inspectedWindow.tabId;
-    const message: ExtensionMessages.InitMessage = {
-      source: EXTENSION_SOURCE,
-      version,
-      type: "init",
-      payload: {
-        name: "test",
-        timestamp: Date.now(),
-        data: ["Message from extension!"],
-      },
-    };
-    chrome.tabs.sendMessage(currentTabId, message);
-  }
-
-  // useEffect(() => {
-  //   sendMessage();
-  // }, []);
+  useEffect(() => {
+    sendMessage("ping", {
+      timestamp: Date.now(),
+    });
+  }, []);
 
   const { scrollRef, contentRef } = useStickToBottom({
     mass: 1,
@@ -176,15 +178,16 @@ export function App() {
     addIntercepters([
       {
         id: Math.ceil(Math.random() * 1_000_000_000),
-        appName: message.name,
+        name: message.name,
         patterns: [message.key],
-        fromKey: message.key,
-        sampleIds: [],
-        sampleId: undefined,
+        // fromKey: message.key,
+        // sampleIds: [],
+        // sampleId: undefined,
         interactive: false,
         enabled: true,
         expression: undefined,
         owner: EXTENSION_OWNER,
+        timestamp: Date.now(),
       },
     ]);
   }
@@ -198,12 +201,7 @@ export function App() {
         name: "test",
         timestamp: Date.now(),
         data: intercepters.map((intercepter) => ({
-          id: intercepter.id,
-          name: intercepter.appName,
-          patterns: intercepter.patterns,
-          interactive: intercepter.interactive,
-          expression: intercepter.expression,
-          owner: intercepter.owner,
+          ...intercepter,
         })),
       },
     };
@@ -228,7 +226,17 @@ export function App() {
         <button onClick={checkPageTitle}>Check page title</button>
         <button onClick={evalTweaker}>Eval Tweaker</button>
         <button onClick={clearData}>Clear Data</button>
-        <button onClick={sendMessage}>Send Message</button>
+        <button
+          onClick={() =>
+            sendMessage("init", {
+              name: "test",
+              timestamp: Date.now(),
+              data: ["Message from extension!"],
+            })
+          }
+        >
+          Send Message
+        </button>
       </div>
       <div
         className={css`
@@ -277,7 +285,13 @@ export function App() {
             />
           </div>
         ) : (
-          <div>Intercepters are empty</div>
+          <div
+            style={{
+              fontSize: "16px",
+            }}
+          >
+            Intercepters are empty
+          </div>
         )}
       </div>
     </div>

@@ -1,12 +1,12 @@
 import { create } from "zustand";
-import { Intercepter } from "./InterceptersList";
+import { ExtensionIntercepter } from "./InterceptersList";
 
 interface InterceptersState {
-  intercepters: Intercepter[];
-  set: (intercepters: Intercepter[]) => void;
-  add: (intercepters: Intercepter[]) => void;
-  remove: (intercepters: Pick<Intercepter, "id">[]) => void;
-  update: (intercepter: Intercepter) => void;
+  intercepters: ExtensionIntercepter[];
+  set: (intercepters: ExtensionIntercepter[]) => void;
+  add: (intercepters: ExtensionIntercepter[]) => void;
+  remove: (intercepters: Pick<ExtensionIntercepter, "id">[]) => void;
+  update: (intercepter: ExtensionIntercepter) => void;
 }
 
 export const useInterceptersStore = create<InterceptersState>((set, get) => ({

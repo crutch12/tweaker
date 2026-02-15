@@ -147,6 +147,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
                           listener.expression,
                         )(key, value);
                       }
+                      return value;
                     },
                     {
                       id: listener.id,
@@ -156,6 +157,11 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
                   );
                 }
               }
+              break;
+            }
+            case "ping":
+            case "pong": {
+              notifyExtensionIntercepters(_instance, _instance.getListeners());
               break;
             }
           }

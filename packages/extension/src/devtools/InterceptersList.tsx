@@ -1,31 +1,24 @@
 import { css } from "@emotion/css";
 import safeStringify from "fast-safe-stringify";
 import { useEffect, useState } from "react";
-import { EXTENSION_OWNER } from "@tweaker/extension-plugin";
+import { EXTENSION_OWNER, IntercepterPayload } from "@tweaker/extension-plugin";
 
-export interface Intercepter {
-  id: number;
-  appName: string;
-  patterns: string[];
-  sampleIds?: string[];
-  fromKey?: string;
-  sampleId?: string;
-  enabled: boolean;
-  interactive: boolean;
-  expression?: string;
-  owner: string;
-}
+export type ExtensionIntercepter = IntercepterPayload<unknown> & {
+  // sampleIds?: string[];
+  // fromKey?: string;
+  // sampleId?: string;
+};
 
 export interface InterceptersListProps {
-  intercepters: Intercepter[];
-  onIntercepterChange?: (intercepter: Intercepter) => void;
-  onIntercepterRemove?: (intercepter: Intercepter) => void;
+  intercepters: ExtensionIntercepter[];
+  onIntercepterChange?: (intercepter: ExtensionIntercepter) => void;
+  onIntercepterRemove?: (intercepter: ExtensionIntercepter) => void;
 }
 
 export interface IntercepterItemProps {
-  intercepter: Intercepter;
-  onChange?: (intercepter: Intercepter) => void;
-  onRemove?: (intercepter: Intercepter) => void;
+  intercepter: ExtensionIntercepter;
+  onChange?: (intercepter: ExtensionIntercepter) => void;
+  onRemove?: (intercepter: ExtensionIntercepter) => void;
 }
 
 export function IntercepterItem({
@@ -55,15 +48,15 @@ export function IntercepterItem({
       `}
     >
       <div>
-        id: {editableIntercepter.id} - name: {editableIntercepter.appName} -{" "}
+        id: {editableIntercepter.id} - name: {editableIntercepter.name} -{" "}
         {`${intercepter.owner}`}
         {/* {safeStringify(editableIntercepter.patterns, undefined, 2)} */}
       </div>
       <div>
-        <label>Pattern</label>
+        <label>Patterns</label>
         <input
           type="text"
-          placeholder="Pattern"
+          placeholder="Patterns"
           value={
             readOnly
               ? editableIntercepter.patterns.join(", ")

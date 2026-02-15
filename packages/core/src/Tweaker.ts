@@ -2,7 +2,7 @@ import {
   RemoveListener,
   TweakerKey,
   TweakHandler,
-  TweakListener,
+  TweakerIntercepter,
 } from "./types";
 import { minimatch } from "minimatch";
 import { EventEmitter } from "eventemitter3";
@@ -47,11 +47,17 @@ export interface TweakerOptions {
   plugins?: TweakerPlugin[];
 }
 
-function keyMatchesPatterns(key: string, patterns: readonly string[]) {
+function keyMatchesPatterns(
+  key: string,
+  patterns: readonly string[],
+): false | "exact" | "pattern" {
   for (const pattern of patterns) {
+    if (key.trim() === pattern.trim()) {
+      return "exact";
+    }
     const found = minimatch(key, pattern);
     if (found) {
-      return true;
+      return "pattern";
     }
   }
   return false;
@@ -68,8 +74,8 @@ export class Tweaker {
       originalValue: unknown,
       result?: unknown,
     ) => void;
-    "intercept.new": <T>(listener: TweakListener<T>) => void;
-    "intercept.remove": <T>(listener: TweakListener<T>) => void;
+    "intercept.new": <T>(listener: TweakerIntercepter<T>) => void;
+    "intercept.remove": <T>(listener: TweakerIntercepter<T>) => void;
   }>();
 
   constructor({ name, plugins }: TweakerOptions) {
@@ -88,7 +94,7 @@ export class Tweaker {
     return Promise.all(this.plugins.map((plugin) => plugin.ready()));
   }
 
-  private listeners = new Map<number, TweakListener<any>>([]);
+  private listeners = new Map<number, TweakerIntercepter<any>>([]);
 
   public value<T>(
     key: TweakerKey,
@@ -105,24 +111,28 @@ export class Tweaker {
     handler: TweakHandler<T>,
     options: InterceptOptions,
   ): RemoveListener {
-    const listener: TweakListener<T> = {
+    const intercepter: TweakerIntercepter<T> = {
       id: options.id ?? Math.ceil(Math.random() * 1_000_000_000),
       interactive: options.interactive,
       patterns: Array.isArray(patterns) ? patterns : [patterns],
       handler,
       owner: options.owner || TWEAKER_OWNER,
       enabled: true,
+      timestamp: Date.now(),
     };
 
-    this.listeners.set(listener.id, listener);
+    this.listeners.set(intercepter.id, intercepter);
 
-    this.eventEmitter.emit("intercept.new", listener as TweakListener<unknown>);
+    this.eventEmitter.emit(
+      "intercept.new",
+      intercepter as TweakerIntercepter<unknown>,
+    );
 
     return () => {
-      this.listeners.delete(listener.id);
+      this.listeners.delete(intercepter.id);
       this.eventEmitter.emit(
         "intercept.remove",
-        listener as TweakListener<unknown>,
+        intercepter as TweakerIntercepter<unknown>,
       );
     };
   }
@@ -140,16 +150,26 @@ export class Tweaker {
   }
 
   private findListeners(key: TweakerKey) {
-    const listeners: TweakListener<any>[] = [];
+    const exactListeners: TweakerIntercepter<any>[] = [];
+    const patternListeners: TweakerIntercepter<any>[] = [];
 
     for (const listener of this.listeners.values()) {
       const found = keyMatchesPatterns(key, listener.patterns);
-      if (found) {
-        listeners.push(listener);
+      switch (found) {
+        case "exact": {
+          exactListeners.push(listener);
+        }
+        case "pattern": {
+          patternListeners.push(listener);
+        }
       }
     }
 
-    return listeners;
+    if (exactListeners.length > 0) {
+      return exactListeners;
+    }
+
+    return patternListeners;
   }
 
   private handleValue<T>(
@@ -219,7 +239,7 @@ export class Tweaker {
 
   public on(
     event: "intercept.new" | "intercept.remove",
-    fn: <T>(listener: TweakListener<T>) => void,
+    fn: <T>(listener: TweakerIntercepter<T>) => void,
   ) {
     this.eventEmitter.addListener(event, fn);
     return () => {
@@ -232,11 +252,11 @@ export class Tweaker {
     // this.eventEmitter.removeAllListeners(); // @TODO: should we?
   }
 
-  public getListener(id: number): TweakListener<any> | undefined {
+  public getListener(id: number): TweakerIntercepter<any> | undefined {
     return this.listeners.get(id);
   }
 
-  public getListeners(): TweakListener<any>[] {
+  public getListeners(): TweakerIntercepter<any>[] {
     return Array.from(this.listeners.values());
   }
 

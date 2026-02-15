@@ -1,6 +1,7 @@
-import { Tweaker, TweakListener, TWEAKER_OWNER } from "@tweaker/core";
+import { Tweaker, TweakerIntercepter } from "@tweaker/core";
 import { version } from "../package.json";
 import { PluginMessages } from "./messages";
+import { EXTENSION_PLUGIN_SOURCE } from "./const";
 
 declare global {
   var __TWEAKER__: {
@@ -27,7 +28,7 @@ export function registerInstance(instance: Tweaker) {
 export function notifyExtensionInit<T>(instance: Tweaker) {
   if ("postMessage" in globalThis) {
     const message: PluginMessages.InitMessage = {
-      source: "@tweaker/extension-plugin",
+      source: EXTENSION_PLUGIN_SOURCE,
       version,
       type: "init",
       payload: {
@@ -41,11 +42,11 @@ export function notifyExtensionInit<T>(instance: Tweaker) {
 
 export function notifyExtensionIntercepters<T>(
   instance: Tweaker,
-  listeners: TweakListener<T>[],
+  listeners: TweakerIntercepter<T>[],
 ) {
   if ("postMessage" in globalThis) {
     const message: PluginMessages.InterceptersMessage = {
-      source: "@tweaker/extension-plugin",
+      source: EXTENSION_PLUGIN_SOURCE,
       version,
       type: "intercepters",
       payload: listeners.map((listener) => ({
@@ -53,7 +54,9 @@ export function notifyExtensionIntercepters<T>(
         name: instance.name,
         patterns: listener.patterns,
         interactive: listener.interactive,
-        owner: EXTENSION_OWNER,
+        owner: listener.owner,
+        enabled: listener.enabled,
+        timestamp: listener.timestamp,
       })),
     };
     globalThis.postMessage(message, "*");
@@ -62,11 +65,11 @@ export function notifyExtensionIntercepters<T>(
 
 export function notifyExtensionNewIntercept<T>(
   instance: Tweaker,
-  listener: TweakListener<T>,
+  listener: TweakerIntercepter<T>,
 ) {
   if ("postMessage" in globalThis) {
     const message: PluginMessages.NewInterceptMessage = {
-      source: "@tweaker/extension-plugin",
+      source: EXTENSION_PLUGIN_SOURCE,
       version,
       type: "new-intercept",
       payload: {
@@ -74,7 +77,9 @@ export function notifyExtensionNewIntercept<T>(
         name: instance.name,
         patterns: listener.patterns,
         interactive: listener.interactive,
-        owner: TWEAKER_OWNER,
+        owner: listener.owner,
+        timestamp: listener.timestamp,
+        enabled: listener.enabled,
       },
     };
     globalThis.postMessage(message, "*");
@@ -83,11 +88,11 @@ export function notifyExtensionNewIntercept<T>(
 
 export function notifyExtensionRemoveIntercept<T>(
   instance: Tweaker,
-  listener: TweakListener<T>,
+  listener: TweakerIntercepter<T>,
 ) {
   if ("postMessage" in globalThis) {
     const message: PluginMessages.RemoveInterceptMessage = {
-      source: "@tweaker/extension-plugin",
+      source: EXTENSION_PLUGIN_SOURCE,
       version,
       type: "remove-intercept",
       payload: {
