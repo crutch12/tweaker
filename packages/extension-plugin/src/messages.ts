@@ -1,4 +1,8 @@
-import type { EXTENSION_PLUGIN_SOURCE, EXTENSION_SOURCE } from "./const";
+import type {
+  EXTENSION_PLUGIN_SOURCE,
+  EXTENSION_SOURCE,
+  EXTENSION_TO_SW_SOURCE,
+} from "./const";
 import type { TweakerInterceptor } from "@tweaker/core";
 
 interface PluginAnyMessage<T, P> {
@@ -130,4 +134,30 @@ export namespace ExtensionMessages {
     | PongMessage
     | InitMessage
     | InterceptorsMessage;
+}
+
+type ExtensionServiceWorkerAnyMessage<T, P> = {
+  source: typeof EXTENSION_TO_SW_SOURCE;
+  version: string;
+  type: T;
+  payload: P;
+  tabId: number;
+};
+
+export namespace ExtensionServiceWorkerMessages {
+  export type InitConnectionMessage = ExtensionServiceWorkerAnyMessage<
+    "init-connection",
+    {
+      timestamp: number;
+    }
+  >;
+
+  export type ClearMessagesMessage = ExtensionServiceWorkerAnyMessage<
+    "clear-messages",
+    {
+      timestamp: number;
+    }
+  >;
+
+  export type Message = InitConnectionMessage | ClearMessagesMessage;
 }

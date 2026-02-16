@@ -1,7 +1,7 @@
 import {
-  ExtensionMessages,
+  ExtensionServiceWorkerMessages,
   PluginMessages,
-  EXTENSION_SOURCE,
+  EXTENSION_TO_SW_SOURCE,
   EXTENSION_PLUGIN_SOURCE,
 } from "@tweaker/extension-plugin";
 import { useCallback, useEffect, useEffectEvent, useRef } from "react";
@@ -32,24 +32,34 @@ export function useDevtoolsConnection() {
     removeConnection(false);
   }, []);
 
+  const sendMessage = useCallback(
+    <T extends ExtensionServiceWorkerMessages.Message["type"]>(
+      type: T,
+      payload: Extract<
+        ExtensionServiceWorkerMessages.Message,
+        { type: T }
+      >["payload"],
+    ) => {
+      if (!portRef.current) return;
+      const message: ExtensionServiceWorkerMessages.Message = {
+        source: EXTENSION_TO_SW_SOURCE,
+        version,
+        type,
+        payload,
+        tabId: chrome.devtools.inspectedWindow.tabId,
+      };
+      portRef.current.postMessage(message);
+    },
+    [],
+  );
+
   const createConnection = useEffectEvent(() => {
     portRef.current = chrome.runtime.connect({
       name: "tweaker-devtools-relay",
     });
 
-    const initMessage: ExtensionMessages.InitMessage = {
-      source: EXTENSION_SOURCE,
-      version,
-      type: "init",
-      payload: {
-        data: [],
-        timestamp: Date.now(),
-      },
-    };
-
-    portRef.current.postMessage({
-      ...initMessage,
-      tabId: chrome.devtools.inspectedWindow.tabId,
+    sendMessage("init-connection", {
+      timestamp: Date.now(),
     });
 
     portRef.current.onMessage.addListener(handleMessage);
@@ -119,5 +129,6 @@ export function useDevtoolsConnection() {
 
   return {
     subscribe,
+    sendMessage,
   };
 }

@@ -49,12 +49,6 @@ export function App() {
     );
   };
 
-  const clearData = () => {
-    chrome.storage.session.set({ messages: [] }).then(() => {
-      setMessages([]);
-    });
-  };
-
   const clearFilters = () => {
     setFilterPatterns(undefined);
   };
@@ -102,7 +96,7 @@ export function App() {
     });
   }, []);
 
-  const { subscribe } = useDevtoolsConnection();
+  const { subscribe, sendMessage } = useDevtoolsConnection();
 
   useEffect(() => {
     return subscribe((message) => {
@@ -178,6 +172,11 @@ export function App() {
 
     chrome.tabs.sendMessage(chrome.devtools.inspectedWindow.tabId, message);
   }, [interceptors]);
+
+  const clearData = () => {
+    sendMessage("clear-messages", { timestamp: Date.now() });
+    setMessages([]);
+  };
 
   return (
     <div

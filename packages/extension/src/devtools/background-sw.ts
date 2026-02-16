@@ -5,8 +5,12 @@ import {
   PluginMessages,
   EXTENSION_PLUGIN_SOURCE,
   EXTENSION_SOURCE,
+  EXTENSION_TO_SW_SOURCE,
+  ExtensionServiceWorkerMessages,
 } from "@tweaker/extension-plugin";
 import { version } from "../../package.json";
+
+import PQueue from "p-queue";
 
 const connections: Record<number, chrome.runtime.Port> = {};
 
@@ -14,10 +18,15 @@ chrome.runtime.onConnect.addListener((port) => {
   if (port.name !== "tweaker-devtools-relay") return;
 
   const extensionListener = (
-    message: ExtensionMessages.InitMessage & { tabId: number },
+    message: ExtensionServiceWorkerMessages.Message,
   ) => {
-    if (message.source === EXTENSION_SOURCE && message.type === "init") {
+    if (message.source !== EXTENSION_TO_SW_SOURCE) return;
+    if (message.type === "init-connection") {
       connections[message.tabId] = port;
+      return;
+    }
+    if (message.type === "clear-messages") {
+      clearMessages();
       return;
     }
   };
@@ -98,16 +107,27 @@ chrome.runtime.onMessage.addListener(
   },
 );
 
+// prevent race conditions and add new messages in order
+const saveValueQueue = new PQueue({ concurrency: 1 });
+
 async function saveValueMessage(message: PluginMessages.ValueMessage) {
-  const { messages = [] } = await chrome.storage.session.get<{
-    messages: PluginMessages.ValueMessage[];
-  }>({ messages: [] });
+  return saveValueQueue.add(async () => {
+    const { messages = [] } = await chrome.storage.session.get<{
+      messages: PluginMessages.ValueMessage[];
+    }>({ messages: [] });
 
-  messages.push(message);
+    messages.push(message);
 
-  const MAX_LENGTH = 1000;
+    const MAX_LENGTH = 1000;
 
-  await chrome.storage.session.set({ messages: messages.slice(-MAX_LENGTH) });
+    console.log({ messages });
+
+    await chrome.storage.session.set({ messages: messages.slice(-MAX_LENGTH) });
+  });
+}
+
+async function clearMessages() {
+  return saveValueQueue.add(() => chrome.storage.session.set({ messages: [] }));
 }
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
