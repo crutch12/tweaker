@@ -3,7 +3,6 @@ import {
   useDeferredValue,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import {
@@ -23,6 +22,8 @@ import { InterceptorsListContainer } from "./features/interceptors/InterceptorsL
 import { parsePatterns, serializePatterns } from "./utils/pattern";
 import { ButtonIcon } from "./components/ButtonIcon";
 import { ClearIcon } from "./icons/ClearIcon";
+import { Separator, TextField, IconButton, Flex } from "@radix-ui/themes";
+import { ConsoleErrorIcon } from "@devtools-ds/icon";
 
 export function App() {
   const reloadPage = () => {
@@ -184,7 +185,7 @@ export function App() {
       <strong style={{ fontSize: "20px" }}>
         Tweaker DevTools - {date.toLocaleString()}
       </strong>
-      <div style={{ display: "flex", gap: "10px" }}>
+      <Flex gap="2" align="center">
         <button onClick={reloadPanel}>Reload DevTools Panel</button>
         <button onClick={reloadPage}>Reload Current Page</button>
         <button onClick={checkPageTitle}>Check page title</button>
@@ -205,24 +206,39 @@ export function App() {
         <ButtonIcon title="Clear Messages" onClick={clearData}>
           <ClearIcon size="medium" />
         </ButtonIcon>
-        <input
+        <TextField.Root
+          size="1"
+          radius="full"
           placeholder="Filter messages (glob, e.g. *.*)"
           className={css`
-            width: 200px;
+            min-width: 240px;
             background-color: ${filterPatterns
               ? "#FFFAC8" // FABEBE
               : undefined};
           `}
           type="text"
-          value={filterPatterns}
+          value={filterPatterns ?? ""}
           onChange={(ev) => setFilterPatterns(ev.target.value)}
           onBlur={(ev) => {
             setFilterPatterns(
               serializePatterns(parsePatterns(ev.target.value)),
             );
           }}
-        />
-      </div>
+        >
+          <TextField.Slot />
+          {filterPatterns && (
+            <TextField.Slot>
+              <IconButton
+                onClick={() => setFilterPatterns(undefined)}
+                size="1"
+                variant="ghost"
+              >
+                <ConsoleErrorIcon height="14" width="14" />
+              </IconButton>
+            </TextField.Slot>
+          )}
+        </TextField.Root>
+      </Flex>
       <div
         className={css`
           display: flex;
@@ -246,6 +262,7 @@ export function App() {
               : 0.5};
           `}
         />
+        <Separator size="4" />
         <InterceptorsListContainer
           interceptors={interceptors}
           onInterceptorChange={(i) => {

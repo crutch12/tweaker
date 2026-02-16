@@ -3,6 +3,8 @@ import { MessagesTable, MessagesTableProps } from "./MessagesTable";
 import { parsePatterns } from "../../utils/pattern";
 import { memo, useMemo } from "react";
 import { keyMatchesPatterns } from "@tweaker/core/utils";
+import { Code, Text } from "@radix-ui/themes";
+import { Flex } from "@radix-ui/themes";
 
 export interface MessagesTableContainerProps extends MessagesTableProps {
   filterPatterns?: string;
@@ -28,19 +30,11 @@ function _MessagesTableContainer({
 
   if (messages.length === 0) {
     return (
-      <div
-        style={{
-          fontSize: "16px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "flex-start",
-          gap: "4px",
-        }}
-      >
-        <span>Call</span>
-        <span style={{ color: "red" }}>tweaker.value()</span>
-        <span>from in-page code to see logs...</span>
-      </div>
+      <Flex justify="center" align="center">
+        <Text size="3">
+          Call <Code>tweaker.value()</Code> from in-page code to see logs...
+        </Text>
+      </Flex>
     );
   }
 
