@@ -10,6 +10,18 @@ export default defineConfig({
     "import.meta.env.VERSION": `"${version}"`,
   },
 
+  optimizeDeps: {
+    esbuildOptions: {
+      // force esm usage for misconfigured deps' package.json
+      mainFields: ["exports", "module", "main"],
+    },
+  },
+
+  resolve: {
+    // force esm usage for misconfigured deps' "exports" field
+    conditions: ["module", "import", "browser", "default"],
+  },
+
   build: {
     minify: false,
     rollupOptions: {
@@ -19,14 +31,6 @@ export default defineConfig({
         "src/devtools/content-script.ts",
       ],
       output: {
-        // manualChunks(id) {
-        //   if (id.includes("background-sw")) {
-        //     return "background-sw";
-        //   }
-        //   if (id.includes("content-script")) {
-        //     return "tweaker-devtools-content-script";
-        //   }
-        // },
         entryFileNames: (chunkInfo) => {
           if (chunkInfo.name === "background-sw") {
             return "[name].js";
