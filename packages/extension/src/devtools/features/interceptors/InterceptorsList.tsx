@@ -7,7 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { EXTENSION_OWNER, IntercepterPayload } from "@tweaker/extension-plugin";
+import { EXTENSION_OWNER, InterceptorPayload } from "@tweaker/extension-plugin";
 import { getTextColor } from "../../utils/colors";
 import equal from "fast-deep-equal";
 import { Badge } from "../../components/Badge";
@@ -18,41 +18,41 @@ import {
   ExpressionCodeBlockContainer,
 } from "./ExpressionCodeBlock";
 
-export type ExtensionIntercepter = IntercepterPayload<unknown> & {
+export type ExtensionInterceptor = InterceptorPayload<unknown> & {
   // sampleIds?: string[];
   // fromKey?: string;
   // sampleId?: string;
 };
 
-export interface IntercepterItemProps {
-  intercepter: ExtensionIntercepter;
-  onChange?: (intercepter: ExtensionIntercepter) => void;
-  onRemove?: (intercepter: ExtensionIntercepter) => void;
+export interface InterceptorItemProps {
+  interceptor: ExtensionInterceptor;
+  onChange?: (interceptor: ExtensionInterceptor) => void;
+  onRemove?: (interceptor: ExtensionInterceptor) => void;
   onFilterMessages?: (patterns: string[]) => void;
 }
 
-export function IntercepterItem({
-  intercepter,
+export function InterceptorItem({
+  interceptor,
   onChange,
   onRemove,
   onFilterMessages,
-}: IntercepterItemProps) {
-  const [editableIntercepter, setEditableIntercepter] = useState(
-    () => intercepter,
+}: InterceptorItemProps) {
+  const [editableInterceptor, setEditableInterceptor] = useState(
+    () => interceptor,
   );
 
-  const readOnly = intercepter.owner !== EXTENSION_OWNER;
+  const readOnly = interceptor.owner !== EXTENSION_OWNER;
 
   useEffect(() => {
-    setEditableIntercepter(intercepter);
-  }, [intercepter]);
+    setEditableInterceptor(interceptor);
+  }, [interceptor]);
 
   const hasChanges = useMemo(() => {
-    return !equal(intercepter, editableIntercepter);
-  }, [intercepter, editableIntercepter]);
+    return !equal(interceptor, editableInterceptor);
+  }, [interceptor, editableInterceptor]);
 
   const onCodeUpdate = useCallback((code: string) => {
-    setEditableIntercepter((v) => ({
+    setEditableInterceptor((v) => ({
       ...v,
       expression: code || undefined,
     }));
@@ -61,11 +61,11 @@ export function IntercepterItem({
   const [updatesCount, setUpdatesCount] = useState(0);
 
   const discardChanges = useCallback(() => {
-    setEditableIntercepter(intercepter);
+    setEditableInterceptor(interceptor);
     setUpdatesCount((c) => c + 1);
-  }, [intercepter]);
+  }, [interceptor]);
 
-  const appColor = getTextColor(intercepter.name);
+  const appColor = getTextColor(interceptor.name);
 
   return (
     <div
@@ -78,7 +78,7 @@ export function IntercepterItem({
         padding: 10px;
         font-size: 16px;
         position: relative;
-        opacity: ${intercepter.enabled ? undefined : 0.6};
+        opacity: ${interceptor.enabled ? undefined : 0.6};
       `}
     >
       <div
@@ -92,45 +92,45 @@ export function IntercepterItem({
         <input
           type="checkbox"
           disabled={readOnly}
-          checked={editableIntercepter.enabled}
+          checked={editableInterceptor.enabled}
           onChange={(ev) => {
-            setEditableIntercepter((v) => ({
+            setEditableInterceptor((v) => ({
               ...v,
               enabled: ev.target.checked,
             }));
             onChange?.({
-              ...editableIntercepter,
+              ...editableInterceptor,
               enabled: ev.target.checked,
             });
           }}
         />
-        <i>{intercepter.id}</i>
+        <i>{interceptor.id}</i>
         <span
           style={{
             color: appColor,
             fontWeight: 700,
           }}
         >
-          {intercepter.name}
+          {interceptor.name}
         </span>
         <ButtonIcon
-          title="Remove intercepter"
+          title="Remove interceptor"
           disabled={readOnly}
-          onClick={() => onRemove?.(intercepter)}
+          onClick={() => onRemove?.(interceptor)}
         >
           <DeleteIcon size="medium" />
         </ButtonIcon>
         {onFilterMessages && (
           <ButtonIcon
             title="Filter messages"
-            onClick={() => onFilterMessages(editableIntercepter.patterns)}
+            onClick={() => onFilterMessages(editableInterceptor.patterns)}
           >
             <SelectIcon size="medium" />
           </ButtonIcon>
         )}
 
         {!readOnly && hasChanges && (
-          <button onClick={() => onChange?.(editableIntercepter)}>
+          <button onClick={() => onChange?.(editableInterceptor)}>
             Save changes
           </button>
         )}
@@ -145,12 +145,12 @@ export function IntercepterItem({
           placeholder="Patterns"
           value={
             readOnly
-              ? editableIntercepter.patterns.join(", ")
-              : editableIntercepter.patterns[0]
+              ? editableInterceptor.patterns.join(", ")
+              : editableInterceptor.patterns[0]
           }
-          disabled={readOnly || !intercepter.enabled}
+          disabled={readOnly || !interceptor.enabled}
           onChange={(ev) =>
-            setEditableIntercepter((v) => ({
+            setEditableInterceptor((v) => ({
               ...v,
               patterns: [ev.target.value],
             }))
@@ -166,9 +166,9 @@ export function IntercepterItem({
           >
             <ExpressionCodeBlock
               key={updatesCount}
-              code={intercepter.expression ?? ""}
+              code={interceptor.expression ?? ""}
               onUpdate={onCodeUpdate}
-              readOnly={!intercepter.enabled}
+              readOnly={!interceptor.enabled}
             />
           </ExpressionCodeBlockContainer>
         </div>
@@ -177,7 +177,7 @@ export function IntercepterItem({
         position="bottom-right"
         appearance={readOnly ? "secondary" : "primary"}
       >
-        {intercepter.owner}
+        {interceptor.owner}
       </Badge>
       {hasChanges && (
         <Badge position="top-right" appearance="warn">
@@ -188,21 +188,21 @@ export function IntercepterItem({
   );
 }
 
-export interface InterceptersListProps {
-  intercepters: ExtensionIntercepter[];
-  onIntercepterChange?: (intercepter: ExtensionIntercepter) => void;
-  onIntercepterRemove?: (intercepter: ExtensionIntercepter) => void;
+export interface InterceptorsListProps {
+  interceptors: ExtensionInterceptor[];
+  onInterceptorChange?: (interceptor: ExtensionInterceptor) => void;
+  onInterceptorRemove?: (interceptor: ExtensionInterceptor) => void;
   onFilterMessages?: (patterns: string[]) => void;
   ref?: MutableRefObject<any>;
 }
 
-export function InterceptersList({
-  intercepters: intercepters,
-  onIntercepterChange,
-  onIntercepterRemove,
+export function InterceptorsList({
+  interceptors: interceptors,
+  onInterceptorChange,
+  onInterceptorRemove,
   onFilterMessages,
   ref,
-}: InterceptersListProps) {
+}: InterceptorsListProps) {
   return (
     <div
       ref={ref}
@@ -212,12 +212,12 @@ export function InterceptersList({
         gap: 10px;
       `}
     >
-      {intercepters.map((intercepter) => (
-        <div key={intercepter.id}>
-          <IntercepterItem
-            intercepter={intercepter}
-            onChange={onIntercepterChange}
-            onRemove={onIntercepterRemove}
+      {interceptors.map((interceptor) => (
+        <div key={interceptor.id}>
+          <InterceptorItem
+            interceptor={interceptor}
+            onChange={onInterceptorChange}
+            onRemove={onInterceptorRemove}
             onFilterMessages={onFilterMessages}
           />
         </div>

@@ -1,9 +1,9 @@
 export type TweakerKey = string;
 
-export interface TweakerIntercepter<T> {
+export interface TweakerInterceptor<T> {
   id: number;
   /**
-   * "Creator" of intercepter (e.g. 'tweaker', 'extension')
+   * "Creator" of interceptor (e.g. 'tweaker', 'extension')
    * @default 'tweaker'
    */
   owner: string;

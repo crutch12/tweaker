@@ -9,7 +9,7 @@ import {
   notifyExtensionNewIntercept,
   notifyExtensionRemoveIntercept,
   notifyExtensionInit,
-  notifyExtensionIntercepters,
+  notifyExtensionInterceptors,
 } from "./global";
 import {
   EXTENSION_OWNER,
@@ -100,7 +100,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
 
     function init() {
       notifyExtensionInit(_instance);
-      notifyExtensionIntercepters(getListeners());
+      notifyExtensionInterceptors(getListeners());
     }
 
     const promise = new Promise<void>((resolve) => {
@@ -141,7 +141,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
           // debugger;
           console.log(event.data.payload);
           switch (event.data.type) {
-            case "intercepters": {
+            case "interceptors": {
               const listeners = _instance.getListeners();
 
               for (const listener of listeners) {
@@ -186,7 +186,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
             }
             case "ping":
             case "pong": {
-              notifyExtensionIntercepters(getListeners());
+              notifyExtensionInterceptors(getListeners());
               break;
             }
           }

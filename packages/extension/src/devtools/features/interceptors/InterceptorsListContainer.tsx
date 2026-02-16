@@ -1,12 +1,12 @@
 import { useStickToBottom } from "use-stick-to-bottom";
-import { InterceptersList, InterceptersListProps } from "./InterceptersList";
+import { InterceptorsList, InterceptorsListProps } from "./InterceptorsList";
 
-export function InterceptersListContainer(props: InterceptersListProps) {
+export function InterceptorsListContainer(props: InterceptorsListProps) {
   const { scrollRef, contentRef } = useStickToBottom({
     mass: 1,
   });
 
-  if (props.intercepters.length === 0) {
+  if (props.interceptors.length === 0) {
     return (
       <div
         style={{
@@ -17,14 +17,14 @@ export function InterceptersListContainer(props: InterceptersListProps) {
           gap: "4px",
         }}
       >
-        Intercepters are empty
+        Interceptors are empty
       </div>
     );
   }
 
   return (
     <div ref={scrollRef}>
-      <InterceptersList ref={contentRef} {...props} />
+      <InterceptorsList ref={contentRef} {...props} />
     </div>
   );
 }

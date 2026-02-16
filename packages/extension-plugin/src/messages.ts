@@ -1,5 +1,5 @@
 import type { EXTENSION_PLUGIN_SOURCE, EXTENSION_SOURCE } from "./const";
-import type { TweakerIntercepter } from "@tweaker/core";
+import type { TweakerInterceptor } from "@tweaker/core";
 
 interface PluginAnyMessage<T, P> {
   source: typeof EXTENSION_PLUGIN_SOURCE;
@@ -8,8 +8,8 @@ interface PluginAnyMessage<T, P> {
   payload: P;
 }
 
-export type IntercepterPayload<T> = Pick<
-  TweakerIntercepter<T>,
+export type InterceptorPayload<T> = Pick<
+  TweakerInterceptor<T>,
   "id" | "enabled" | "interactive" | "owner" | "patterns" | "timestamp"
 > & {
   name: string;
@@ -54,14 +54,14 @@ export namespace PluginMessages {
     }
   >;
 
-  export type InterceptersMessage = PluginAnyMessage<
-    "intercepters",
-    IntercepterPayload<unknown>[]
+  export type InterceptorsMessage = PluginAnyMessage<
+    "interceptors",
+    InterceptorPayload<unknown>[]
   >;
 
   export type NewInterceptMessage = PluginAnyMessage<
     "new-intercept",
-    IntercepterPayload<unknown>
+    InterceptorPayload<unknown>
   >;
 
   export type RemoveInterceptMessage = PluginAnyMessage<
@@ -77,7 +77,7 @@ export namespace PluginMessages {
     | PongMessage
     | InitMessage
     | ValueMessage
-    | InterceptersMessage
+    | InterceptorsMessage
     | NewInterceptMessage
     | RemoveInterceptMessage;
 }
@@ -113,12 +113,12 @@ export namespace ExtensionMessages {
     }
   >;
 
-  export type InterceptersMessage = ExtensionAnyMessage<
-    "intercepters",
+  export type InterceptorsMessage = ExtensionAnyMessage<
+    "interceptors",
     {
       name: string;
       timestamp: number;
-      data: IntercepterPayload<unknown>[];
+      data: InterceptorPayload<unknown>[];
     }
   >;
 
@@ -126,5 +126,5 @@ export namespace ExtensionMessages {
     | PingMessage
     | PongMessage
     | InitMessage
-    | InterceptersMessage;
+    | InterceptorsMessage;
 }

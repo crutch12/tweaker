@@ -3,9 +3,9 @@ import { keyMatchesPatterns } from "@tweaker/core/utils";
 import { MessagesTable } from "./features/messages/MessagesTable";
 import { useVisibilityChange } from "@uidotdev/usehooks";
 import {
-  InterceptersList,
-  ExtensionIntercepter,
-} from "./features/intercepters/InterceptersList";
+  InterceptorsList,
+  ExtensionInterceptor,
+} from "./features/interceptors/InterceptorsList";
 import {
   ExtensionMessages,
   PluginMessages,
@@ -14,12 +14,12 @@ import {
   EXTENSION_PLUGIN_SOURCE,
 } from "@tweaker/extension-plugin";
 import { version, name } from "../../package.json";
-import { useInterceptersStore } from "./features/intercepters/useInterceptersStore";
+import { useInterceptorsStore } from "./features/interceptors/useInterceptorsStore";
 import { css } from "@emotion/css";
 import { sendMessageToPlugin } from "./utils/sendMessageToPlugin";
 import { useDevtoolsConnection } from "./hooks/useDevtoolsConnection";
 import { MessagesTableContainer } from "./features/messages/MessagesTableContainer";
-import { InterceptersListContainer } from "./features/intercepters/InterceptersListContainer";
+import { InterceptorsListContainer } from "./features/interceptors/InterceptorsListContainer";
 
 export function App() {
   const reloadPage = () => {
@@ -65,11 +65,11 @@ export function App() {
     PluginMessages.ValueMessage["payload"][]
   >([]);
 
-  const intercepters = useInterceptersStore((state) => state.intercepters);
-  const addIntercepters = useInterceptersStore((state) => state.add);
-  const setIntercepters = useInterceptersStore((state) => state.set);
-  const updateIntercepter = useInterceptersStore((state) => state.update);
-  const removeIntercepters = useInterceptersStore((state) => state.remove);
+  const interceptors = useInterceptorsStore((state) => state.interceptors);
+  const addInterceptors = useInterceptorsStore((state) => state.add);
+  const setInterceptors = useInterceptorsStore((state) => state.set);
+  const updateInterceptor = useInterceptorsStore((state) => state.update);
+  const removeInterceptors = useInterceptorsStore((state) => state.remove);
 
   const [filterPatterns, setFilterPatterns] = useState<string[] | undefined>(
     undefined,
@@ -113,7 +113,7 @@ export function App() {
             break;
           }
           case "new-intercept": {
-            addIntercepters([
+            addInterceptors([
               {
                 ...message.payload,
                 expression: undefined,
@@ -125,15 +125,15 @@ export function App() {
             break;
           }
           case "remove-intercept": {
-            removeIntercepters([{ id: message.payload.id }]);
+            removeInterceptors([{ id: message.payload.id }]);
             break;
           }
-          case "intercepters": {
+          case "interceptors": {
             // message.payload
-            setIntercepters(
-              message.payload.map((intercepter) => ({
-                ...intercepter,
-                expression: intercepter.expression ?? "  return value",
+            setInterceptors(
+              message.payload.map((interceptor) => ({
+                ...interceptor,
+                expression: interceptor.expression ?? "  return value",
               })),
             );
             break;
@@ -144,7 +144,7 @@ export function App() {
   }, []);
 
   function newTweak(message: PluginMessages.ValueMessage["payload"]) {
-    addIntercepters([
+    addInterceptors([
       {
         id: Math.ceil(Math.random() * 1_000_000_000),
         name: message.name,
@@ -163,21 +163,21 @@ export function App() {
   }
 
   useEffect(() => {
-    const message: ExtensionMessages.InterceptersMessage = {
-      type: "intercepters",
+    const message: ExtensionMessages.InterceptorsMessage = {
+      type: "interceptors",
       version,
       source: EXTENSION_SOURCE,
       payload: {
         name: "test",
         timestamp: Date.now(),
-        data: intercepters.map((intercepter) => ({
-          ...intercepter,
+        data: interceptors.map((interceptor) => ({
+          ...interceptor,
         })),
       },
     };
 
     chrome.tabs.sendMessage(chrome.devtools.inspectedWindow.tabId, message);
-  }, [intercepters]);
+  }, [interceptors]);
 
   return (
     <div
@@ -231,12 +231,12 @@ export function App() {
           onTweak={newTweak}
           messages={filteredMessages}
         />
-        <InterceptersListContainer
-          intercepters={intercepters}
-          onIntercepterChange={(i) => {
-            updateIntercepter(i);
+        <InterceptorsListContainer
+          interceptors={interceptors}
+          onInterceptorChange={(i) => {
+            updateInterceptor(i);
           }}
-          onIntercepterRemove={(i) => removeIntercepters([i])}
+          onInterceptorRemove={(i) => removeInterceptors([i])}
           onFilterMessages={(patterns) => onFilterMessages(patterns)}
         />
       </div>

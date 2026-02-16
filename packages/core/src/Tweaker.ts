@@ -2,7 +2,7 @@ import {
   RemoveListener,
   TweakerKey,
   TweakHandler,
-  TweakerIntercepter,
+  TweakerInterceptor,
 } from "./types";
 import { EventEmitter } from "eventemitter3";
 import { TweakerPlugin } from "./plugin";
@@ -62,8 +62,8 @@ export class Tweaker {
 
   private readonly eventEmitter = new EventEmitter<{
     value: (options: ValueEventOptions) => void;
-    "intercept.new": <T>(listener: TweakerIntercepter<T>) => void;
-    "intercept.remove": <T>(listener: TweakerIntercepter<T>) => void;
+    "intercept.new": <T>(listener: TweakerInterceptor<T>) => void;
+    "intercept.remove": <T>(listener: TweakerInterceptor<T>) => void;
   }>();
 
   constructor({ name, plugins }: TweakerOptions) {
@@ -82,7 +82,7 @@ export class Tweaker {
     return Promise.all(this.plugins.map((plugin) => plugin.ready()));
   }
 
-  private listeners = new Map<number, TweakerIntercepter<any>>([]);
+  private listeners = new Map<number, TweakerInterceptor<any>>([]);
 
   public value<T>(
     key: TweakerKey,
@@ -99,7 +99,7 @@ export class Tweaker {
     handler: TweakHandler<T>,
     options: InterceptOptions,
   ): RemoveListener {
-    const intercepter: TweakerIntercepter<T> = {
+    const interceptor: TweakerInterceptor<T> = {
       id: options.id ?? Math.ceil(Math.random() * 1_000_000_000),
       interactive: options.interactive,
       patterns: Array.isArray(patterns) ? patterns : [patterns],
@@ -109,18 +109,18 @@ export class Tweaker {
       timestamp: Date.now(),
     };
 
-    this.listeners.set(intercepter.id, intercepter);
+    this.listeners.set(interceptor.id, interceptor);
 
     this.eventEmitter.emit(
       "intercept.new",
-      intercepter as TweakerIntercepter<unknown>,
+      interceptor as TweakerInterceptor<unknown>,
     );
 
     return () => {
-      this.listeners.delete(intercepter.id);
+      this.listeners.delete(interceptor.id);
       this.eventEmitter.emit(
         "intercept.remove",
-        intercepter as TweakerIntercepter<unknown>,
+        interceptor as TweakerInterceptor<unknown>,
       );
     };
   }
@@ -138,8 +138,8 @@ export class Tweaker {
   }
 
   private findListeners(key: TweakerKey) {
-    const exactListeners: TweakerIntercepter<any>[] = [];
-    const patternListeners: TweakerIntercepter<any>[] = [];
+    const exactListeners: TweakerInterceptor<any>[] = [];
+    const patternListeners: TweakerInterceptor<any>[] = [];
 
     for (const listener of this.listeners.values()) {
       if (!listener.enabled) continue;
@@ -252,7 +252,7 @@ export class Tweaker {
 
   public on(
     event: "intercept.new" | "intercept.remove",
-    fn: <T>(listener: TweakerIntercepter<T>) => void,
+    fn: <T>(listener: TweakerInterceptor<T>) => void,
   ) {
     this.eventEmitter.addListener(event, fn);
     return () => {
@@ -265,11 +265,11 @@ export class Tweaker {
     // this.eventEmitter.removeAllListeners(); // @TODO: should we?
   }
 
-  public getListener(id: number): TweakerIntercepter<any> | undefined {
+  public getListener(id: number): TweakerInterceptor<any> | undefined {
     return this.listeners.get(id);
   }
 
-  public getListeners(): TweakerIntercepter<any>[] {
+  public getListeners(): TweakerInterceptor<any>[] {
     return Array.from(this.listeners.values());
   }
 
