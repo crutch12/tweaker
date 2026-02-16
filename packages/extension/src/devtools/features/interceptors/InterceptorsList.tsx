@@ -17,6 +17,8 @@ import {
   ExpressionCodeBlock,
   ExpressionCodeBlockContainer,
 } from "./ExpressionCodeBlock";
+import { isJsSyntaxValid } from "../../utils/isJsSyntaxValid";
+import { useQuery } from "@tanstack/react-query";
 
 export type ExtensionInterceptor = InterceptorPayload<unknown> & {
   // sampleIds?: string[];
@@ -38,6 +40,20 @@ export function InterceptorItem({
   onFilterMessages,
 }: InterceptorItemProps) {
   const [expression, setExpression] = useState(() => interceptor.expression);
+
+  const { data: expressionError } = useQuery({
+    queryKey: ["validateExpression", expression],
+    queryFn: () => {
+      if (!expression) return { valid: true, error: undefined };
+      return isJsSyntaxValid("() => {\n" + expression + "\n}");
+    },
+    select: ({ error }) => {
+      if (error) {
+        return `${error.name} - ${error.message}`;
+      }
+      return undefined;
+    },
+  });
 
   const [patterns, setPatterns] = useState(() =>
     interceptor.patterns.join(", "),
@@ -175,8 +191,9 @@ export function InterceptorItem({
             )}
           </div>
           <ExpressionCodeBlockContainer
-            codeBefore="function (key, value) {"
+            codeBefore="(key: string, value: any) => {"
             codeAfter="}"
+            language="ts"
           >
             <ExpressionCodeBlock
               key={updatesCount}
@@ -185,6 +202,9 @@ export function InterceptorItem({
               readOnly={!interceptor.enabled}
             />
           </ExpressionCodeBlockContainer>
+          {expressionError && (
+            <div style={{ color: "red" }}>{expressionError}</div>
+          )}
         </div>
       )}
       <Badge

@@ -145,27 +145,22 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
         if (_instance.hasListener(listener.id)) {
           _instance.removeListener(listener.id);
         }
-        if (listener.expression) {
-          expressions.set(listener.id, listener.expression);
-          _instance.intercept(
-            listener.patterns,
-            (key, value) => {
-              if (listener.expression) {
-                return new Function("key", "value", listener.expression)(
-                  key,
-                  value,
-                );
-              }
-              return value;
-            },
-            {
-              id: listener.id,
-              owner: listener.owner,
-              interactive: listener.interactive,
-              enabled: listener.enabled,
-            },
-          );
-        }
+        expressions.set(listener.id, listener.expression ?? "");
+        _instance.intercept(
+          listener.patterns,
+          (key, value) => {
+            return new Function("key", "value", listener.expression ?? "")(
+              key,
+              value,
+            );
+          },
+          {
+            id: listener.id,
+            owner: listener.owner,
+            interactive: listener.interactive,
+            enabled: listener.enabled,
+          },
+        );
       }
     }
 

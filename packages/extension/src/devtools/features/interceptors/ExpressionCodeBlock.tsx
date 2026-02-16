@@ -3,6 +3,7 @@ import { BasicSetup, ReadOnlySetup } from "prism-react-editor/setups";
 
 // Adding the JS grammar
 import "prism-react-editor/prism/languages/javascript";
+import "prism-react-editor/prism/languages/typescript";
 
 import "prism-react-editor/layout.css";
 import "prism-react-editor/themes/github-light.css";
