@@ -10,8 +10,15 @@ export function ButtonIcon({ children, ...props }: ButtonIconProps) {
 }
 
 const ButtonIconContainer = styled.button`
+  display: flex;
+  align-items: center;
   padding: 5px;
   background: none;
   border: none;
-  cursor: pointer;
+  border-radius: 50%;
+  cursor: ${({ disabled }) => (disabled ? "default" : "pointer")};
+
+  &:hover {
+    background-color: ${({ disabled }) => (disabled ? undefined : "#dbdbdb")};
+  }
 `;

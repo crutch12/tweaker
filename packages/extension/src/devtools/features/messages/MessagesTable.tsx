@@ -1,12 +1,7 @@
 import { Table } from "@devtools-ds/table";
-import { ObjectInspector } from "@devtools-ds/object-inspector";
 import { HTMLAttributes, MutableRefObject } from "react";
-import safeStringify from "fast-safe-stringify";
-import { css, keyframes } from "@emotion/css";
 import { PluginMessages } from "@tweaker/extension-plugin";
-import { getTextColor } from "../../utils/colors";
-import { BlueButton } from "../../components/BlueButton";
-import { deserializeError, isErrorLike } from "serialize-error";
+import { MessageRow } from "./MessageRow";
 
 export interface MessagesTableProps extends HTMLAttributes<HTMLElement> {
   messages: PluginMessages.ValueMessage["payload"][];
@@ -35,81 +30,14 @@ export function MessagesTable({
         </Table.Head>
         <Table.Body>
           {messages.map((message) => (
-            <Table.Row
-              className={css`
-                animation: ${bounce} 1.5s ease;
-              `}
+            <MessageRow
               key={message.name + message.key + message.timestamp}
-            >
-              <Table.Cell
-                style={{ color: getTextColor(message.name) }}
-                title={message.name}
-              >
-                <strong>{message.name}</strong>
-              </Table.Cell>
-              <Table.Cell title={message.key}>{message.key}</Table.Cell>
-              <Table.Cell
-                title={safeStringify(message.originalValue, undefined, 2)}
-              >
-                <ObjectInspector
-                  sortKeys={false}
-                  expandLevel={0}
-                  includePrototypes={true}
-                  data={
-                    isErrorLike(message.originalValue)
-                      ? deserializeError(message.originalValue)
-                      : (message.originalValue as any)
-                  }
-                />
-              </Table.Cell>
-              {message.tweaked ? (
-                <Table.Cell title={safeStringify(message.result, undefined, 2)}>
-                  {message.error && (
-                    <span style={{ opacity: 0.5, cursor: "default" }}>
-                      error
-                    </span>
-                  )}
-                  <ObjectInspector
-                    sortKeys={false}
-                    expandLevel={0}
-                    includePrototypes={false}
-                    data={
-                      isErrorLike(message.result)
-                        ? deserializeError(message.result)
-                        : (message.result as any)
-                    }
-                  />
-                </Table.Cell>
-              ) : (
-                <Table.Cell>
-                  <span style={{ opacity: 0.5, cursor: "default" }}>empty</span>
-                </Table.Cell>
-              )}
-
-              <Table.Cell title={new Date(message.timestamp).toLocaleString()}>
-                {message.timestamp}
-              </Table.Cell>
-              <Table.Cell>
-                <div
-                  className={css`
-                    display: flex;
-                    gap: "10px";
-                  `}
-                >
-                  <BlueButton onClick={() => onTweak?.(message)}>
-                    Tweak
-                  </BlueButton>
-                </div>
-              </Table.Cell>
-            </Table.Row>
+              message={message}
+              onTweak={onTweak}
+            />
           ))}
         </Table.Body>
       </Table>
     </div>
   );
 }
-
-const bounce = keyframes`
-  from { background-color: rgba(255, 204, 102, 1); }
-  to { background-color: rgba(255, 204, 102, 0); }
-`;

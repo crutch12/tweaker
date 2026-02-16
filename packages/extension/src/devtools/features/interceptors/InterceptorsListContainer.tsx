@@ -1,7 +1,8 @@
 import { useStickToBottom } from "use-stick-to-bottom";
 import { InterceptorsList, InterceptorsListProps } from "./InterceptorsList";
+import { memo } from "react";
 
-export function InterceptorsListContainer(props: InterceptorsListProps) {
+function _InterceptorsListContainer(props: InterceptorsListProps) {
   const { scrollRef, contentRef } = useStickToBottom({
     mass: 1,
   });
@@ -28,3 +29,5 @@ export function InterceptorsListContainer(props: InterceptorsListProps) {
     </div>
   );
 }
+
+export const InterceptorsListContainer = memo(_InterceptorsListContainer);

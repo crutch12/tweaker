@@ -1,5 +1,4 @@
 import {
-  Suspense,
   useCallback,
   useDeferredValue,
   useEffect,
@@ -7,7 +6,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { keyMatchesPatterns } from "@tweaker/core/utils";
 import {
   ExtensionMessages,
   PluginMessages,
@@ -23,6 +21,8 @@ import { useDevtoolsConnection } from "./hooks/useDevtoolsConnection";
 import { MessagesTableContainer } from "./features/messages/MessagesTableContainer";
 import { InterceptorsListContainer } from "./features/interceptors/InterceptorsListContainer";
 import { parsePatterns, serializePatterns } from "./utils/pattern";
+import { ButtonIcon } from "./components/ButtonIcon";
+import { ClearIcon } from "./icons/ClearIcon";
 
 export function App() {
   const reloadPage = () => {
@@ -69,15 +69,6 @@ export function App() {
   );
 
   const deferredFilterPatterns = useDeferredValue(filterPatterns);
-
-  const filteredMessages = useMemo(() => {
-    if (deferredFilterPatterns) {
-      return messages.filter((msg) =>
-        keyMatchesPatterns(msg.key, parsePatterns(deferredFilterPatterns)),
-      );
-    }
-    return messages;
-  }, [deferredFilterPatterns, messages]);
 
   const onFilterMessages = useCallback((pattenrs: string[] | undefined) => {
     setFilterPatterns(pattenrs ? serializePatterns(pattenrs) : undefined);
@@ -138,24 +129,27 @@ export function App() {
     });
   }, []);
 
-  function newTweak(message: PluginMessages.ValueMessage["payload"]) {
-    addInterceptors([
-      {
-        id: Math.ceil(Math.random() * 1_000_000_000),
-        name: message.name,
-        patterns: [message.key],
-        // fromKey: message.key,
-        // sampleIds: [],
-        // sampleId: undefined,
-        interactive: false,
-        enabled: true,
-        expression: "  return value",
-        // expression: undefined,
-        owner: EXTENSION_OWNER,
-        timestamp: Date.now(),
-      },
-    ]);
-  }
+  const newTweak = useCallback(
+    (message: PluginMessages.ValueMessage["payload"]) => {
+      addInterceptors([
+        {
+          id: Math.ceil(Math.random() * 1_000_000_000),
+          name: message.name,
+          patterns: [message.key],
+          // fromKey: message.key,
+          // sampleIds: [],
+          // sampleId: undefined,
+          interactive: false,
+          enabled: true,
+          expression: "  return value",
+          // expression: undefined,
+          owner: EXTENSION_OWNER,
+          timestamp: Date.now(),
+        },
+      ]);
+    },
+    [addInterceptors],
+  );
 
   useEffect(() => {
     const message: ExtensionMessages.InterceptorsMessage = {
@@ -195,7 +189,6 @@ export function App() {
         <button onClick={reloadPage}>Reload Current Page</button>
         <button onClick={checkPageTitle}>Check page title</button>
         <button onClick={evalTweaker}>Eval Tweaker</button>
-        <button onClick={clearData}>Clear Data</button>
         <button
           onClick={() =>
             sendMessageToPlugin("init", {
@@ -209,14 +202,15 @@ export function App() {
         >
           Send Message
         </button>
+        <ButtonIcon title="Clear Messages" onClick={clearData}>
+          <ClearIcon size="medium" />
+        </ButtonIcon>
         <input
-          placeholder="Filter messages (glob, e.g. *)"
+          placeholder="Filter messages (glob, e.g. *.*)"
           className={css`
             width: 200px;
             background-color: ${filterPatterns
-              ? filteredMessages.length === 0
-                ? "#FABEBE"
-                : "#FFFAC8"
+              ? "#FFFAC8" // FABEBE
               : undefined};
           `}
           type="text"
@@ -242,12 +236,16 @@ export function App() {
           }
         `}
       >
-        <Suspense fallback="Loading...">
-          <MessagesTableContainer
-            onTweak={newTweak}
-            messages={filteredMessages}
-          />
-        </Suspense>
+        <MessagesTableContainer
+          onTweak={newTweak}
+          messages={messages}
+          filterPatterns={deferredFilterPatterns}
+          className={css`
+            opacity: ${deferredFilterPatterns === filterPatterns
+              ? undefined
+              : 0.5};
+          `}
+        />
         <InterceptorsListContainer
           interceptors={interceptors}
           onInterceptorChange={(i) => {

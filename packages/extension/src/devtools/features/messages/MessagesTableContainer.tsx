@@ -1,12 +1,32 @@
 import { useStickToBottom } from "use-stick-to-bottom";
 import { MessagesTable, MessagesTableProps } from "./MessagesTable";
+import { parsePatterns } from "../../utils/pattern";
+import { memo, useMemo } from "react";
+import { keyMatchesPatterns } from "@tweaker/core/utils";
 
-export function MessagesTableContainer(props: MessagesTableProps) {
+export interface MessagesTableContainerProps extends MessagesTableProps {
+  filterPatterns?: string;
+}
+
+function _MessagesTableContainer({
+  filterPatterns,
+  messages,
+  ...props
+}: MessagesTableContainerProps) {
   const { scrollRef, contentRef } = useStickToBottom({
     mass: 1,
   });
 
-  if (props.messages.length === 0) {
+  const filteredMessages = useMemo(() => {
+    if (filterPatterns) {
+      return messages.filter((msg) =>
+        keyMatchesPatterns(msg.key, parsePatterns(filterPatterns)),
+      );
+    }
+    return messages;
+  }, [filterPatterns, messages]);
+
+  if (messages.length === 0) {
     return (
       <div
         style={{
@@ -26,7 +46,9 @@ export function MessagesTableContainer(props: MessagesTableProps) {
 
   return (
     <div ref={scrollRef}>
-      <MessagesTable ref={contentRef} {...props} />
+      <MessagesTable ref={contentRef} {...props} messages={filteredMessages} />
     </div>
   );
 }
+
+export const MessagesTableContainer = memo(_MessagesTableContainer);
