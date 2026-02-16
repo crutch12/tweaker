@@ -86,10 +86,11 @@ function generateDog(): Dog {
 }
 
 function getReplacedDog(dog: Dog): Dog {
-  return tweaker.value<Dog>(`dogs.replace.${dog.id}`, {
+  const newDog: Dog = {
     ...dog,
-    id: Math.ceil(Math.random() * 1000),
-  });
+    type: dog.type === "male" ? "female" : "male",
+  };
+  return tweaker.value<Dog>(`dogs.replace.${dog.id}`, newDog);
 }
 
 export function App() {
@@ -153,7 +154,6 @@ export function App() {
             name: value.name.includes("tweaked")
               ? value.name
               : value.name + " (tweaked)",
-            type: Math.random() > 0.5 ? "male" : "female",
           };
         },
         {
