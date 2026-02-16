@@ -201,7 +201,9 @@ export function App() {
             sendMessageToPlugin("init", {
               // name: "test",
               timestamp: Date.now(),
-              data: ["Message from extension!"],
+              enabled: true,
+              interceptors: [], // TODO: remove
+              // data: ["Message from extension!"],
             })
           }
         >

@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Component, ComponentType } from "react";
 import { tweaker } from "./tweaker";
+import type { Tweaker } from "@tweaker/core";
 
 interface User {
   id: number;
@@ -93,7 +94,7 @@ function getReplacedDog(dog: Dog): Dog {
   return tweaker.value<Dog>(`dogs.replace.${dog.id}`, newDog);
 }
 
-export function App() {
+function Main() {
   const [entities, setEntities] = useState<Array<User | Dog>>(() => [
     generateUser(),
     generateDog(),
@@ -171,12 +172,6 @@ export function App() {
     });
   }, []);
 
-  useEffect(() => {
-    tweaker.ready().then(() => {
-      // debugger;
-    });
-  }, []);
-
   return (
     <div>
       <div style={{ display: "flex", gap: "10px" }}>
@@ -225,3 +220,35 @@ export function App() {
     </div>
   );
 }
+
+function withTweakerReady<P extends {}>(
+  tweaker: Tweaker,
+  WrappedComponent: ComponentType<P>,
+) {
+  return function ComponentWithTweakerReady(props: P) {
+    const [isReady, setIsReady] = useState(() => tweaker.isReady);
+
+    useEffect(() => {
+      let start = Date.now();
+      tweaker
+        .ready()
+        .then(() => {
+          console.log("tweaker ready, spent time:", Date.now() - start);
+        })
+        .catch((err) => {
+          console.error("tweaker ready error", err, Date.now() - start);
+        })
+        .finally(() => {
+          setIsReady(true);
+        });
+    }, []);
+
+    if (!isReady) {
+      return null;
+    }
+
+    return <WrappedComponent {...props} />;
+  };
+}
+
+export const App = withTweakerReady(tweaker, Main);

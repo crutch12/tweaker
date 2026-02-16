@@ -98,41 +98,76 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
       }));
     }
 
-    function init() {
-      notifyExtensionInit(_instance);
-      notifyExtensionInterceptors(getListeners());
+    function ready() {
+      console.log("tweaker extension plugin is ready");
+      // notifyExtensionInit(_instance, getListeners());
     }
 
     const promise = new Promise<void>((resolve) => {
       notify("ping");
-      const handler = (
-        event: MessageEvent<
-          ExtensionMessages.PongMessage | ExtensionMessages.PingMessage
-        >,
-      ) => {
-        if (
-          event.data &&
-          event.data.source === EXTENSION_SOURCE &&
-          event.data.type === "ping"
-        ) {
-          notify("pong");
-          globalThis.removeEventListener("message", handler);
-          resolve();
+      const handler = (event: MessageEvent<ExtensionMessages.Message>) => {
+        if (!event.data || event.data.source !== EXTENSION_SOURCE) {
+          return;
         }
 
-        if (
-          event.data &&
-          event.data.source === EXTENSION_SOURCE &&
-          event.data.type === "pong"
-        ) {
+        if (event.data.type === "ping" || event.data.type === "pong") {
+          notifyExtensionInit(_instance, getListeners());
+        }
+
+        if (event.data.type === "init") {
+          handleInterceptors(event.data.payload.interceptors);
           globalThis.removeEventListener("message", handler);
           resolve();
         }
       };
       globalThis.addEventListener("message", handler);
-    }).then(() => init());
+    }).then(() => ready());
 
     promises.push(promise);
+
+    function handleInterceptors(
+      interceptors: ExtensionMessages.InitMessage["payload"]["interceptors"],
+    ) {
+      const listeners = _instance.getListeners();
+
+      for (const listener of listeners) {
+        if (listener.owner === EXTENSION_OWNER) {
+          _instance.removeListener(listener.id);
+        }
+      }
+
+      for (const listener of interceptors) {
+        if (listener.owner !== EXTENSION_OWNER) {
+          continue;
+        }
+
+        expressions.delete(listener.id);
+        if (_instance.hasListener(listener.id)) {
+          _instance.removeListener(listener.id);
+        }
+        if (listener.expression) {
+          expressions.set(listener.id, listener.expression);
+          _instance.intercept(
+            listener.patterns,
+            (key, value) => {
+              if (listener.expression) {
+                return new Function("key", "value", listener.expression)(
+                  key,
+                  value,
+                );
+              }
+              return value;
+            },
+            {
+              id: listener.id,
+              owner: listener.owner,
+              interactive: listener.interactive,
+              enabled: listener.enabled,
+            },
+          );
+        }
+      }
+    }
 
     globalThis.addEventListener(
       "message",
@@ -142,53 +177,14 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
           console.log(event.data.payload);
           switch (event.data.type) {
             case "interceptors": {
-              const listeners = _instance.getListeners();
-
-              for (const listener of listeners) {
-                if (listener.owner === EXTENSION_OWNER) {
-                  _instance.removeListener(listener.id);
-                }
-              }
-
-              for (const listener of event.data.payload.data) {
-                if (listener.owner !== EXTENSION_OWNER) {
-                  continue;
-                }
-
-                expressions.delete(listener.id);
-                if (_instance.hasListener(listener.id)) {
-                  _instance.removeListener(listener.id);
-                }
-                if (listener.expression) {
-                  expressions.set(listener.id, listener.expression);
-                  _instance.intercept(
-                    listener.patterns,
-                    (key, value) => {
-                      if (listener.expression) {
-                        return new Function(
-                          "key",
-                          "value",
-                          listener.expression,
-                        )(key, value);
-                      }
-                      return value;
-                    },
-                    {
-                      id: listener.id,
-                      owner: listener.owner,
-                      interactive: listener.interactive,
-                      enabled: listener.enabled,
-                    },
-                  );
-                }
-              }
+              handleInterceptors(event.data.payload.data);
               break;
             }
-            case "ping":
-            case "pong": {
-              notifyExtensionInterceptors(getListeners());
-              break;
-            }
+            // case "ping":
+            // case "pong": {
+            //   notifyExtensionInterceptors(getListeners());
+            //   break;
+            // }
           }
         }
       },

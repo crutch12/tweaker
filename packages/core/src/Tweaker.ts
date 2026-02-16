@@ -37,11 +37,29 @@ export interface TweakerValueOptions<T> {
   samples: TweakerSample<T>[];
 }
 
+interface ReadyOptions {
+  /**
+   * Tweaker's plugins ready timeout (ms)
+   * @default 1000
+   */
+  timeout?: number;
+  /**
+   * Throw error if plugins throw error (or on timeout)
+   * @default false
+   */
+  throw?: boolean;
+}
+
 export interface TweakerOptions {
   /**
    * Unique Tweaker name
    */
   name: string;
+  /**
+   * If should intercept values since creation
+   * @default true
+   */
+  enabled?: boolean;
   /**
    * Extra plugins (e.g. @tweaker/extension-plugin)
    */
@@ -59,6 +77,8 @@ type ValueEventOptions = {
 export class Tweaker {
   public readonly name: string;
   public readonly plugins: TweakerPlugin[];
+  private _enabled = true;
+  private _isReady = false;
 
   private readonly eventEmitter = new EventEmitter<{
     value: (options: ValueEventOptions) => void;
@@ -66,20 +86,74 @@ export class Tweaker {
     "intercept.remove": <T>(listener: TweakerInterceptor<T>) => void;
   }>();
 
-  constructor({ name, plugins }: TweakerOptions) {
+  constructor({ name, plugins, enabled }: TweakerOptions) {
     this.name = name;
     this.plugins = plugins ?? [];
+    this._enabled = enabled ?? true;
     this.setup();
+  }
+
+  public get enabled() {
+    return this._enabled;
+  }
+
+  public enable() {
+    this._enabled = true;
+  }
+
+  public disable() {
+    this._enabled = false;
+  }
+
+  /**
+   * Plugins are ready
+   */
+  public get isReady() {
+    return this._isReady;
   }
 
   private setup() {
     this.plugins.forEach((plugin) => {
       plugin.setup(this);
     });
+    const promises = this.plugins.map((plugin) => plugin.ready());
+    Promise.allSettled(promises).finally(() => {
+      this._isReady = true;
+    });
   }
 
-  public async ready() {
-    return Promise.all(this.plugins.map((plugin) => plugin.ready()));
+  /**
+   * Wait for plugins to be ready
+   * @param options
+   * @returns
+   */
+  public async ready(options?: ReadyOptions) {
+    options = {
+      timeout: 1000,
+      throw: false,
+      ...options,
+    };
+
+    const timeoutPromise = new Promise((resolve, reject) =>
+      setTimeout(() => {
+        if (options.throw) {
+          reject(new Error("tweaker plugins timeout"));
+        }
+        resolve(undefined);
+      }, options.timeout),
+    );
+    const promises = this.plugins.map((plugin) => plugin.ready());
+    const pluginsPromise = options.throw
+      ? Promise.all(promises)
+      : Promise.allSettled(promises);
+
+    return Promise.race([timeoutPromise, pluginsPromise])
+      .then(() => {
+        return undefined;
+      })
+      .finally(() => {
+        this._isReady = true;
+      });
   }
 
   private listeners = new Map<number, TweakerInterceptor<any>>([]);

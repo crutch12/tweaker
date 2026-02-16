@@ -37,6 +37,8 @@ export namespace PluginMessages {
     "init",
     {
       name: string;
+      enabled: boolean;
+      interceptors: InterceptorPayload<unknown>[];
       timestamp: number;
     }
   >;
@@ -109,7 +111,8 @@ export namespace ExtensionMessages {
     "init",
     {
       timestamp: number;
-      data: string[];
+      enabled: boolean;
+      interceptors: InterceptorPayload<unknown>[];
     }
   >;
 

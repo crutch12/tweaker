@@ -53,6 +53,7 @@ function sendMessageToDevTools(
 chrome.runtime.onMessage.addListener(
   (message: PluginMessages.Message, sender) => {
     const tabId = sender.tab?.id;
+    if (!tabId) return false;
     if (message.source === EXTENSION_PLUGIN_SOURCE) {
       switch (message.type) {
         case "ping": {
@@ -65,20 +66,31 @@ chrome.runtime.onMessage.addListener(
               timestamp: Date.now(),
             },
           };
-          chrome.tabs.sendMessage(tabId!, _message);
+          chrome.tabs.sendMessage(tabId, _message);
+          break;
+        }
+        case "init": {
+          const _message: ExtensionMessages.InitMessage = {
+            source: EXTENSION_SOURCE,
+            version,
+            type: "init",
+            payload: {
+              enabled: message.payload.enabled, // TODO: read enabled state from storage
+              interceptors: message.payload.interceptors, // TODO: read interceptors from storage
+              timestamp: Date.now(),
+            },
+          };
+          chrome.tabs.sendMessage(tabId, _message);
+          sendMessageToDevTools(tabId, { ...message, tabId });
           break;
         }
         case "value": {
           saveValueMessage(message);
-          if (tabId) {
-            sendMessageToDevTools(tabId, { ...message, tabId });
-          }
+          sendMessageToDevTools(tabId, { ...message, tabId });
           break;
         }
         default: {
-          if (tabId) {
-            sendMessageToDevTools(tabId, { ...message, tabId });
-          }
+          sendMessageToDevTools(tabId, { ...message, tabId });
         }
       }
     }

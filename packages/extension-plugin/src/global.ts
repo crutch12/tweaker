@@ -25,7 +25,10 @@ export function registerInstance(instance: Tweaker) {
   registry.instances[instance.name] = instance;
 }
 
-export function notifyExtensionInit<T>(instance: Tweaker) {
+export function notifyExtensionInit<T>(
+  instance: Tweaker,
+  interceptors: InterceptorPayload<unknown>[],
+) {
   if ("postMessage" in globalThis) {
     const message: PluginMessages.InitMessage = {
       source: EXTENSION_PLUGIN_SOURCE,
@@ -33,6 +36,8 @@ export function notifyExtensionInit<T>(instance: Tweaker) {
       type: "init",
       payload: {
         name: instance.name,
+        enabled: instance.enabled,
+        interceptors,
         timestamp: Date.now(),
       },
     };
@@ -48,9 +53,7 @@ export function notifyExtensionInterceptors<T>(
       source: EXTENSION_PLUGIN_SOURCE,
       version,
       type: "interceptors",
-      payload: listeners.map((listener) => ({
-        ...listener,
-      })),
+      payload: listeners,
     };
     globalThis.postMessage(message, "*");
   }
