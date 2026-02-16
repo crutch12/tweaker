@@ -96,10 +96,7 @@ export function MessagesTable({
                     gap: "10px";
                   `}
                 >
-                  <BlueButton
-                    disabled={message.tweaked}
-                    onClick={() => onTweak?.(message)}
-                  >
+                  <BlueButton onClick={() => onTweak?.(message)}>
                     Tweak
                   </BlueButton>
                 </div>

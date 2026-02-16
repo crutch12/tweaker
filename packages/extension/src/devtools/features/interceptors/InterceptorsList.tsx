@@ -136,7 +136,9 @@ export function InterceptorItem({
             });
           }}
         />
-        <i>{interceptor.id}</i>
+        <i title={new Date(interceptor.timestamp).toLocaleString()}>
+          {interceptor.id}
+        </i>
         <span
           style={{
             color: appColor,

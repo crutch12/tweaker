@@ -175,11 +175,11 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
               handleInterceptors(event.data.payload.data);
               break;
             }
-            // case "ping":
-            // case "pong": {
-            //   notifyExtensionInterceptors(getListeners());
-            //   break;
-            // }
+            case "ping":
+            case "pong": {
+              notifyExtensionInterceptors(getListeners());
+              break;
+            }
           }
         }
       },
