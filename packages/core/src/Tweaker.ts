@@ -10,14 +10,15 @@ import { TWEAKER_OWNER } from "./const";
 import { keyMatchesPatterns } from "./utils";
 
 export interface InterceptOptions {
-  once?: boolean;
-  count?: number;
   /**
    * Calls "debugger" when tweaks result
    */
   interactive: boolean;
   owner?: string;
-  id?: number;
+  /**
+   * Unique interceptor id. If provided, extension-plugin can persist this interceptor
+   */
+  id?: number | string;
   enabled?: boolean;
 }
 
@@ -156,7 +157,7 @@ export class Tweaker {
       });
   }
 
-  private listeners = new Map<number, TweakerInterceptor<any>>([]);
+  private listeners = new Map<number | string, TweakerInterceptor<any>>([]);
 
   public value<T>(
     key: TweakerKey,
@@ -175,6 +176,7 @@ export class Tweaker {
   ): RemoveListener {
     const interceptor: TweakerInterceptor<T> = {
       id: options.id ?? Math.ceil(Math.random() * 1_000_000_000),
+      staticId: options.id,
       interactive: options.interactive,
       patterns: Array.isArray(patterns) ? patterns : [patterns],
       handler,
@@ -339,7 +341,7 @@ export class Tweaker {
     // this.eventEmitter.removeAllListeners(); // @TODO: should we?
   }
 
-  public getListener(id: number): TweakerInterceptor<any> | undefined {
+  public getListener(id: number | string): TweakerInterceptor<any> | undefined {
     return this.listeners.get(id);
   }
 
@@ -347,11 +349,11 @@ export class Tweaker {
     return Array.from(this.listeners.values());
   }
 
-  public hasListener(id: number) {
+  public hasListener(id: number | string) {
     return this.listeners.has(id);
   }
 
-  public removeListener(id: number) {
+  public removeListener(id: number | string) {
     return this.listeners.delete(id);
   }
 }

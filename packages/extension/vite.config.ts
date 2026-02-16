@@ -3,49 +3,54 @@ import { defineConfig } from "vite";
 import { version } from "./package.json";
 import { pollReloadPlugin } from "../../vite-plugins/pollReloadPlugin";
 
-export default defineConfig({
-  plugins: [react(), pollReloadPlugin()],
+export default defineConfig(({}) => {
+  const isWatchMode =
+    process.argv.includes("--watch") || process.argv.includes("-w");
 
-  define: {
-    "import.meta.env.VERSION": `"${version}"`,
-  },
+  return {
+    plugins: [react(), pollReloadPlugin()],
 
-  optimizeDeps: {
-    esbuildOptions: {
-      // force esm usage for misconfigured deps' package.json
-      mainFields: ["exports", "module", "main"],
+    define: {
+      "import.meta.env.VERSION": `"${version}"`,
     },
-  },
 
-  resolve: {
-    // force esm usage for misconfigured deps' "exports" field
-    conditions: ["module", "import", "browser", "default"],
-  },
+    optimizeDeps: {
+      esbuildOptions: {
+        // force esm usage for misconfigured deps' package.json
+        mainFields: ["exports", "module", "main"],
+      },
+    },
 
-  build: {
-    minify: false,
-    rollupOptions: {
-      input: [
-        "src/devtools/index.html",
-        "src/devtools/background-sw.ts",
-        "src/devtools/content-script.ts",
-      ],
-      output: {
-        entryFileNames: (chunkInfo) => {
-          if (chunkInfo.name === "background-sw") {
-            return "[name].js";
-          }
-          if (chunkInfo.name === "content-script") {
-            return "tweaker-content-script.js";
-          }
-          return "assets/[name]-[hash].js";
+    resolve: {
+      // force esm usage for misconfigured deps' "exports" field
+      conditions: ["module", "import", "browser", "default"],
+    },
+
+    build: {
+      minify: !isWatchMode,
+      rollupOptions: {
+        input: [
+          "src/devtools/index.html",
+          "src/devtools/background-sw.ts",
+          "src/devtools/content-script.ts",
+        ],
+        output: {
+          entryFileNames: (chunkInfo) => {
+            if (chunkInfo.name === "background-sw") {
+              return "[name].js";
+            }
+            if (chunkInfo.name === "content-script") {
+              return "tweaker-content-script.js";
+            }
+            return "assets/[name]-[hash].js";
+          },
         },
       },
     },
-  },
-  server: {
-    cors: {
-      origin: [/chrome-extension:\/\//],
+    server: {
+      cors: {
+        origin: [/chrome-extension:\/\//],
+      },
     },
-  },
+  };
 });

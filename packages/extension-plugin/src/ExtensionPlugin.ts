@@ -24,7 +24,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
 
   let _instance: Tweaker;
 
-  let expressions = new Map<number, string>();
+  let expressions = new Map<number | string, string>();
 
   function subscribe(instance: Tweaker) {
     if (!("postMessage" in globalThis)) return;
@@ -88,6 +88,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
     function getListeners() {
       return _instance.getListeners().map((listener) => ({
         id: listener.id,
+        staticId: listener.staticId,
         name: _instance.name,
         patterns: listener.patterns,
         interactive: listener.interactive,

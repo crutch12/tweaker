@@ -43,8 +43,6 @@ function setupTweaker() {
     },
     {
       interactive: true,
-      once: false,
-      count: 0,
     },
   );
   tweaker.intercept(
@@ -54,8 +52,6 @@ function setupTweaker() {
     },
     {
       interactive: false,
-      once: false,
-      count: 0,
     },
   );
 }
@@ -68,8 +64,6 @@ function setupTweakerFailure() {
     },
     {
       interactive: false,
-      once: false,
-      count: 0,
     },
   );
 }

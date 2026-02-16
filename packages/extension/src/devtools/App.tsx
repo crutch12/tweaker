@@ -132,9 +132,11 @@ export function App() {
 
   const newTweak = useCallback(
     (message: PluginMessages.ValueMessage["payload"]) => {
+      const id = Math.ceil(Math.random() * 1_000_000_000);
       addInterceptors([
         {
-          id: Math.ceil(Math.random() * 1_000_000_000),
+          id,
+          staticId: id,
           name: message.name,
           patterns: [message.key],
           // fromKey: message.key,
@@ -169,9 +171,15 @@ export function App() {
     chrome.tabs.sendMessage(chrome.devtools.inspectedWindow.tabId, message);
   }, [interceptors]);
 
-  const clearData = () => {
+  const clearMessages = () => {
     sendMessage("clear-messages", { timestamp: Date.now() });
     setMessages([]);
+    clearInterceptors();
+  };
+
+  const clearInterceptors = () => {
+    sendMessage("clear-interceptors", { timestamp: Date.now() });
+    setInterceptors([]);
   };
 
   return (
@@ -203,7 +211,7 @@ export function App() {
         >
           Send Message
         </button>
-        <ButtonIcon title="Clear Messages" onClick={clearData}>
+        <ButtonIcon title="Clear Messages" onClick={clearMessages}>
           <ClearIcon size="medium" />
         </ButtonIcon>
         <TextField.Root
@@ -270,10 +278,12 @@ export function App() {
           }}
           onInterceptorRemove={(i) => removeInterceptors([i])}
           onFilterMessages={(patterns) => onFilterMessages(patterns)}
-          onDuplicate={(i) =>
+          onDuplicate={(i) => {
+            const id = Math.ceil(Math.random() * 1_000_000_000);
             addInterceptors([
               {
-                id: Math.ceil(Math.random() * 1_000_000_000),
+                id,
+                staticId: id,
                 name: i.name,
                 patterns: i.patterns,
                 interactive: i.interactive,
@@ -285,8 +295,8 @@ export function App() {
                 owner: EXTENSION_OWNER,
                 timestamp: Date.now(),
               },
-            ])
-          }
+            ]);
+          }}
         />
       </div>
     </div>

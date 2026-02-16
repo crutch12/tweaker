@@ -29,6 +29,10 @@ chrome.runtime.onConnect.addListener((port) => {
       clearMessages();
       return;
     }
+    if (message.type === "clear-interceptors") {
+      clearInterceptors();
+      return;
+    }
   };
 
   port.onMessage.addListener(extensionListener);
@@ -50,10 +54,7 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-function sendMessageToDevTools(
-  tabId: number,
-  data: PluginMessages.Message & { tabId: number },
-) {
+function sendMessageToDevTools(tabId: number, data: PluginMessages.Message) {
   if (connections[tabId]) {
     connections[tabId].postMessage(data);
   }
@@ -79,27 +80,38 @@ chrome.runtime.onMessage.addListener(
           break;
         }
         case "init": {
-          const _message: ExtensionMessages.InitMessage = {
-            source: EXTENSION_SOURCE,
-            version,
-            type: "init",
-            payload: {
-              enabled: message.payload.enabled, // TODO: read enabled state from storage
-              interceptors: message.payload.interceptors, // TODO: read interceptors from storage
-              timestamp: Date.now(),
+          handleInterceptors(message.payload.interceptors).then(
+            (interceptors) => {
+              const _message: ExtensionMessages.InitMessage = {
+                source: EXTENSION_SOURCE,
+                version,
+                type: "init",
+                payload: {
+                  enabled: message.payload.enabled, // TODO: read enabled state from storage
+                  interceptors: interceptors, // TODO: read interceptors from storage
+                  timestamp: Date.now(),
+                },
+              };
+              chrome.tabs.sendMessage(tabId, _message);
+              sendMessageToDevTools(tabId, message);
             },
-          };
-          chrome.tabs.sendMessage(tabId, _message);
-          sendMessageToDevTools(tabId, { ...message, tabId });
+          );
+          break;
+        }
+        case "interceptors": {
+          // handleInterceptors(message.payload).then((interceptors) => {
+          //   sendMessageToDevTools(tabId, { ...message, payload: interceptors });
+          // });
+          sendMessageToDevTools(tabId, message);
           break;
         }
         case "value": {
           saveValueMessage(message);
-          sendMessageToDevTools(tabId, { ...message, tabId });
+          sendMessageToDevTools(tabId, message);
           break;
         }
         default: {
-          sendMessageToDevTools(tabId, { ...message, tabId });
+          sendMessageToDevTools(tabId, message);
         }
       }
     }
@@ -107,12 +119,42 @@ chrome.runtime.onMessage.addListener(
   },
 );
 
+async function handleInterceptors(
+  interceptors: ExtensionMessages.InitMessage["payload"]["interceptors"],
+) {
+  return getInterceptors().then(async (_savedInterceptors) => {
+    const savedInterceptors = new Map(_savedInterceptors.map((i) => [i.id, i]));
+    const fixedInterceptors = interceptors.map((i) => {
+      const found = savedInterceptors.get(i.id);
+      if (found) {
+        savedInterceptors.delete(i.id);
+        return {
+          ...i,
+          enabled: found.enabled,
+          interactive: found.interactive,
+          timestamp: found.timestamp,
+          expression: found.expression, // TODO
+        };
+      }
+      return i;
+    });
+
+    const finalInterceptors = fixedInterceptors
+      .concat(Array.from(savedInterceptors.values()))
+      .sort((x) => x.timestamp);
+
+    await saveInterceptors(finalInterceptors);
+
+    return finalInterceptors;
+  });
+}
+
 // prevent race conditions and add new messages in order
-const saveValueQueue = new PQueue({ concurrency: 1 });
+const messagesStoreQueue = new PQueue({ concurrency: 1 });
 
 async function saveValueMessage(message: PluginMessages.ValueMessage) {
-  return saveValueQueue.add(async () => {
-    const { messages = [] } = await chrome.storage.session.get<{
+  return messagesStoreQueue.add(async () => {
+    const { messages } = await chrome.storage.session.get<{
       messages: PluginMessages.ValueMessage[];
     }>({ messages: [] });
 
@@ -127,7 +169,64 @@ async function saveValueMessage(message: PluginMessages.ValueMessage) {
 }
 
 async function clearMessages() {
-  return saveValueQueue.add(() => chrome.storage.session.set({ messages: [] }));
+  return messagesStoreQueue.add(() =>
+    chrome.storage.session.set({ messages: [] }),
+  );
+}
+
+async function getMessages() {
+  return messagesStoreQueue.add(async () => {
+    const { messages = [] } = await chrome.storage.session.get<{
+      messages: PluginMessages.ValueMessage[];
+    }>({ messages: [] });
+
+    return messages;
+  });
+}
+
+// prevent race conditions and add new interceptors in order
+const interceptorsStoreQueue = new PQueue({ concurrency: 1 });
+
+async function saveInterceptors(
+  newInterceptors: PluginMessages.InitMessage["payload"]["interceptors"],
+) {
+  return interceptorsStoreQueue.add(async () => {
+    let { interceptors } = await chrome.storage.session.get<{
+      interceptors: PluginMessages.InitMessage["payload"]["interceptors"];
+    }>({ interceptors: [] });
+
+    interceptors = Array.from(
+      new Map(
+        [...interceptors, ...newInterceptors]
+          .filter((x) => x.staticId)
+          .map((x) => [x.staticId!, x]),
+      ).values(),
+    );
+
+    const MAX_LENGTH = 1000;
+
+    console.log({ interceptors });
+
+    await chrome.storage.session.set({
+      interceptors: interceptors.slice(-MAX_LENGTH),
+    });
+  });
+}
+
+async function clearInterceptors() {
+  return interceptorsStoreQueue.add(() =>
+    chrome.storage.session.set({ interceptors: [] }),
+  );
+}
+
+async function getInterceptors() {
+  return interceptorsStoreQueue.add(async () => {
+    const { interceptors } = await chrome.storage.session.get<{
+      interceptors: PluginMessages.InitMessage["payload"]["interceptors"];
+    }>({ interceptors: [] });
+
+    return interceptors;
+  });
 }
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {

@@ -14,7 +14,13 @@ interface PluginAnyMessage<T, P> {
 
 export type InterceptorPayload<T> = Pick<
   TweakerInterceptor<T>,
-  "id" | "enabled" | "interactive" | "owner" | "patterns" | "timestamp"
+  | "id"
+  | "staticId"
+  | "enabled"
+  | "interactive"
+  | "owner"
+  | "patterns"
+  | "timestamp"
 > & {
   name: string;
   expression?: string;
@@ -159,5 +165,15 @@ export namespace ExtensionServiceWorkerMessages {
     }
   >;
 
-  export type Message = InitConnectionMessage | ClearMessagesMessage;
+  export type ClearInterceptorsMessage = ExtensionServiceWorkerAnyMessage<
+    "clear-interceptors",
+    {
+      timestamp: number;
+    }
+  >;
+
+  export type Message =
+    | InitConnectionMessage
+    | ClearMessagesMessage
+    | ClearInterceptorsMessage;
 }

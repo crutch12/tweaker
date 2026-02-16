@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { ExtensionInterceptor } from "./InterceptorsList";
+import { ExtensionInterceptor } from "./InterceptorItem";
 
 interface InterceptorsState {
   interceptors: ExtensionInterceptor[];

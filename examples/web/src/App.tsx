@@ -117,9 +117,7 @@ function Main() {
           };
         },
         {
-          count: 0,
           interactive: false,
-          once: false,
         },
       );
     }
@@ -137,9 +135,7 @@ function Main() {
           };
         },
         {
-          count: 0,
           interactive: false,
-          once: false,
         },
       );
     }
@@ -158,9 +154,7 @@ function Main() {
           };
         },
         {
-          count: 0,
           interactive: false,
-          once: false,
         },
       );
     }
