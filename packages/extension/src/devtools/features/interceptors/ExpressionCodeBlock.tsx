@@ -8,7 +8,7 @@ import "prism-react-editor/prism/languages/typescript";
 import "prism-react-editor/layout.css";
 import "prism-react-editor/themes/github-light.css";
 import styled from "@emotion/styled";
-import { ReactNode, useEffect } from "react";
+import { ReactNode } from "react";
 import { css } from "@emotion/css";
 
 export interface ExpressionCodeBlockProps {

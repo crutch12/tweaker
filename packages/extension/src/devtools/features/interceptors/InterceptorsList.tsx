@@ -1,7 +1,8 @@
 import { css } from "@emotion/css";
-import safeStringify from "fast-safe-stringify";
 import {
+  lazy,
   MutableRefObject,
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -13,12 +14,19 @@ import equal from "fast-deep-equal";
 import { Badge } from "../../components/Badge";
 import { DeleteIcon, SelectIcon } from "@devtools-ds/icon";
 import { ButtonIcon } from "../../components/ButtonIcon";
-import {
-  ExpressionCodeBlock,
-  ExpressionCodeBlockContainer,
-} from "./ExpressionCodeBlock";
 import { isJsSyntaxValid } from "../../utils/isJsSyntaxValid";
 import { useQuery } from "@tanstack/react-query";
+
+const ExpressionCodeBlock = lazy(() =>
+  import("./ExpressionCodeBlock").then((r) => ({
+    default: r.ExpressionCodeBlock,
+  })),
+);
+const ExpressionCodeBlockContainer = lazy(() =>
+  import("./ExpressionCodeBlock").then((r) => ({
+    default: r.ExpressionCodeBlockContainer,
+  })),
+);
 
 export type ExtensionInterceptor = InterceptorPayload<unknown> & {
   // sampleIds?: string[];
@@ -190,18 +198,20 @@ export function InterceptorItem({
               <button onClick={discardChanges}>Discard changes</button>
             )}
           </div>
-          <ExpressionCodeBlockContainer
-            codeBefore="(key: string, value: any) => {"
-            codeAfter="}"
-            language="ts"
-          >
-            <ExpressionCodeBlock
-              key={updatesCount}
-              code={interceptor.expression ?? ""}
-              onUpdate={onCodeUpdate}
-              readOnly={!interceptor.enabled}
-            />
-          </ExpressionCodeBlockContainer>
+          <Suspense fallback="Loading editor...">
+            <ExpressionCodeBlockContainer
+              codeBefore="(key: string, value: any) => {"
+              codeAfter="}"
+              language="ts"
+            >
+              <ExpressionCodeBlock
+                key={updatesCount}
+                code={interceptor.expression ?? ""}
+                onUpdate={onCodeUpdate}
+                readOnly={!interceptor.enabled}
+              />
+            </ExpressionCodeBlockContainer>
+          </Suspense>
           {expressionError && (
             <div style={{ color: "red" }}>{expressionError}</div>
           )}
