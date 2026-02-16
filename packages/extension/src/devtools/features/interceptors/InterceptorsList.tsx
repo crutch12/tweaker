@@ -137,9 +137,6 @@ export function InterceptorItem({
             });
           }}
         />
-        <i title={new Date(interceptor.timestamp).toLocaleString()}>
-          {interceptor.id}
-        </i>
         <span
           style={{
             color: appColor,
@@ -171,6 +168,9 @@ export function InterceptorItem({
             <ExportIcon size="medium" />
           </ButtonIcon>
         )}
+        <i title={new Date(interceptor.timestamp).toLocaleString()}>
+          id: {interceptor.id}
+        </i>
       </div>
       <div
         className={css`

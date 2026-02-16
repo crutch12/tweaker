@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { keyMatchesPatterns } from "@tweaker/core/utils";
 import {
   ExtensionMessages,
@@ -60,14 +68,16 @@ export function App() {
     undefined,
   );
 
+  const deferredFilterPatterns = useDeferredValue(filterPatterns);
+
   const filteredMessages = useMemo(() => {
-    if (filterPatterns) {
+    if (deferredFilterPatterns) {
       return messages.filter((msg) =>
-        keyMatchesPatterns(msg.key, parsePatterns(filterPatterns)),
+        keyMatchesPatterns(msg.key, parsePatterns(deferredFilterPatterns)),
       );
     }
     return messages;
-  }, [filterPatterns, messages]);
+  }, [deferredFilterPatterns, messages]);
 
   const onFilterMessages = useCallback((pattenrs: string[] | undefined) => {
     setFilterPatterns(pattenrs ? serializePatterns(pattenrs) : undefined);
@@ -232,10 +242,12 @@ export function App() {
           }
         `}
       >
-        <MessagesTableContainer
-          onTweak={newTweak}
-          messages={filteredMessages}
-        />
+        <Suspense fallback="Loading...">
+          <MessagesTableContainer
+            onTweak={newTweak}
+            messages={filteredMessages}
+          />
+        </Suspense>
         <InterceptorsListContainer
           interceptors={interceptors}
           onInterceptorChange={(i) => {
