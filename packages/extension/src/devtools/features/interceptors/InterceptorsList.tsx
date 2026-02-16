@@ -37,31 +37,41 @@ export function InterceptorItem({
   onRemove,
   onFilterMessages,
 }: InterceptorItemProps) {
-  const [editableInterceptor, setEditableInterceptor] = useState(
-    () => interceptor,
+  const [expression, setExpression] = useState(() => interceptor.expression);
+
+  const [patterns, setPatterns] = useState(() =>
+    interceptor.patterns.join(", "),
   );
 
   const readOnly = interceptor.owner !== EXTENSION_OWNER;
 
   useEffect(() => {
-    setEditableInterceptor(interceptor);
-  }, [interceptor]);
+    setExpression(interceptor.expression);
+  }, [interceptor.expression]);
+
+  useEffect(() => {
+    setPatterns(interceptor.patterns.join(", "));
+  }, [interceptor.patterns]);
 
   const hasChanges = useMemo(() => {
-    return !equal(interceptor, editableInterceptor);
-  }, [interceptor, editableInterceptor]);
+    return !equal(
+      {
+        expression: interceptor.expression,
+      },
+      {
+        expression,
+      },
+    );
+  }, [expression, interceptor.expression]);
 
   const onCodeUpdate = useCallback((code: string) => {
-    setEditableInterceptor((v) => ({
-      ...v,
-      expression: code || undefined,
-    }));
+    setExpression((v) => code || undefined);
   }, []);
 
   const [updatesCount, setUpdatesCount] = useState(0);
 
   const discardChanges = useCallback(() => {
-    setEditableInterceptor(interceptor);
+    setExpression(interceptor.expression);
     setUpdatesCount((c) => c + 1);
   }, [interceptor]);
 
@@ -92,14 +102,10 @@ export function InterceptorItem({
         <input
           type="checkbox"
           disabled={readOnly}
-          checked={editableInterceptor.enabled}
+          checked={interceptor.enabled}
           onChange={(ev) => {
-            setEditableInterceptor((v) => ({
-              ...v,
-              enabled: ev.target.checked,
-            }));
             onChange?.({
-              ...editableInterceptor,
+              ...interceptor,
               enabled: ev.target.checked,
             });
           }}
@@ -123,19 +129,10 @@ export function InterceptorItem({
         {onFilterMessages && (
           <ButtonIcon
             title="Filter messages"
-            onClick={() => onFilterMessages(editableInterceptor.patterns)}
+            onClick={() => onFilterMessages(interceptor.patterns)}
           >
             <SelectIcon size="medium" />
           </ButtonIcon>
-        )}
-
-        {!readOnly && hasChanges && (
-          <button onClick={() => onChange?.(editableInterceptor)}>
-            Save changes
-          </button>
-        )}
-        {!readOnly && hasChanges && (
-          <button onClick={discardChanges}>Discard changes</button>
         )}
       </div>
       <div>
@@ -143,23 +140,40 @@ export function InterceptorItem({
         <input
           type="text"
           placeholder="Patterns"
-          value={
-            readOnly
-              ? editableInterceptor.patterns.join(", ")
-              : editableInterceptor.patterns[0]
-          }
+          value={patterns}
           disabled={readOnly || !interceptor.enabled}
-          onChange={(ev) =>
-            setEditableInterceptor((v) => ({
-              ...v,
-              patterns: [ev.target.value],
-            }))
-          }
+          onChange={(ev) => setPatterns(ev.target.value)}
+          onBlur={() => {
+            onChange?.({
+              ...interceptor,
+              patterns: patterns
+                .split(/,\s*/)
+                .map((x) => x.trim())
+                .filter(Boolean),
+            });
+          }}
         />
       </div>
       {!readOnly && (
         <div>
-          <label>Expression </label>
+          <div
+            className={css`
+              display: flex;
+              gap: 10px;
+            `}
+          >
+            <label>Expression</label>
+            {!readOnly && hasChanges && (
+              <button
+                onClick={() => onChange?.({ ...interceptor, expression })}
+              >
+                Save changes
+              </button>
+            )}
+            {!readOnly && hasChanges && (
+              <button onClick={discardChanges}>Discard changes</button>
+            )}
+          </div>
           <ExpressionCodeBlockContainer
             codeBefore="function (key, value) {"
             codeAfter="}"
