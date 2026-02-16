@@ -16,6 +16,7 @@ import { DeleteIcon, SelectIcon, ExportIcon } from "@devtools-ds/icon";
 import { ButtonIcon } from "../../components/ButtonIcon";
 import { isJsSyntaxValid } from "../../utils/isJsSyntaxValid";
 import { useQuery } from "@tanstack/react-query";
+import { parsePatterns, serializePatterns } from "../../utils/pattern";
 
 const ExpressionCodeBlock = lazy(() =>
   import("./ExpressionCodeBlock").then((r) => ({
@@ -66,7 +67,7 @@ export function InterceptorItem({
   });
 
   const [patterns, setPatterns] = useState(() =>
-    interceptor.patterns.join(", "),
+    serializePatterns(interceptor.patterns),
   );
 
   const readOnly = interceptor.owner !== EXTENSION_OWNER;
@@ -76,7 +77,7 @@ export function InterceptorItem({
   }, [interceptor.expression]);
 
   useEffect(() => {
-    setPatterns(interceptor.patterns.join(", "));
+    setPatterns(serializePatterns(interceptor.patterns));
   }, [interceptor.patterns]);
 
   const hasChanges = useMemo(() => {
@@ -196,10 +197,7 @@ export function InterceptorItem({
                 onBlur={() => {
                   onChange?.({
                     ...interceptor,
-                    patterns: patterns
-                      .split(/,\s*/)
-                      .map((x) => x.trim())
-                      .filter(Boolean),
+                    patterns: parsePatterns(patterns),
                   });
                 }}
               />

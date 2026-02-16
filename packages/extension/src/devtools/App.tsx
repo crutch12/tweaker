@@ -14,6 +14,7 @@ import { sendMessageToPlugin } from "./utils/sendMessageToPlugin";
 import { useDevtoolsConnection } from "./hooks/useDevtoolsConnection";
 import { MessagesTableContainer } from "./features/messages/MessagesTableContainer";
 import { InterceptorsListContainer } from "./features/interceptors/InterceptorsListContainer";
+import { parsePatterns, serializePatterns } from "./utils/pattern";
 
 export function App() {
   const reloadPage = () => {
@@ -43,10 +44,6 @@ export function App() {
     );
   };
 
-  const clearFilters = () => {
-    setFilterPatterns(undefined);
-  };
-
   const date = useMemo(() => new Date(), []);
 
   const [messages, setMessages] = useState<
@@ -59,21 +56,21 @@ export function App() {
   const updateInterceptor = useInterceptorsStore((state) => state.update);
   const removeInterceptors = useInterceptorsStore((state) => state.remove);
 
-  const [filterPatterns, setFilterPatterns] = useState<string[] | undefined>(
+  const [filterPatterns, setFilterPatterns] = useState<string | undefined>(
     undefined,
   );
 
   const filteredMessages = useMemo(() => {
     if (filterPatterns) {
       return messages.filter((msg) =>
-        keyMatchesPatterns(msg.key, filterPatterns),
+        keyMatchesPatterns(msg.key, parsePatterns(filterPatterns)),
       );
     }
     return messages;
   }, [filterPatterns, messages]);
 
   const onFilterMessages = useCallback((pattenrs: string[] | undefined) => {
-    setFilterPatterns(pattenrs);
+    setFilterPatterns(pattenrs ? serializePatterns(pattenrs) : undefined);
   }, []);
 
   useEffect(() => {
@@ -202,12 +199,25 @@ export function App() {
         >
           Send Message
         </button>
-        {filterPatterns && (
-          <>
-            <button onClick={clearFilters}>Clear Filters</button>
-            <input type="text" value={filterPatterns.join(", ")} readOnly />
-          </>
-        )}
+        <input
+          placeholder="Filter messages (glob, e.g. *)"
+          className={css`
+            width: 200px;
+            background-color: ${filterPatterns
+              ? filteredMessages.length === 0
+                ? "#FABEBE"
+                : "#FFFAC8"
+              : undefined};
+          `}
+          type="text"
+          value={filterPatterns}
+          onChange={(ev) => setFilterPatterns(ev.target.value)}
+          onBlur={(ev) => {
+            setFilterPatterns(
+              serializePatterns(parsePatterns(ev.target.value)),
+            );
+          }}
+        />
       </div>
       <div
         className={css`
