@@ -1,11 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { keyMatchesPatterns } from "@tweaker/core/utils";
-import { MessagesTable } from "./features/messages/MessagesTable";
-import { useVisibilityChange } from "@uidotdev/usehooks";
-import {
-  InterceptorsList,
-  ExtensionInterceptor,
-} from "./features/interceptors/InterceptorsList";
 import {
   ExtensionMessages,
   PluginMessages,
@@ -239,6 +233,23 @@ export function App() {
           }}
           onInterceptorRemove={(i) => removeInterceptors([i])}
           onFilterMessages={(patterns) => onFilterMessages(patterns)}
+          onDuplicate={(i) =>
+            addInterceptors([
+              {
+                id: Math.ceil(Math.random() * 1_000_000_000),
+                name: i.name,
+                patterns: i.patterns,
+                interactive: i.interactive,
+                enabled: false,
+                expression:
+                  typeof i.expression === "string"
+                    ? i.expression
+                    : "  return value",
+                owner: EXTENSION_OWNER,
+                timestamp: Date.now(),
+              },
+            ])
+          }
         />
       </div>
     </div>

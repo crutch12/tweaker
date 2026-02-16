@@ -12,7 +12,7 @@ import { EXTENSION_OWNER, InterceptorPayload } from "@tweaker/extension-plugin";
 import { getTextColor } from "../../utils/colors";
 import equal from "fast-deep-equal";
 import { Badge } from "../../components/Badge";
-import { DeleteIcon, SelectIcon } from "@devtools-ds/icon";
+import { DeleteIcon, SelectIcon, ExportIcon } from "@devtools-ds/icon";
 import { ButtonIcon } from "../../components/ButtonIcon";
 import { isJsSyntaxValid } from "../../utils/isJsSyntaxValid";
 import { useQuery } from "@tanstack/react-query";
@@ -39,6 +39,7 @@ export interface InterceptorItemProps {
   onChange?: (interceptor: ExtensionInterceptor) => void;
   onRemove?: (interceptor: ExtensionInterceptor) => void;
   onFilterMessages?: (patterns: string[]) => void;
+  onDuplicate?: (interceptor: ExtensionInterceptor) => void;
 }
 
 export function InterceptorItem({
@@ -46,6 +47,7 @@ export function InterceptorItem({
   onChange,
   onRemove,
   onFilterMessages,
+  onDuplicate,
 }: InterceptorItemProps) {
   const [expression, setExpression] = useState(() => interceptor.expression);
 
@@ -158,65 +160,110 @@ export function InterceptorItem({
             <SelectIcon size="medium" />
           </ButtonIcon>
         )}
+        {onDuplicate && (
+          <ButtonIcon
+            title="Duplicate interceptor"
+            onClick={() => onDuplicate(interceptor)}
+          >
+            <ExportIcon size="medium" />
+          </ButtonIcon>
+        )}
       </div>
-      <div>
-        <label>Patterns </label>
-        <input
-          type="text"
-          placeholder="Patterns"
-          value={patterns}
-          disabled={readOnly || !interceptor.enabled}
-          onChange={(ev) => setPatterns(ev.target.value)}
-          onBlur={() => {
-            onChange?.({
-              ...interceptor,
-              patterns: patterns
-                .split(/,\s*/)
-                .map((x) => x.trim())
-                .filter(Boolean),
-            });
-          }}
-        />
-      </div>
-      {!readOnly && (
-        <div>
+      <div
+        className={css`
+          display: flex;
+          gap: 10px;
+        `}
+      >
+        <div
+          className={css`
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+          `}
+        >
+          <div>
+            <label>Patterns</label>
+            <div>
+              <input
+                type="text"
+                placeholder="Patterns"
+                value={patterns}
+                disabled={readOnly || !interceptor.enabled}
+                onChange={(ev) => setPatterns(ev.target.value)}
+                onBlur={() => {
+                  onChange?.({
+                    ...interceptor,
+                    patterns: patterns
+                      .split(/,\s*/)
+                      .map((x) => x.trim())
+                      .filter(Boolean),
+                  });
+                }}
+              />
+            </div>
+          </div>
+          <div>
+            <label>Interactive</label>
+            <div>
+              <input
+                type="checkbox"
+                checked={interceptor.interactive}
+                disabled={readOnly || !interceptor.enabled}
+                onChange={(ev) => {
+                  onChange?.({
+                    ...interceptor,
+                    interactive: ev.target.checked,
+                  });
+                }}
+              />
+            </div>
+          </div>
+        </div>
+        {!readOnly && (
           <div
             className={css`
-              display: flex;
-              gap: 10px;
+              flex: 1;
             `}
           >
-            <label>Expression</label>
-            {!readOnly && hasChanges && (
-              <button
-                onClick={() => onChange?.({ ...interceptor, expression })}
+            <div
+              className={css`
+                display: flex;
+                gap: 10px;
+              `}
+            >
+              <label>Expression</label>
+              {!readOnly && hasChanges && (
+                <button
+                  onClick={() => onChange?.({ ...interceptor, expression })}
+                >
+                  Save changes
+                </button>
+              )}
+              {!readOnly && hasChanges && (
+                <button onClick={discardChanges}>Discard changes</button>
+              )}
+            </div>
+            <Suspense fallback="Loading editor...">
+              <ExpressionCodeBlockContainer
+                codeBefore="(key: string, value: any) => {"
+                codeAfter="}"
+                language="ts"
               >
-                Save changes
-              </button>
-            )}
-            {!readOnly && hasChanges && (
-              <button onClick={discardChanges}>Discard changes</button>
+                <ExpressionCodeBlock
+                  key={updatesCount}
+                  code={interceptor.expression ?? ""}
+                  onUpdate={onCodeUpdate}
+                  readOnly={!interceptor.enabled}
+                />
+              </ExpressionCodeBlockContainer>
+            </Suspense>
+            {expressionError && (
+              <div style={{ color: "red" }}>{expressionError}</div>
             )}
           </div>
-          <Suspense fallback="Loading editor...">
-            <ExpressionCodeBlockContainer
-              codeBefore="(key: string, value: any) => {"
-              codeAfter="}"
-              language="ts"
-            >
-              <ExpressionCodeBlock
-                key={updatesCount}
-                code={interceptor.expression ?? ""}
-                onUpdate={onCodeUpdate}
-                readOnly={!interceptor.enabled}
-              />
-            </ExpressionCodeBlockContainer>
-          </Suspense>
-          {expressionError && (
-            <div style={{ color: "red" }}>{expressionError}</div>
-          )}
-        </div>
-      )}
+        )}
+      </div>
       <Badge
         position="bottom-right"
         appearance={readOnly ? "secondary" : "primary"}
@@ -237,6 +284,7 @@ export interface InterceptorsListProps {
   onInterceptorChange?: (interceptor: ExtensionInterceptor) => void;
   onInterceptorRemove?: (interceptor: ExtensionInterceptor) => void;
   onFilterMessages?: (patterns: string[]) => void;
+  onDuplicate?: (interceptor: ExtensionInterceptor) => void;
   ref?: MutableRefObject<any>;
 }
 
@@ -245,6 +293,7 @@ export function InterceptorsList({
   onInterceptorChange,
   onInterceptorRemove,
   onFilterMessages,
+  onDuplicate,
   ref,
 }: InterceptorsListProps) {
   return (
@@ -263,6 +312,7 @@ export function InterceptorsList({
             onChange={onInterceptorChange}
             onRemove={onInterceptorRemove}
             onFilterMessages={onFilterMessages}
+            onDuplicate={onDuplicate}
           />
         </div>
       ))}
