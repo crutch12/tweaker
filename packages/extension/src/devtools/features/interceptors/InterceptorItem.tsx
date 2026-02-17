@@ -307,7 +307,9 @@ export function InterceptorItem({
               </ExpressionCodeBlockContainer>
             </Suspense>
             {expressionError && (
-              <div style={{ color: "red" }}>{expressionError}</div>
+              <Text size="2" color="red">
+                {expressionError}
+              </Text>
             )}
           </Box>
         )}
