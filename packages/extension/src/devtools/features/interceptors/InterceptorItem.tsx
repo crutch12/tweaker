@@ -28,6 +28,7 @@ import {
   TextField,
   Checkbox,
   Badge as RadixBadge,
+  Kbd,
 } from "@radix-ui/themes";
 import { BlueButton } from "../../components/BlueButton";
 import { SourceCodePopover } from "../../components/SourceCodePopover";
@@ -233,7 +234,9 @@ export function InterceptorItem({
           />
         )}
         <RadixBadge title={new Date(interceptor.timestamp).toLocaleString()}>
-          {interceptor.id}
+          <Text size="1" weight="bold">
+            {interceptor.id}
+          </Text>
         </RadixBadge>
       </Flex>
       <Flex gap="2">
@@ -245,16 +248,21 @@ export function InterceptorItem({
               </Text>
               <Tooltip
                 content={
-                  <Text size="2">
-                    Write any valid glob (e.g.{" "}
-                    <Code variant="solid" color="yellow">
-                      *.*
-                    </Code>
-                    ), separate multiple globs via{" "}
-                    <Code variant="solid" color="yellow">
-                      ,
-                    </Code>
-                  </Text>
+                  <Flex direction="column" gap="2">
+                    <Text size="2">
+                      Write any valid glob (e.g.{" "}
+                      <Code variant="solid" color="yellow">
+                        *.*
+                      </Code>
+                      )
+                    </Text>
+                    <Text size="2">
+                      Separate multiple globs using{" "}
+                      <Code variant="solid" color="yellow">
+                        ,
+                      </Code>
+                    </Text>
+                  </Flex>
                 }
               >
                 <ButtonIcon>
@@ -340,17 +348,25 @@ export function InterceptorItem({
                 </Text>
                 <Tooltip
                   content={
-                    <Text size="2">
-                      Write any valid javascript code (even{" "}
-                      <Code variant="solid" color="yellow">
-                        throw
-                      </Code>{" "}
-                      and{" "}
-                      <Code variant="solid" color="yellow">
-                        debugger
-                      </Code>
-                      ) to return target value
-                    </Text>
+                    <Flex direction="column" gap="1">
+                      <Text size="2">
+                        Write any valid javascript code to return target value
+                      </Text>
+                      <Text size="2">
+                        Even{" "}
+                        <Code variant="solid" color="yellow">
+                          throw
+                        </Code>{" "}
+                        and{" "}
+                        <Code variant="solid" color="yellow">
+                          debugger
+                        </Code>{" "}
+                        are available
+                      </Text>
+                      <Text size="2">
+                        Press <Kbd size="1">Ctrl + S</Kbd> to save changes
+                      </Text>
+                    </Flex>
                   }
                 >
                   <ButtonIcon>
