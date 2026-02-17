@@ -34,7 +34,7 @@ function _MessagesTable({
             <Table.HeadCell style={{ width: "10%" }}>
               <Text size="2">Timestamp</Text>
             </Table.HeadCell>
-            <Table.HeadCell style={{ width: "15%" }}>
+            <Table.HeadCell style={{ width: "10%" }}>
               <Text size="2">Actions</Text>
             </Table.HeadCell>
           </Table.Row>
