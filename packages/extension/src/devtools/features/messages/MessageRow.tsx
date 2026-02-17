@@ -12,9 +12,14 @@ import { CSSTransition } from "react-transition-group";
 export interface MessageRowProps {
   message: PluginMessages.ValueMessage["payload"];
   onTweak?: (payload: PluginMessages.ValueMessage["payload"]) => void;
+  onGoToInterceptorClick?: (interceptorId: string | number) => void;
 }
 
-export function MessageRow({ message, onTweak }: MessageRowProps) {
+export function MessageRow({
+  message,
+  onTweak,
+  onGoToInterceptorClick,
+}: MessageRowProps) {
   const stringifiedValue = useMemo(() => {
     return safeStringify(message.originalValue, undefined, 2);
   }, [message.originalValue]);
@@ -27,6 +32,12 @@ export function MessageRow({ message, onTweak }: MessageRowProps) {
 
   const onTweakClick = useEffectEvent(() => {
     onTweak?.(message);
+  });
+
+  const onGoToClick = useEffectEvent(() => {
+    if (message.interceptorId) {
+      onGoToInterceptorClick?.(message.interceptorId);
+    }
   });
 
   const timestampTitle = useMemo(
@@ -102,10 +113,23 @@ export function MessageRow({ message, onTweak }: MessageRowProps) {
           <div
             className={css`
               display: flex;
-              gap: "10px";
+              gap: 8px;
             `}
           >
-            <BlueButton onClick={onTweakClick}>Tweak</BlueButton>
+            <BlueButton
+              title={`Create interceptor for ${message.key} (${message.name})`}
+              onClick={onTweakClick}
+            >
+              Tweak
+            </BlueButton>
+            {message.interceptorId && (
+              <BlueButton
+                title={`Go to ${message.interceptorId}`}
+                onClick={onGoToClick}
+              >
+                Reveal
+              </BlueButton>
+            )}
           </div>
         </Table.Cell>
       </Table.Row>

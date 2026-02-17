@@ -71,6 +71,7 @@ type ValueEventOptions = {
   key: string;
   tweaked: boolean;
   originalValue: unknown;
+  interceptorId?: string | number;
   result?: unknown;
   error?: boolean;
 };
@@ -274,6 +275,7 @@ export class Tweaker {
         tweaked: true,
         originalValue: value,
         result,
+        interceptorId: listener.id,
       });
 
       return [true, result];
@@ -291,6 +293,7 @@ export class Tweaker {
         originalValue: value,
         result: err,
         error: true,
+        interceptorId: listener.id,
       });
 
       throw err;
@@ -314,10 +317,11 @@ export class Tweaker {
       originalValue,
       result,
       error,
+      interceptorId,
     }: ValueEventOptions) => {
       const found = keyMatchesPatterns(key, patterns);
       if (found) {
-        fn({ key, tweaked, originalValue, result, error });
+        fn({ key, tweaked, originalValue, result, error, interceptorId });
       }
     };
     this.eventEmitter.addListener("value", handler);

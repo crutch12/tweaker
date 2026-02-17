@@ -8,12 +8,14 @@ export interface MessagesTableProps extends HTMLAttributes<HTMLElement> {
   messages: PluginMessages.ValueMessage["payload"][];
   ref?: MutableRefObject<any>;
   onTweak?: (payload: PluginMessages.ValueMessage["payload"]) => void;
+  onGoToInterceptorClick?: (interceptorId: string | number) => void;
 }
 
 function _MessagesTable({
   messages,
   ref,
   onTweak,
+  onGoToInterceptorClick,
   ...props
 }: MessagesTableProps) {
   return (
@@ -35,6 +37,7 @@ function _MessagesTable({
               key={message.name + message.key + message.timestamp}
               message={message}
               onTweak={onTweak}
+              onGoToInterceptorClick={onGoToInterceptorClick}
             />
           ))}
         </Table.Body>

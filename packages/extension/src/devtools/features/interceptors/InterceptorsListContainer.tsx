@@ -1,14 +1,36 @@
 import { useStickToBottom } from "use-stick-to-bottom";
 import { InterceptorsList, InterceptorsListProps } from "./InterceptorsList";
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { Flex, Text } from "@radix-ui/themes";
 
-function _InterceptorsListContainer(props: InterceptorsListProps) {
+interface InterceptorsListContainerProps extends InterceptorsListProps {
+  filter?: string;
+}
+
+function _InterceptorsListContainer({
+  interceptors,
+  filter,
+  ...props
+}: InterceptorsListContainerProps) {
   const { scrollRef, contentRef, isAtBottom } = useStickToBottom({
     mass: 1,
   });
 
-  if (props.interceptors.length === 0) {
+  const filteredInterceptors = useMemo(() => {
+    const trimmed = filter?.trim();
+
+    if (!trimmed) return interceptors;
+
+    return interceptors.filter((x) => {
+      return (
+        String(x.id).includes(trimmed) ||
+        x.patterns.some((p) => p.includes(trimmed)) ||
+        x.name.includes(trimmed)
+      );
+    });
+  }, [interceptors, filter]);
+
+  if (interceptors.length === 0) {
     return (
       <Flex justify="center" align="center" flexGrow="1">
         <Text size="3">Interceptors are empty</Text>
@@ -18,7 +40,11 @@ function _InterceptorsListContainer(props: InterceptorsListProps) {
 
   return (
     <div ref={scrollRef} style={{ overflow: "auto" }}>
-      <InterceptorsList ref={contentRef} {...props} />
+      <InterceptorsList
+        ref={contentRef}
+        interceptors={filteredInterceptors}
+        {...props}
+      />
     </div>
   );
 }

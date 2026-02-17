@@ -63,6 +63,7 @@ export namespace PluginMessages {
       timestamp: number;
       tweaked: boolean;
       error: boolean;
+      interceptorId: string | number | undefined;
     }
   >;
 

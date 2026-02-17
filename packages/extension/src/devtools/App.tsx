@@ -82,6 +82,12 @@ export function App() {
 
   const deferredFilterPatterns = useDeferredValue(filterPatterns);
 
+  const [interceptorsFilter, setInterceptorsFilter] = useState<
+    string | undefined
+  >(undefined);
+
+  const deferredInterceptorsFilter = useDeferredValue(interceptorsFilter);
+
   const [highlightedInterceptorMessages, setHighlightedInterceptorMessages] =
     useState<ExtensionInterceptor | undefined>(undefined);
 
@@ -205,6 +211,13 @@ export function App() {
     setInterceptors([]);
   };
 
+  const onGoToInterceptorClick = useCallback(
+    (interceptorId: string | number) => {
+      setInterceptorsFilter(String(interceptorId));
+    },
+    [],
+  );
+
   return (
     <Grid
       gap="2"
@@ -286,6 +299,7 @@ export function App() {
           messages={messages}
           hightlightedRows={hightlightedMessagesRows}
           filterPatterns={deferredFilterPatterns}
+          onGoToInterceptorClick={onGoToInterceptorClick}
           className={css`
             opacity: ${deferredFilterPatterns === filterPatterns
               ? undefined
@@ -302,6 +316,33 @@ export function App() {
           <ButtonIcon title="Clear Interceptors" onClick={clearInterceptors}>
             <ClearIcon size="medium" />
           </ButtonIcon>
+          <TextField.Root
+            size="1"
+            radius="full"
+            placeholder="Filter interceptors by id/name/patterns"
+            className={css`
+              min-width: 260px;
+              background-color: ${interceptorsFilter
+                ? "#FFFAC8" // FABEBE
+                : undefined};
+            `}
+            type="text"
+            value={interceptorsFilter ?? ""}
+            onChange={(ev) => setInterceptorsFilter(ev.target.value)}
+          >
+            <TextField.Slot />
+            {interceptorsFilter && (
+              <TextField.Slot>
+                <IconButton
+                  onClick={() => setInterceptorsFilter(undefined)}
+                  size="1"
+                  variant="ghost"
+                >
+                  <ConsoleErrorIcon height="14" width="14" />
+                </IconButton>
+              </TextField.Slot>
+            )}
+          </TextField.Root>
         </Flex>
         <InterceptorsListContainer
           interceptors={interceptors}
@@ -330,6 +371,7 @@ export function App() {
             ]);
           }}
           onHightLightInterceptor={(v) => setHighlightedInterceptorMessages(v)}
+          filter={interceptorsFilter}
         />
       </Flex>
     </Grid>
