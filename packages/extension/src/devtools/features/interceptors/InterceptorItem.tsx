@@ -29,6 +29,7 @@ import {
   Badge as RadixBadge,
 } from "@radix-ui/themes";
 import { BlueButton } from "../../components/BlueButton";
+import { SourceCodePopover } from "../../components/SourceCodePopover";
 
 const ExpressionCodeBlock = lazy(() =>
   import("./ExpressionCodeBlock").then((r) => ({
@@ -193,6 +194,12 @@ export function InterceptorItem({
           >
             <ExportIcon size="medium" />
           </ButtonIcon>
+        )}
+        {(interceptor.sourceCode || interceptor.stack) && (
+          <SourceCodePopover
+            code={interceptor.sourceCode}
+            stack={interceptor.stack}
+          />
         )}
         <RadixBadge title={new Date(interceptor.timestamp).toLocaleString()}>
           {interceptor.id}

@@ -26,6 +26,7 @@ export interface TweakerInterceptor<T> {
   handler: TweakHandler<T>;
   enabled: boolean;
   timestamp: number;
+  stack?: string;
 }
 
 // type SyncOnly<T> = T extends Promise<any> ? "Error: Async functions are not allowed" : T;

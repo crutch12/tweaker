@@ -21,9 +21,11 @@ export type InterceptorPayload<T> = Pick<
   | "owner"
   | "patterns"
   | "timestamp"
+  | "stack"
 > & {
   name: string;
   expression?: string;
+  sourceCode?: string;
 };
 
 export namespace PluginMessages {
@@ -81,7 +83,7 @@ export namespace PluginMessages {
     "remove-intercept",
     {
       name: string;
-      id: number;
+      id: string | number;
     }
   >;
 

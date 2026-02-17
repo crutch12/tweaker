@@ -76,6 +76,8 @@ export function notifyExtensionNewIntercept<T>(
         owner: listener.owner,
         timestamp: listener.timestamp,
         enabled: listener.enabled,
+        sourceCode: String(listener.handler).trim(),
+        stack: listener.stack,
       },
     };
     globalThis.postMessage(message, "*");

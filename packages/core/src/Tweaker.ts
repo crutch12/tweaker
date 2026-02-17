@@ -175,15 +175,21 @@ export class Tweaker {
     handler: TweakHandler<T>,
     options: InterceptOptions,
   ): RemoveListener {
+    const stack = new Error().stack;
+    const owner = options.owner || TWEAKER_OWNER;
     const interceptor: TweakerInterceptor<T> = {
       id: options.id ?? Math.ceil(Math.random() * 1_000_000_000),
       staticId: options.id,
       interactive: options.interactive,
       patterns: Array.isArray(patterns) ? patterns : [patterns],
       handler,
-      owner: options.owner || TWEAKER_OWNER,
+      owner,
       enabled: options.enabled ?? true,
       timestamp: Date.now(),
+      stack:
+        owner === TWEAKER_OWNER && stack
+          ? stack.replace("Error\n", "")
+          : undefined,
     };
 
     this.listeners.set(interceptor.id, interceptor);

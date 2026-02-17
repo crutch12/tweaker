@@ -1,5 +1,5 @@
 import { Editor } from "prism-react-editor";
-import { BasicSetup, ReadOnlySetup } from "prism-react-editor/setups";
+import { BasicSetup } from "prism-react-editor/setups";
 
 // Adding the JS grammar
 import "prism-react-editor/prism/languages/javascript";
@@ -33,7 +33,7 @@ export function ExpressionCodeBlock({
     <Editor
       className={css`
         opacity: ${disabled ? 0.5 : undefined};
-        cursor: ${disabled ? "default" : undefined};
+        cursor: ${disabled || readOnly ? "default" : undefined};
 
         .pce-wrapper {
           margin: 0;
@@ -45,7 +45,7 @@ export function ExpressionCodeBlock({
       onUpdate={onUpdate}
       readOnly={readOnly}
     >
-      {readOnly ? <ReadOnlySetup /> : <BasicSetup />}
+      <BasicSetup />
     </Editor>
   );
 }

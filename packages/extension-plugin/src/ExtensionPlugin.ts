@@ -1,6 +1,10 @@
 import { TweakerPlugin } from "@tweaker/core/plugin";
 import { version, name } from "../package.json";
-import { ExtensionMessages, PluginMessages } from "./messages";
+import {
+  ExtensionMessages,
+  InterceptorPayload,
+  PluginMessages,
+} from "./messages";
 import { klona } from "klona/json";
 import { Tweaker, TWEAKER_OWNER } from "@tweaker/core";
 import { serializeError, isErrorLike } from "serialize-error";
@@ -86,18 +90,23 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
       globalThis.postMessage(message, "*");
     }
 
-    function getListeners() {
-      return _instance.getListeners().map((listener) => ({
-        id: listener.id,
-        staticId: listener.staticId,
-        name: _instance.name,
-        patterns: listener.patterns,
-        interactive: listener.interactive,
-        owner: listener.owner,
-        enabled: listener.enabled,
-        timestamp: listener.timestamp,
-        expression: expressions.get(listener.id),
-      }));
+    function getListeners(): InterceptorPayload<unknown>[] {
+      return _instance.getListeners().map((listener) => {
+        const expression = expressions.get(listener.id);
+        return {
+          id: listener.id,
+          staticId: listener.staticId,
+          name: _instance.name,
+          patterns: listener.patterns,
+          interactive: listener.interactive,
+          owner: listener.owner,
+          enabled: listener.enabled,
+          timestamp: listener.timestamp,
+          expression,
+          sourceCode: expression ? undefined : String(listener.handler).trim(),
+          stack: listener.stack,
+        };
+      });
     }
 
     function ready() {
