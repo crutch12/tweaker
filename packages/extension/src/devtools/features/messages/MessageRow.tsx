@@ -6,7 +6,8 @@ import { PluginMessages } from "@tweaker/extension-plugin";
 import { getTextColor } from "../../utils/colors";
 import { BlueButton } from "../../components/BlueButton";
 import { deserializeError, isErrorLike } from "serialize-error";
-import { useEffectEvent, useMemo } from "react";
+import { useEffectEvent, useMemo, useRef } from "react";
+import { CSSTransition } from "react-transition-group";
 
 export interface MessageRowProps {
   message: PluginMessages.ValueMessage["payload"];
@@ -45,57 +46,70 @@ export function MessageRow({ message, onTweak }: MessageRowProps) {
       : (message.result as any);
   }, [message.result]);
 
+  const nodeRef = useRef(null);
+
   return (
-    <Table.Row
-      className={css`
-        animation: ${bounce} 1.5s ease;
-      `}
+    <CSSTransition
+      nodeRef={nodeRef}
+      in
+      appear
+      timeout={1500}
+      classNames="bounce"
     >
-      <Table.Cell style={{ color: appColor }} title={message.name}>
-        <strong>{message.name}</strong>
-      </Table.Cell>
-      <Table.Cell title={message.key}>{message.key}</Table.Cell>
-      <Table.Cell title={stringifiedValue}>
-        <ObjectInspector
-          sortKeys={false}
-          expandLevel={0}
-          includePrototypes={true}
-          data={originalValueData}
-        />
-      </Table.Cell>
-      {message.tweaked ? (
-        <Table.Cell title={stringifiedResult}>
-          {message.error && (
-            <span style={{ opacity: 0.5, cursor: "default" }}>error</span>
-          )}
+      <Table.Row
+        ref={nodeRef}
+        className={css`
+          &.bounce-appear-active {
+            animation: ${bounceIn} 1.5s ease;
+          }
+        `}
+      >
+        <Table.Cell style={{ color: appColor }} title={message.name}>
+          <strong>{message.name}</strong>
+        </Table.Cell>
+        <Table.Cell title={message.key}>{message.key}</Table.Cell>
+        <Table.Cell title={stringifiedValue}>
           <ObjectInspector
             sortKeys={false}
             expandLevel={0}
-            includePrototypes={false}
-            data={resultData}
+            includePrototypes={true}
+            data={originalValueData}
           />
         </Table.Cell>
-      ) : (
+        {message.tweaked ? (
+          <Table.Cell title={stringifiedResult}>
+            {message.error && (
+              <span style={{ opacity: 0.5, cursor: "default" }}>error</span>
+            )}
+            <ObjectInspector
+              sortKeys={false}
+              expandLevel={0}
+              includePrototypes={false}
+              data={resultData}
+            />
+          </Table.Cell>
+        ) : (
+          <Table.Cell>
+            <span style={{ opacity: 0.5, cursor: "default" }}>empty</span>
+          </Table.Cell>
+        )}
+        <Table.Cell title={timestampTitle}>{message.timestamp}</Table.Cell>
         <Table.Cell>
-          <span style={{ opacity: 0.5, cursor: "default" }}>empty</span>
+          <div
+            className={css`
+              display: flex;
+              gap: "10px";
+            `}
+          >
+            <BlueButton onClick={onTweakClick}>Tweak</BlueButton>
+          </div>
         </Table.Cell>
-      )}
-      <Table.Cell title={timestampTitle}>{message.timestamp}</Table.Cell>
-      <Table.Cell>
-        <div
-          className={css`
-            display: flex;
-            gap: "10px";
-          `}
-        >
-          <BlueButton onClick={onTweakClick}>Tweak</BlueButton>
-        </div>
-      </Table.Cell>
-    </Table.Row>
+      </Table.Row>
+    </CSSTransition>
   );
 }
 
-const bounce = keyframes`
+const bounceIn = keyframes`
   from { background-color: rgba(255, 204, 102, 1); }
   to { background-color: rgba(255, 204, 102, 0); }
 `;
