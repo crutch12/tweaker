@@ -4,20 +4,20 @@ import { memo } from "react";
 import { Flex, Text } from "@radix-ui/themes";
 
 function _InterceptorsListContainer(props: InterceptorsListProps) {
-  const { scrollRef, contentRef } = useStickToBottom({
+  const { scrollRef, contentRef, isAtBottom } = useStickToBottom({
     mass: 1,
   });
 
   if (props.interceptors.length === 0) {
     return (
-      <Flex justify="center" align="center">
+      <Flex justify="center" align="center" flexGrow="1">
         <Text size="3">Interceptors are empty</Text>
       </Flex>
     );
   }
 
   return (
-    <div ref={scrollRef}>
+    <div ref={scrollRef} style={{ overflow: "auto" }}>
       <InterceptorsList ref={contentRef} {...props} />
     </div>
   );

@@ -1,6 +1,7 @@
 import { css } from "@emotion/css";
 import { MutableRefObject } from "react";
 import { ExtensionInterceptor, InterceptorItem } from "./InterceptorItem";
+import { Flex } from "@radix-ui/themes";
 
 export interface InterceptorsListProps {
   interceptors: ExtensionInterceptor[];
@@ -20,14 +21,7 @@ export function InterceptorsList({
   ref,
 }: InterceptorsListProps) {
   return (
-    <div
-      ref={ref}
-      className={css`
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      `}
-    >
+    <Flex ref={ref} direction="column" gap="2">
       {interceptors.map((interceptor) => (
         <div key={interceptor.name + interceptor.id}>
           <InterceptorItem
@@ -39,6 +33,6 @@ export function InterceptorsList({
           />
         </div>
       ))}
-    </div>
+    </Flex>
   );
 }

@@ -22,7 +22,14 @@ import { InterceptorsListContainer } from "./features/interceptors/InterceptorsL
 import { parsePatterns, serializePatterns } from "./utils/pattern";
 import { ButtonIcon } from "./components/ButtonIcon";
 import { ClearIcon } from "./icons/ClearIcon";
-import { Separator, TextField, IconButton, Flex } from "@radix-ui/themes";
+import {
+  Separator,
+  TextField,
+  IconButton,
+  Flex,
+  Box,
+  Grid,
+} from "@radix-ui/themes";
 import { ConsoleErrorIcon } from "@devtools-ds/icon";
 
 export function App() {
@@ -174,7 +181,6 @@ export function App() {
   const clearMessages = () => {
     sendMessage("clear-messages", { timestamp: Date.now() });
     setMessages([]);
-    clearInterceptors();
   };
 
   const clearInterceptors = () => {
@@ -183,17 +189,22 @@ export function App() {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "10px",
+    <Grid
+      gap="2"
+      rows={{
+        initial: "auto auto 1fr auto 1fr",
+        xl: "auto auto 1fr",
       }}
+      columns={{
+        initial: "1fr",
+        xl: "1fr auto 1fr",
+      }}
+      height="calc(100vh - 20px)"
     >
-      <strong style={{ fontSize: "20px" }}>
-        Tweaker DevTools - {date.toLocaleString()}
-      </strong>
-      <Flex gap="2" align="center">
+      <Flex gap="2" align="center" gridColumn="1 / -1">
+        <strong style={{ fontSize: "20px" }}>
+          Tweaker DevTools - {date.toLocaleString()}
+        </strong>
         <button onClick={reloadPanel}>Reload DevTools Panel</button>
         <button onClick={reloadPage}>Reload Current Page</button>
         <button onClick={checkPageTitle}>Check page title</button>
@@ -211,55 +222,48 @@ export function App() {
         >
           Send Message
         </button>
-        <ButtonIcon title="Clear Messages" onClick={clearMessages}>
-          <ClearIcon size="medium" />
-        </ButtonIcon>
-        <TextField.Root
-          size="1"
-          radius="full"
-          placeholder="Filter messages (glob, e.g. *.*)"
-          className={css`
-            min-width: 240px;
-            background-color: ${filterPatterns
-              ? "#FFFAC8" // FABEBE
-              : undefined};
-          `}
-          type="text"
-          value={filterPatterns ?? ""}
-          onChange={(ev) => setFilterPatterns(ev.target.value)}
-          onBlur={(ev) => {
-            setFilterPatterns(
-              serializePatterns(parsePatterns(ev.target.value)),
-            );
-          }}
-        >
-          <TextField.Slot />
-          {filterPatterns && (
-            <TextField.Slot>
-              <IconButton
-                onClick={() => setFilterPatterns(undefined)}
-                size="1"
-                variant="ghost"
-              >
-                <ConsoleErrorIcon height="14" width="14" />
-              </IconButton>
-            </TextField.Slot>
-          )}
-        </TextField.Root>
       </Flex>
-      <div
-        className={css`
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          height: calc(100vh - 100px);
-
-          > div {
-            flex: 1;
-            overflow: auto;
-          }
-        `}
-      >
+      <Box gridColumn="1 / -1">
+        <Separator size="4" orientation="horizontal" />
+      </Box>
+      <Flex direction="column" overflow="auto" gap="2">
+        <Flex gap="2" align="center">
+          <ButtonIcon title="Clear Messages" onClick={clearMessages}>
+            <ClearIcon size="medium" />
+          </ButtonIcon>
+          <TextField.Root
+            size="1"
+            radius="full"
+            placeholder="Filter messages (glob, e.g. *.*)"
+            className={css`
+              min-width: 240px;
+              background-color: ${filterPatterns
+                ? "#FFFAC8" // FABEBE
+                : undefined};
+            `}
+            type="text"
+            value={filterPatterns ?? ""}
+            onChange={(ev) => setFilterPatterns(ev.target.value)}
+            onBlur={(ev) => {
+              setFilterPatterns(
+                serializePatterns(parsePatterns(ev.target.value)),
+              );
+            }}
+          >
+            <TextField.Slot />
+            {filterPatterns && (
+              <TextField.Slot>
+                <IconButton
+                  onClick={() => setFilterPatterns(undefined)}
+                  size="1"
+                  variant="ghost"
+                >
+                  <ConsoleErrorIcon height="14" width="14" />
+                </IconButton>
+              </TextField.Slot>
+            )}
+          </TextField.Root>
+        </Flex>
         <MessagesTableContainer
           onTweak={newTweak}
           messages={messages}
@@ -270,7 +274,17 @@ export function App() {
               : 0.5};
           `}
         />
-        <Separator size="4" />
+      </Flex>
+      <Separator
+        size="4"
+        orientation={{ initial: "horizontal", xl: "vertical" }}
+      />
+      <Flex direction="column" overflow="auto" gap="2">
+        <Flex gap="2" align="center">
+          <ButtonIcon title="Clear Interceptors" onClick={clearInterceptors}>
+            <ClearIcon size="medium" />
+          </ButtonIcon>
+        </Flex>
         <InterceptorsListContainer
           interceptors={interceptors}
           onInterceptorChange={(i) => {
@@ -298,7 +312,7 @@ export function App() {
             ]);
           }}
         />
-      </div>
-    </div>
+      </Flex>
+    </Grid>
   );
 }

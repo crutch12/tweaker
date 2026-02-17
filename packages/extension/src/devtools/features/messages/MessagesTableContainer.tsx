@@ -30,7 +30,7 @@ function _MessagesTableContainer({
 
   if (messages.length === 0) {
     return (
-      <Flex justify="center" align="center">
+      <Flex justify="center" align="center" flexGrow="1">
         <Text size="3">
           Call <Code>tweaker.value()</Code> from in-page code to see logs...
         </Text>
@@ -39,7 +39,7 @@ function _MessagesTableContainer({
   }
 
   return (
-    <div ref={scrollRef}>
+    <div ref={scrollRef} style={{ overflow: "auto" }}>
       <MessagesTable ref={contentRef} {...props} messages={filteredMessages} />
     </div>
   );

@@ -2,6 +2,8 @@ import { Table } from "@devtools-ds/table";
 import { HTMLAttributes, MutableRefObject } from "react";
 import { PluginMessages } from "@tweaker/extension-plugin";
 import { MessageRow } from "./MessageRow";
+import { css } from "@emotion/css";
+import { Box } from "@radix-ui/themes";
 
 export interface MessagesTableProps extends HTMLAttributes<HTMLElement> {
   messages: PluginMessages.ValueMessage["payload"][];
@@ -16,7 +18,7 @@ export function MessagesTable({
   ...props
 }: MessagesTableProps) {
   return (
-    <div ref={ref} {...props}>
+    <Box ref={ref} {...props}>
       <Table>
         <Table.Head>
           <Table.Row>
@@ -38,6 +40,6 @@ export function MessagesTable({
           ))}
         </Table.Body>
       </Table>
-    </div>
+    </Box>
   );
 }
