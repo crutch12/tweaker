@@ -64,7 +64,7 @@ export function MessageRow({
       nodeRef={nodeRef}
       in
       appear
-      timeout={1500}
+      timeout={1000}
       classNames="bounce"
     >
       <Table.Row
@@ -72,7 +72,7 @@ export function MessageRow({
         ref={nodeRef}
         className={css`
           &.bounce-appear-active {
-            animation: ${bounceIn} 1.5s ease;
+            animation: ${bounceIn} 1s ease;
           }
         `}
       >
