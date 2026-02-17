@@ -4,6 +4,7 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useEffectEvent,
   useMemo,
   useState,
 } from "react";
@@ -126,15 +127,27 @@ export function InterceptorItem({
     return patterns.trim().length === 0;
   }, [patterns]);
 
+  const onHightLight = useEffectEvent(
+    (interceptor: ExtensionInterceptor | undefined) => {
+      onHightLightInterceptor?.(interceptor);
+    },
+  );
+
+  useEffect(() => {
+    return () => {
+      onHightLight(undefined);
+    };
+  }, []);
+
   return (
     <Flex
       onMouseEnter={() =>
-        onHightLightInterceptor?.({
+        onHightLight({
           ...interceptor,
           patterns: parsePatterns(patterns),
         })
       }
-      onMouseLeave={() => onHightLightInterceptor?.(undefined)}
+      onMouseLeave={() => onHightLight(undefined)}
       direction="column"
       p="3"
       gap="2"
@@ -241,7 +254,7 @@ export function InterceptorItem({
               disabled={readOnly || !interceptor.enabled}
               onChange={(ev) => {
                 setPatterns(ev.target.value);
-                onHightLightInterceptor?.({
+                onHightLight({
                   ...interceptor,
                   patterns: parsePatterns(ev.target.value),
                 });
@@ -251,7 +264,7 @@ export function InterceptorItem({
                   ...interceptor,
                   patterns: parsePatterns(patterns),
                 });
-                onHightLightInterceptor?.(undefined);
+                onHightLight(undefined);
               }}
             />
           </Flex>

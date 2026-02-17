@@ -10,7 +10,7 @@ import { useEffectEvent, useMemo, useRef } from "react";
 import { CSSTransition } from "react-transition-group";
 import { SourceCodePopover } from "../../components/SourceCodePopover";
 import { ButtonIcon } from "../../components/ButtonIcon";
-import { SelectIcon, NewWindowIcon } from "@devtools-ds/icon";
+import { SelectIcon, ExportIcon } from "@devtools-ds/icon";
 import { Flex, Text } from "@radix-ui/themes";
 
 export interface MessageRowProps {
@@ -122,6 +122,12 @@ export function MessageRow({
         <Table.Cell title={timestampTitle}>{message.timestamp}</Table.Cell>
         <Table.Cell>
           <Flex gap="2" align="center">
+            <ButtonIcon
+              title={`Create interceptor for ${message.key} (${message.name})`}
+              onClick={onTweakClick}
+            >
+              <ExportIcon size="medium" />
+            </ButtonIcon>
             {message.stack && (
               <SourceCodePopover
                 stack={message.stack}
@@ -129,12 +135,6 @@ export function MessageRow({
                 title="Show tweaker.value() call stack"
               />
             )}
-            <ButtonIcon
-              title={`Create interceptor for ${message.key} (${message.name})`}
-              onClick={onTweakClick}
-            >
-              <NewWindowIcon size="medium" />
-            </ButtonIcon>
             {message.interceptorId && (
               <ButtonIcon
                 title={`Go to ${message.interceptorId}`}
