@@ -284,7 +284,15 @@ export function InterceptorItem({
                 <button onClick={discardChanges}>Discard changes</button>
               )}
             </Flex>
-            <Suspense fallback={<Skeleton>Loading Editor</Skeleton>}>
+            <Suspense
+              fallback={
+                <Flex direction="column" gap="1">
+                  <Skeleton height="18px" />
+                  <Skeleton height="18px" />
+                  <Skeleton height="18px" />
+                </Flex>
+              }
+            >
               <ExpressionCodeBlockContainer
                 codeBefore="(key: string, value: any) => {"
                 codeAfter="}"
