@@ -14,7 +14,7 @@ import { Badge } from "../../components/Badge";
 import { DeleteIcon, SelectIcon, ExportIcon } from "@devtools-ds/icon";
 import { ButtonIcon } from "../../components/ButtonIcon";
 import { isJsSyntaxValid } from "../../utils/isJsSyntaxValid";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { parsePatterns, serializePatterns } from "../../utils/pattern";
 import { InfoIcon } from "@devtools-ds/icon";
 import {
@@ -28,6 +28,7 @@ import {
   Checkbox,
   Badge as RadixBadge,
 } from "@radix-ui/themes";
+import { BlueButton } from "../../components/BlueButton";
 
 const ExpressionCodeBlock = lazy(() =>
   import("./ExpressionCodeBlock").then((r) => ({
@@ -79,6 +80,7 @@ export function InterceptorItem({
       }
       return undefined;
     },
+    placeholderData: keepPreviousData,
   });
 
   const [patterns, setPatterns] = useState(() =>
@@ -304,14 +306,14 @@ export function InterceptorItem({
                 </Tooltip>
               </Flex>
               {!readOnly && hasChanges && (
-                <button
+                <BlueButton
                   onClick={() => onChange?.({ ...interceptor, expression })}
                 >
-                  Save changes
-                </button>
+                  Save
+                </BlueButton>
               )}
               {!readOnly && hasChanges && (
-                <button onClick={discardChanges}>Discard changes</button>
+                <BlueButton onClick={discardChanges}>Discard</BlueButton>
               )}
             </Flex>
             <Suspense
