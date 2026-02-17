@@ -1,4 +1,5 @@
 import { Editor } from "prism-react-editor";
+import type { PrismEditor } from "prism-react-editor";
 import { BasicSetup } from "prism-react-editor/setups";
 
 // Adding the JS grammar
@@ -8,7 +9,7 @@ import "prism-react-editor/prism/languages/typescript";
 import "prism-react-editor/layout.css";
 import "prism-react-editor/themes/github-light.css";
 import styled from "@emotion/styled";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useEffectEvent, useRef } from "react";
 import { css } from "@emotion/css";
 
 export interface ExpressionCodeBlockProps {
@@ -20,6 +21,7 @@ export interface ExpressionCodeBlockProps {
   language?: string;
   readOnly?: boolean;
   disabled?: boolean;
+  onSave?: () => void;
 }
 
 export function ExpressionCodeBlock({
@@ -28,7 +30,27 @@ export function ExpressionCodeBlock({
   language = "js",
   readOnly = false,
   disabled,
+  onSave,
 }: ExpressionCodeBlockProps) {
+  const ref = useRef<PrismEditor>(null);
+
+  const onSaveHandler = useEffectEvent(() => {
+    onSave?.();
+  });
+
+  useEffect(() => {
+    const handler = (ev: KeyboardEvent) => {
+      if (ev.key.toLocaleLowerCase() === "s" && ev.ctrlKey) {
+        ev.preventDefault();
+        onSaveHandler();
+      }
+    };
+    ref?.current?.container?.addEventListener("keydown", handler);
+    return () => {
+      ref?.current?.container?.removeEventListener("keydown", handler);
+    };
+  }, []);
+
   return (
     <Editor
       className={css`
@@ -44,6 +66,7 @@ export function ExpressionCodeBlock({
       lineNumbers={false}
       onUpdate={onUpdate}
       readOnly={readOnly}
+      ref={ref}
     >
       <BasicSetup />
     </Editor>

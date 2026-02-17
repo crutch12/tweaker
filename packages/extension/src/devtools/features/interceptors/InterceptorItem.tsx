@@ -69,6 +69,21 @@ export function InterceptorItem({
   onHightLightInterceptor,
 }: InterceptorItemProps) {
   const [expression, setExpression] = useState(() => interceptor.expression);
+  const [initialExpression, setInitialExpression] = useState(
+    () => interceptor.expression,
+  );
+
+  const actualizeCodeExpression = useEffectEvent((force: boolean) => {
+    if (force || interceptor.expression !== expression) {
+      setUpdatesCount((v) => v + 1);
+      setInitialExpression(interceptor.expression);
+      setExpression(interceptor.expression);
+    }
+  });
+
+  useEffect(() => {
+    actualizeCodeExpression(false);
+  }, [interceptor.expression]);
 
   const { data: expressionError } = useQuery({
     queryKey: ["validateExpression", expression],
@@ -92,10 +107,6 @@ export function InterceptorItem({
   const readOnly = interceptor.owner !== EXTENSION_OWNER;
 
   useEffect(() => {
-    setExpression(interceptor.expression);
-  }, [interceptor.expression]);
-
-  useEffect(() => {
     setPatterns(serializePatterns(interceptor.patterns));
   }, [interceptor.patterns]);
 
@@ -117,9 +128,8 @@ export function InterceptorItem({
   const [updatesCount, setUpdatesCount] = useState(0);
 
   const discardChanges = useCallback(() => {
-    setExpression(interceptor.expression);
-    setUpdatesCount((c) => c + 1);
-  }, [interceptor]);
+    actualizeCodeExpression(true);
+  }, []);
 
   const appColor = getTextColor(interceptor.name);
 
@@ -138,6 +148,10 @@ export function InterceptorItem({
       onHightLight(undefined);
     };
   }, []);
+
+  const uniqueId = useMemo(() => {
+    return `${interceptor.name}-${interceptor.id}`;
+  }, [interceptor]);
 
   return (
     <Flex
@@ -166,6 +180,7 @@ export function InterceptorItem({
     >
       <Flex gap="2" align="center">
         <Checkbox
+          id={`${uniqueId}-enabled`}
           disabled={readOnly}
           checked={interceptor.enabled}
           onCheckedChange={(checked) => {
@@ -176,6 +191,8 @@ export function InterceptorItem({
           }}
         />
         <Text
+          as="label"
+          htmlFor={`${uniqueId}-enabled`}
           weight="bold"
           size="3"
           style={{
@@ -223,7 +240,7 @@ export function InterceptorItem({
         <Flex direction="column" gap="2">
           <Flex direction="column">
             <Flex align="center" gap="1">
-              <Text size="2" as="label">
+              <Text size="2" as="label" htmlFor={`${uniqueId}-patterns`}>
                 Patterns
               </Text>
               <Tooltip
@@ -246,12 +263,22 @@ export function InterceptorItem({
               </Tooltip>
             </Flex>
             <TextField.Root
+              id={`${uniqueId}-patterns`}
               type="text"
               placeholder="Patterns"
               value={patterns}
               color={patternsError ? "red" : undefined}
               variant={patternsError ? "soft" : undefined}
               disabled={readOnly || !interceptor.enabled}
+              onKeyDown={(ev) => {
+                if (ev.key === "Escape") {
+                  ev.stopPropagation();
+                  ev.currentTarget.blur();
+                }
+              }}
+              onFocus={(ev) => {
+                ev.target.setSelectionRange(0, Number.MAX_SAFE_INTEGER);
+              }}
               onChange={(ev) => {
                 setPatterns(ev.target.value);
                 onHightLight({
@@ -260,16 +287,19 @@ export function InterceptorItem({
                 });
               }}
               onBlur={() => {
-                onChange?.({
-                  ...interceptor,
-                  patterns: parsePatterns(patterns),
-                });
+                serializePatterns(interceptor.patterns) !==
+                  serializePatterns(parsePatterns(patterns)) &&
+                  onChange?.({
+                    ...interceptor,
+                    patterns: parsePatterns(patterns),
+                  });
                 onHightLight(undefined);
               }}
             />
           </Flex>
           <Flex align="center" gap="2">
             <Checkbox
+              id={`${uniqueId}-interactive`}
               checked={interceptor.interactive}
               disabled={readOnly || !interceptor.enabled}
               onCheckedChange={(checked) => {
@@ -280,7 +310,9 @@ export function InterceptorItem({
               }}
             />
             <Flex gap="1" align="center">
-              <Text size="2">Interactive</Text>
+              <Text as="label" htmlFor={`${uniqueId}-interactive`} size="2">
+                Interactive
+              </Text>
               <Tooltip
                 content={
                   <Text size="2">
@@ -353,9 +385,12 @@ export function InterceptorItem({
               >
                 <ExpressionCodeBlock
                   key={updatesCount}
-                  code={interceptor.expression ?? ""}
+                  code={initialExpression ?? ""}
                   onUpdate={onCodeUpdate}
                   readOnly={!interceptor.enabled}
+                  onSave={() =>
+                    hasChanges && onChange?.({ ...interceptor, expression })
+                  }
                 />
               </ExpressionCodeBlockContainer>
             </Suspense>
