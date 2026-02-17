@@ -124,7 +124,6 @@ export function InterceptorItem({
         border: 1.5px solid ${appColor};
         border-radius: 10px;
         padding: 10px;
-        font-size: 16px;
         position: relative;
         opacity: ${interceptor.enabled ? undefined : 0.6};
       `}
@@ -172,9 +171,9 @@ export function InterceptorItem({
             <ExportIcon size="medium" />
           </ButtonIcon>
         )}
-        <i title={new Date(interceptor.timestamp).toLocaleString()}>
-          <RadixBadge>{interceptor.id}</RadixBadge>
-        </i>
+        <RadixBadge title={new Date(interceptor.timestamp).toLocaleString()}>
+          {interceptor.id}
+        </RadixBadge>
       </Flex>
       <Flex gap="2">
         <Flex direction="column" gap="2">

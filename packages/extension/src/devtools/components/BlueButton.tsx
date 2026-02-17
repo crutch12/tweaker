@@ -30,6 +30,10 @@ export function BlueButton({
           opacity: 0.5;
           cursor: default;
         }
+        :hover:not(:disabled),
+        :focus:not(:disabled) {
+          background-color: rgb(53, 132, 237);
+        }
       `}
     >
       {children}
