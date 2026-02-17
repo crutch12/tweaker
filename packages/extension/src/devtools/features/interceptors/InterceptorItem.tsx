@@ -199,6 +199,7 @@ export function InterceptorItem({
           <SourceCodePopover
             code={interceptor.sourceCode}
             stack={interceptor.stack}
+            title="Show interceptor source code (formatted)"
           />
         )}
         <RadixBadge title={new Date(interceptor.timestamp).toLocaleString()}>

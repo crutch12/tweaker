@@ -3,11 +3,6 @@ import { lazy, Suspense, useMemo, use } from "react";
 import { InspectorIcon } from "@devtools-ds/icon";
 import { ButtonIcon } from "./ButtonIcon";
 
-export interface SourceCodePopoverProps {
-  code?: string;
-  stack?: string;
-}
-
 const ExpressionCodeBlock = lazy(() =>
   import("../features/interceptors/ExpressionCodeBlock").then((r) => ({
     default: r.ExpressionCodeBlock,
@@ -34,11 +29,23 @@ function FormattedSourceCode({ code }: { code: string }) {
   return <SourceCode formattedCodePromise={formattedCodePromise} />;
 }
 
-export function SourceCodePopover({ code, stack }: SourceCodePopoverProps) {
+export interface SourceCodePopoverProps {
+  code?: string;
+  stack?: string;
+  stackLabel?: string;
+  title?: string;
+}
+
+export function SourceCodePopover({
+  code,
+  stack,
+  stackLabel = "tweaker.intercept()",
+  title,
+}: SourceCodePopoverProps) {
   return (
     <Popover.Root>
       <Popover.Trigger>
-        <ButtonIcon title="Show interceptor source code (formatted)">
+        <ButtonIcon title={title}>
           <InspectorIcon size="medium" />
         </ButtonIcon>
       </Popover.Trigger>
@@ -73,7 +80,7 @@ export function SourceCodePopover({ code, stack }: SourceCodePopoverProps) {
           {stack && (
             <Flex direction="column" gap="1">
               <Text as="label">
-                <Code>tweaker.intercept()</Code>
+                <Code>{stackLabel}</Code>
               </Text>
               <Code style={{ whiteSpace: "pre" }}>{stack}</Code>
             </Flex>

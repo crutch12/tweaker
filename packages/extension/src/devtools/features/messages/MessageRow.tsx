@@ -8,6 +8,10 @@ import { BlueButton } from "../../components/BlueButton";
 import { deserializeError, isErrorLike } from "serialize-error";
 import { useEffectEvent, useMemo, useRef } from "react";
 import { CSSTransition } from "react-transition-group";
+import { SourceCodePopover } from "../../components/SourceCodePopover";
+import { ButtonIcon } from "../../components/ButtonIcon";
+import { SelectIcon, NewWindowIcon } from "@devtools-ds/icon";
+import { Flex, Text } from "@radix-ui/themes";
 
 export interface MessageRowProps {
   message: PluginMessages.ValueMessage["payload"];
@@ -77,9 +81,13 @@ export function MessageRow({
         `}
       >
         <Table.Cell style={{ color: appColor }} title={message.name}>
-          <strong>{message.name}</strong>
+          <Text size="2" weight="bold">
+            {message.name}
+          </Text>
         </Table.Cell>
-        <Table.Cell title={message.key}>{message.key}</Table.Cell>
+        <Table.Cell title={message.key}>
+          <Text size="2">{message.key}</Text>
+        </Table.Cell>
         <Table.Cell title={stringifiedValue}>
           <ObjectInspector
             sortKeys={false}
@@ -89,48 +97,53 @@ export function MessageRow({
           />
         </Table.Cell>
         {message.tweaked ? (
-          <Table.Cell
-            title={stringifiedResult}
-            style={{ display: "flex", gap: "4px" }}
-          >
-            {message.error && (
-              <span style={{ opacity: 0.5, cursor: "default" }}>error</span>
-            )}
-            <ObjectInspector
-              sortKeys={false}
-              expandLevel={0}
-              includePrototypes={false}
-              data={resultData}
-            />
+          <Table.Cell title={stringifiedResult}>
+            <Flex align="center" gap="1">
+              {message.error && (
+                <Text size="2" style={{ opacity: 0.5, cursor: "default" }}>
+                  error
+                </Text>
+              )}
+              <ObjectInspector
+                sortKeys={false}
+                expandLevel={0}
+                includePrototypes={false}
+                data={resultData}
+              />
+            </Flex>
           </Table.Cell>
         ) : (
           <Table.Cell>
-            <span style={{ opacity: 0.5, cursor: "default" }}>empty</span>
+            <Text size="2" style={{ opacity: 0.5, cursor: "default" }}>
+              empty
+            </Text>
           </Table.Cell>
         )}
         <Table.Cell title={timestampTitle}>{message.timestamp}</Table.Cell>
         <Table.Cell>
-          <div
-            className={css`
-              display: flex;
-              gap: 8px;
-            `}
-          >
-            <BlueButton
+          <Flex gap="2" align="center">
+            {message.stack && (
+              <SourceCodePopover
+                stack={message.stack}
+                stackLabel="tweaker.value()"
+                title="Show tweaker.value() call stack"
+              />
+            )}
+            <ButtonIcon
               title={`Create interceptor for ${message.key} (${message.name})`}
               onClick={onTweakClick}
             >
-              Tweak
-            </BlueButton>
+              <NewWindowIcon size="medium" />
+            </ButtonIcon>
             {message.interceptorId && (
-              <BlueButton
+              <ButtonIcon
                 title={`Go to ${message.interceptorId}`}
                 onClick={onGoToClick}
               >
-                Reveal
-              </BlueButton>
+                <SelectIcon size="medium" />
+              </ButtonIcon>
             )}
-          </div>
+          </Flex>
         </Table.Cell>
       </Table.Row>
     </CSSTransition>

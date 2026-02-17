@@ -35,7 +35,15 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
 
     instance.subscribe(
       "*",
-      ({ key, tweaked, originalValue, result, error, interceptorId }) => {
+      ({
+        key,
+        tweaked,
+        originalValue,
+        result,
+        error,
+        interceptorId,
+        stack,
+      }) => {
         const message: PluginMessages.ValueMessage = {
           source: EXTENSION_PLUGIN_SOURCE,
           version,
@@ -53,6 +61,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
             tweaked,
             error: error ?? false,
             interceptorId,
+            stack,
           },
         };
         globalThis.postMessage(message, "*");

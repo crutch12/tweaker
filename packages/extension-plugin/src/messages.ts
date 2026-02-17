@@ -66,6 +66,7 @@ export namespace PluginMessages {
       tweaked: boolean;
       error: boolean;
       interceptorId: string | number | undefined;
+      stack: string | undefined;
     }
   >;
 

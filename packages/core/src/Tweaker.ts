@@ -74,6 +74,7 @@ type ValueEventOptions = {
   interceptorId?: string | number;
   result?: unknown;
   error?: boolean;
+  stack?: string;
 };
 
 export class Tweaker {
@@ -165,7 +166,12 @@ export class Tweaker {
     value: T,
     options?: Partial<TweakerValueOptions<T>>,
   ): T {
-    const [handled, result] = this.handleValue(key, value);
+    const stack = new Error().stack;
+    const [handled, result] = this.handleValue(
+      key,
+      value,
+      stack ? stack.replace("Error\n", "") : undefined,
+    );
     if (handled) return result as T;
     return value;
   }
@@ -247,6 +253,7 @@ export class Tweaker {
   private handleValue<T>(
     key: TweakerKey,
     value: unknown,
+    stack?: string,
   ): [boolean, T | undefined] {
     this.debug(key, "value", value);
 
@@ -258,6 +265,7 @@ export class Tweaker {
         key,
         tweaked: false,
         originalValue: value,
+        stack,
       });
       return [false, undefined];
     }
@@ -282,6 +290,7 @@ export class Tweaker {
         originalValue: value,
         result,
         interceptorId: listener.id,
+        stack,
       });
 
       return [true, result];
@@ -300,6 +309,7 @@ export class Tweaker {
         result: err,
         error: true,
         interceptorId: listener.id,
+        stack,
       });
 
       throw err;
@@ -324,10 +334,19 @@ export class Tweaker {
       result,
       error,
       interceptorId,
+      stack,
     }: ValueEventOptions) => {
       const found = keyMatchesPatterns(key, patterns);
       if (found) {
-        fn({ key, tweaked, originalValue, result, error, interceptorId });
+        fn({
+          key,
+          tweaked,
+          originalValue,
+          result,
+          error,
+          interceptorId,
+          stack,
+        });
       }
     };
     this.eventEmitter.addListener("value", handler);
