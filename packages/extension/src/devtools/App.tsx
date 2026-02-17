@@ -35,6 +35,7 @@ import { ConsoleErrorIcon } from "@devtools-ds/icon";
 import { BlueButton } from "./components/BlueButton";
 import { keyMatchesPatterns } from "@tweaker/core/utils";
 import { ExtensionInterceptor } from "./features/interceptors/InterceptorItem";
+import { CreateTweakerDropdown } from "./components/CreateTweakerButton";
 
 export function App() {
   const reloadPage = () => {
@@ -75,6 +76,16 @@ export function App() {
   const setInterceptors = useInterceptorsStore((state) => state.set);
   const updateInterceptor = useInterceptorsStore((state) => state.update);
   const removeInterceptors = useInterceptorsStore((state) => state.remove);
+
+  const appNames = useMemo(() => {
+    if (interceptors.length === 0 && messages.length === 0) return [];
+    return Array.from(
+      new Set([
+        ...messages.map((x) => x.name),
+        ...interceptors.map((x) => x.name),
+      ]).values(),
+    );
+  }, [interceptors, messages]);
 
   const [filterPatterns, setFilterPatterns] = useState<string | undefined>(
     undefined,
@@ -343,6 +354,31 @@ export function App() {
               </TextField.Slot>
             )}
           </TextField.Root>
+          {appNames.length > 0 && (
+            <CreateTweakerDropdown
+              names={appNames}
+              onCreate={(name) => {
+                const id = Math.ceil(Math.random() * 1_000_000_000);
+                addInterceptors([
+                  {
+                    id,
+                    staticId: id,
+                    name: name,
+                    patterns: [],
+                    // fromKey: message.key,
+                    // sampleIds: [],
+                    // sampleId: undefined,
+                    interactive: false,
+                    enabled: true,
+                    expression: "  return value",
+                    // expression: undefined,
+                    owner: EXTENSION_OWNER,
+                    timestamp: Date.now(),
+                  },
+                ]);
+              }}
+            />
+          )}
         </Flex>
         <InterceptorsListContainer
           interceptors={interceptors}
@@ -371,7 +407,7 @@ export function App() {
             ]);
           }}
           onHightLightInterceptor={(v) => setHighlightedInterceptorMessages(v)}
-          filter={interceptorsFilter}
+          filter={deferredInterceptorsFilter}
         />
       </Flex>
     </Grid>

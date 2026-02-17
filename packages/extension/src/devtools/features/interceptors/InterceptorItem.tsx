@@ -173,6 +173,7 @@ export function InterceptorItem({
         </ButtonIcon>
         {onFilterMessages && (
           <ButtonIcon
+            disabled={parsePatterns(patterns).length === 0}
             title="Filter messages"
             onClick={() => onFilterMessages(interceptor.patterns)}
           >
