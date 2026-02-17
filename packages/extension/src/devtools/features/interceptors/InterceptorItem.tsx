@@ -119,6 +119,10 @@ export function InterceptorItem({
 
   const appColor = getTextColor(interceptor.name);
 
+  const patternsError = useMemo(() => {
+    return patterns.trim().length === 0;
+  }, [patterns]);
+
   return (
     <Flex
       onMouseEnter={() =>
@@ -222,6 +226,8 @@ export function InterceptorItem({
               type="text"
               placeholder="Patterns"
               value={patterns}
+              color={patternsError ? "red" : undefined}
+              variant={patternsError ? "soft" : undefined}
               disabled={readOnly || !interceptor.enabled}
               onChange={(ev) => {
                 setPatterns(ev.target.value);
@@ -237,7 +243,7 @@ export function InterceptorItem({
                 });
                 onHightLightInterceptor?.(undefined);
               }}
-            ></TextField.Root>
+            />
           </Flex>
           <Flex align="center" gap="2">
             <Checkbox
