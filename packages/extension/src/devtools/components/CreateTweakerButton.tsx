@@ -15,15 +15,19 @@ export function CreateTweakerDropdown({
     <DropdownMenu.Root>
       <DropdownMenu.Trigger disabled={!names.length}>
         <BlueButton disabled={!names.length}>
-          <Flex gap="2" align="center">
-            Create
+          <Flex gap="1" align="center">
+            Create interceptor
             <DropdownMenu.TriggerIcon />
           </Flex>
         </BlueButton>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content variant="soft">
         {names.map((name) => (
-          <DropdownMenu.Item key={name} onClick={() => onCreate?.(name)}>
+          <DropdownMenu.Item
+            shortcut="Create"
+            key={name}
+            onClick={() => onCreate?.(name)}
+          >
             <Text size="3" weight="bold" style={{ color: getTextColor(name) }}>
               {name}
             </Text>
