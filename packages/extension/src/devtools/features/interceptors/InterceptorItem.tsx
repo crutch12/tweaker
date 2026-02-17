@@ -138,7 +138,9 @@ export function InterceptorItem({
         opacity: ${interceptor.enabled ? undefined : 0.6};
 
         :hover {
-          box-shadow: var(--shadow-3);
+          box-shadow:
+            inset 1px 1px 2px ${appColor},
+            inset -1px -1px 2px ${appColor};
         }
       `}
     >
