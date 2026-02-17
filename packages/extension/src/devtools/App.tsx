@@ -31,6 +31,8 @@ import {
   Grid,
 } from "@radix-ui/themes";
 import { ConsoleErrorIcon } from "@devtools-ds/icon";
+import { BlueButton } from "./components/BlueButton";
+import { Heading } from "@radix-ui/themes/src/index.js";
 
 export function App() {
   const reloadPage = () => {
@@ -202,14 +204,12 @@ export function App() {
       height="calc(100vh - 20px)"
     >
       <Flex gap="2" align="center" gridColumn="1 / -1">
-        <strong style={{ fontSize: "20px" }}>
-          Tweaker DevTools - {date.toLocaleString()}
-        </strong>
-        <button onClick={reloadPanel}>Reload DevTools Panel</button>
-        <button onClick={reloadPage}>Reload Current Page</button>
-        <button onClick={checkPageTitle}>Check page title</button>
-        <button onClick={evalTweaker}>Eval Tweaker</button>
-        <button
+        <Heading>Tweaker DevTools - {date.toLocaleString()}</Heading>
+        <BlueButton onClick={reloadPanel}>Reload DevTools Panel</BlueButton>
+        <BlueButton onClick={reloadPage}>Reload Current Page</BlueButton>
+        <BlueButton onClick={checkPageTitle}>Check page title</BlueButton>
+        <BlueButton onClick={evalTweaker}>Eval Tweaker</BlueButton>
+        <BlueButton
           onClick={() =>
             sendMessageToPlugin("init", {
               // name: "test",
@@ -221,7 +221,7 @@ export function App() {
           }
         >
           Send Message
-        </button>
+        </BlueButton>
       </Flex>
       <Box gridColumn="1 / -1">
         <Separator size="4" orientation="horizontal" />
@@ -234,9 +234,9 @@ export function App() {
           <TextField.Root
             size="1"
             radius="full"
-            placeholder="Filter messages (glob, e.g. *.*)"
+            placeholder="Filter messages by key (glob, e.g. *.*)"
             className={css`
-              min-width: 240px;
+              min-width: 260px;
               background-color: ${filterPatterns
                 ? "#FFFAC8" // FABEBE
                 : undefined};
