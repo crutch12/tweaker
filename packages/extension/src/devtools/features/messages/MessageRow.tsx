@@ -78,7 +78,10 @@ export function MessageRow({ message, onTweak }: MessageRowProps) {
           />
         </Table.Cell>
         {message.tweaked ? (
-          <Table.Cell title={stringifiedResult}>
+          <Table.Cell
+            title={stringifiedResult}
+            style={{ display: "flex", gap: "4px" }}
+          >
             {message.error && (
               <span style={{ opacity: 0.5, cursor: "default" }}>error</span>
             )}
