@@ -4,14 +4,14 @@ import safeStringify from "fast-safe-stringify";
 import { css, keyframes } from "@emotion/css";
 import { PluginMessages } from "@tweaker/extension-plugin";
 import { getTextColor } from "../../utils/colors";
-import { BlueButton } from "../../components/BlueButton";
 import { deserializeError, isErrorLike } from "serialize-error";
 import { useEffectEvent, useMemo, useRef } from "react";
 import { CSSTransition } from "react-transition-group";
 import { SourceCodePopover } from "../../components/SourceCodePopover";
 import { ButtonIcon } from "../../components/ButtonIcon";
 import { SelectIcon, ExportIcon } from "@devtools-ds/icon";
-import { Flex, Text } from "@radix-ui/themes";
+import { Flex, Text, Box } from "@radix-ui/themes";
+import { MessageTweakedInfoPopover } from "./MessageTweakedInfoPopover";
 
 export interface MessageRowProps {
   message: PluginMessages.ValueMessage["payload"];
@@ -97,19 +97,24 @@ export function MessageRow({
           />
         </Table.Cell>
         {message.tweaked ? (
-          <Table.Cell title={stringifiedResult}>
-            <Flex align="center" gap="1">
+          <Table.Cell>
+            <Flex align="center" gap="1" justify="between">
               {message.error && (
                 <Text size="2" style={{ opacity: 0.5, cursor: "default" }}>
                   error
                 </Text>
               )}
-              <ObjectInspector
-                sortKeys={false}
-                expandLevel={0}
-                includePrototypes={false}
-                data={resultData}
-              />
+              <Box title={stringifiedResult} overflow="hidden">
+                <ObjectInspector
+                  sortKeys={false}
+                  expandLevel={0}
+                  includePrototypes={false}
+                  data={resultData}
+                />
+              </Box>
+              {message.interceptorId && (
+                <MessageTweakedInfoPopover message={message} />
+              )}
             </Flex>
           </Table.Cell>
         ) : (

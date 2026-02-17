@@ -291,6 +291,8 @@ export class Tweaker {
         result,
         interceptorId: listener.id,
         stack,
+        // TODO: provide found pattern for info
+        // TODO: provide sample id for info
       });
 
       return [true, result];
