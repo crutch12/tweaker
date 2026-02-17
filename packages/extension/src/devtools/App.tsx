@@ -33,6 +33,8 @@ import {
 } from "@radix-ui/themes";
 import { ConsoleErrorIcon } from "@devtools-ds/icon";
 import { BlueButton } from "./components/BlueButton";
+import { keyMatchesPatterns } from "@tweaker/core/utils";
+import { ExtensionInterceptor } from "./features/interceptors/InterceptorItem";
 
 export function App() {
   const reloadPage = () => {
@@ -79,6 +81,19 @@ export function App() {
   );
 
   const deferredFilterPatterns = useDeferredValue(filterPatterns);
+
+  const [highlightedInterceptorMessages, setHighlightedInterceptorMessages] =
+    useState<ExtensionInterceptor | undefined>(undefined);
+
+  const hightlightedMessagesRows = useMemo(() => {
+    if (!highlightedInterceptorMessages) return undefined;
+    return messages
+      .filter((m) => m.name === highlightedInterceptorMessages.name)
+      .filter((m) =>
+        keyMatchesPatterns(m.key, highlightedInterceptorMessages.patterns),
+      )
+      .map((x) => `${x.name}:${x.key}`);
+  }, [messages, highlightedInterceptorMessages]);
 
   const onFilterMessages = useCallback((pattenrs: string[] | undefined) => {
     setFilterPatterns(pattenrs ? serializePatterns(pattenrs) : undefined);
@@ -269,6 +284,7 @@ export function App() {
         <MessagesTableContainer
           onTweak={newTweak}
           messages={messages}
+          hightlightedRows={hightlightedMessagesRows}
           filterPatterns={deferredFilterPatterns}
           className={css`
             opacity: ${deferredFilterPatterns === filterPatterns
@@ -313,6 +329,7 @@ export function App() {
               },
             ]);
           }}
+          onHightLightInterceptor={(v) => setHighlightedInterceptorMessages(v)}
         />
       </Flex>
     </Grid>

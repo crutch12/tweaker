@@ -1,8 +1,7 @@
 import { Table } from "@devtools-ds/table";
-import { HTMLAttributes, MutableRefObject } from "react";
+import { HTMLAttributes, memo, MutableRefObject } from "react";
 import { PluginMessages } from "@tweaker/extension-plugin";
 import { MessageRow } from "./MessageRow";
-import { css } from "@emotion/css";
 import { Box } from "@radix-ui/themes";
 
 export interface MessagesTableProps extends HTMLAttributes<HTMLElement> {
@@ -11,7 +10,7 @@ export interface MessagesTableProps extends HTMLAttributes<HTMLElement> {
   onTweak?: (payload: PluginMessages.ValueMessage["payload"]) => void;
 }
 
-export function MessagesTable({
+function _MessagesTable({
   messages,
   ref,
   onTweak,
@@ -43,3 +42,5 @@ export function MessagesTable({
     </Box>
   );
 }
+
+export const MessagesTable = memo(_MessagesTable);

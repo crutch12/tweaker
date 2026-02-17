@@ -52,6 +52,9 @@ export interface InterceptorItemProps {
   onRemove?: (interceptor: ExtensionInterceptor) => void;
   onFilterMessages?: (patterns: string[]) => void;
   onDuplicate?: (interceptor: ExtensionInterceptor) => void;
+  onHightLightInterceptor?: (
+    interceptor: ExtensionInterceptor | undefined,
+  ) => void;
 }
 
 export function InterceptorItem({
@@ -60,6 +63,7 @@ export function InterceptorItem({
   onRemove,
   onFilterMessages,
   onDuplicate,
+  onHightLightInterceptor,
 }: InterceptorItemProps) {
   const [expression, setExpression] = useState(() => interceptor.expression);
 
@@ -117,6 +121,13 @@ export function InterceptorItem({
 
   return (
     <Flex
+      onMouseEnter={() =>
+        onHightLightInterceptor?.({
+          ...interceptor,
+          patterns: parsePatterns(patterns),
+        })
+      }
+      onMouseLeave={() => onHightLightInterceptor?.(undefined)}
       direction="column"
       p="3"
       gap="2"
@@ -125,6 +136,10 @@ export function InterceptorItem({
         border: 1.5px solid ${appColor};
         border-radius: 10px;
         opacity: ${interceptor.enabled ? undefined : 0.6};
+
+        :hover {
+          box-shadow: var(--shadow-3);
+        }
       `}
     >
       <Flex gap="2" align="center">
@@ -205,12 +220,19 @@ export function InterceptorItem({
               placeholder="Patterns"
               value={patterns}
               disabled={readOnly || !interceptor.enabled}
-              onChange={(ev) => setPatterns(ev.target.value)}
+              onChange={(ev) => {
+                setPatterns(ev.target.value);
+                onHightLightInterceptor?.({
+                  ...interceptor,
+                  patterns: parsePatterns(ev.target.value),
+                });
+              }}
               onBlur={() => {
                 onChange?.({
                   ...interceptor,
                   patterns: parsePatterns(patterns),
                 });
+                onHightLightInterceptor?.(undefined);
               }}
             ></TextField.Root>
           </Flex>

@@ -57,6 +57,7 @@ export function MessageRow({ message, onTweak }: MessageRowProps) {
       classNames="bounce"
     >
       <Table.Row
+        data-row-id={`${message.name}:${message.key}`}
         ref={nodeRef}
         className={css`
           &.bounce-appear-active {

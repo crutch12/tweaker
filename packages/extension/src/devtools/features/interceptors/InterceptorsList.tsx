@@ -9,6 +9,9 @@ export interface InterceptorsListProps {
   onInterceptorRemove?: (interceptor: ExtensionInterceptor) => void;
   onFilterMessages?: (patterns: string[]) => void;
   onDuplicate?: (interceptor: ExtensionInterceptor) => void;
+  onHightLightInterceptor?: (
+    interceptor: ExtensionInterceptor | undefined,
+  ) => void;
   ref?: MutableRefObject<any>;
 }
 
@@ -18,6 +21,7 @@ export function InterceptorsList({
   onInterceptorRemove,
   onFilterMessages,
   onDuplicate,
+  onHightLightInterceptor,
   ref,
 }: InterceptorsListProps) {
   return (
@@ -30,6 +34,7 @@ export function InterceptorsList({
           onRemove={onInterceptorRemove}
           onFilterMessages={onFilterMessages}
           onDuplicate={onDuplicate}
+          onHightLightInterceptor={onHightLightInterceptor}
         />
       ))}
     </Flex>
