@@ -116,15 +116,14 @@ export function InterceptorItem({
   const appColor = getTextColor(interceptor.name);
 
   return (
-    <div
+    <Flex
+      direction="column"
+      p="3"
+      gap="2"
+      position="relative"
       className={css`
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
         border: 1.5px solid ${appColor};
         border-radius: 10px;
-        padding: 10px;
-        position: relative;
         opacity: ${interceptor.enabled ? undefined : 0.6};
       `}
     >
@@ -325,6 +324,6 @@ export function InterceptorItem({
           *
         </Badge>
       )}
-    </div>
+    </Flex>
   );
 }

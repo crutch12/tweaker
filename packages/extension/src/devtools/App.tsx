@@ -29,10 +29,10 @@ import {
   Flex,
   Box,
   Grid,
+  Heading,
 } from "@radix-ui/themes";
 import { ConsoleErrorIcon } from "@devtools-ds/icon";
 import { BlueButton } from "./components/BlueButton";
-import { Heading } from "@radix-ui/themes/src/index.js";
 
 export function App() {
   const reloadPage = () => {
@@ -204,7 +204,9 @@ export function App() {
       height="calc(100vh - 20px)"
     >
       <Flex gap="2" align="center" gridColumn="1 / -1">
-        <Heading>Tweaker DevTools ({date.toLocaleTimeString()})</Heading>
+        <Heading size="3">
+          Tweaker DevTools ({date.toLocaleTimeString()})
+        </Heading>
         <BlueButton onClick={reloadPanel}>Reload DevTools Panel</BlueButton>
         <BlueButton onClick={reloadPage}>Reload Current Page</BlueButton>
         <BlueButton onClick={checkPageTitle}>Check page title</BlueButton>

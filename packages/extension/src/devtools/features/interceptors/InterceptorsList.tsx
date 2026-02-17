@@ -23,15 +23,14 @@ export function InterceptorsList({
   return (
     <Flex ref={ref} direction="column" gap="2">
       {interceptors.map((interceptor) => (
-        <div key={interceptor.name + interceptor.id}>
-          <InterceptorItem
-            interceptor={interceptor}
-            onChange={onInterceptorChange}
-            onRemove={onInterceptorRemove}
-            onFilterMessages={onFilterMessages}
-            onDuplicate={onDuplicate}
-          />
-        </div>
+        <InterceptorItem
+          key={interceptor.name + interceptor.id}
+          interceptor={interceptor}
+          onChange={onInterceptorChange}
+          onRemove={onInterceptorRemove}
+          onFilterMessages={onFilterMessages}
+          onDuplicate={onDuplicate}
+        />
       ))}
     </Flex>
   );
