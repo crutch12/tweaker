@@ -63,10 +63,14 @@ export function MessageRow({
 
   const nodeRef = useRef(null);
 
+  const inAnimate = useMemo(() => {
+    return Date.now() - message.timestamp < 500;
+  }, [message.timestamp]);
+
   return (
     <CSSTransition
       nodeRef={nodeRef}
-      in
+      in={inAnimate}
       appear
       timeout={1000}
       classNames="bounce"
