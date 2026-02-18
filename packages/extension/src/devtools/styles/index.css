@@ -1,0 +1,15 @@
+@layer radix, app;
+
+@import "@radix-ui/themes/src/styles/index.css" layer(radix);
+
+@layer radix {
+  .radix-themes {
+    scrollbar-width: thin;
+    * {
+      scrollbar-width: thin;
+    }
+  }
+}
+
+@layer app {
+}
