@@ -77,6 +77,9 @@ export function MessageRow({
     >
       <Table.Row
         data-row-id={`${message.name}:${message.key}`}
+        data-row-name={message.name}
+        data-row-key={message.key}
+        data-row-interceptor-id={message.interceptorId}
         ref={nodeRef}
         className={css`
           &.bounce-appear-active {

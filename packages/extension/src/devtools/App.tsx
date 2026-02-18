@@ -18,7 +18,10 @@ import { useInterceptorsStore } from "./features/interceptors/useInterceptorsSto
 import { css } from "@emotion/css";
 import { sendMessageToPlugin } from "./utils/sendMessageToPlugin";
 import { useDevtoolsConnection } from "./hooks/useDevtoolsConnection";
-import { MessagesTableContainer } from "./features/messages/MessagesTableContainer";
+import {
+  HighlightRow,
+  MessagesTableContainer,
+} from "./features/messages/MessagesTableContainer";
 import { InterceptorsListContainer } from "./features/interceptors/InterceptorsListContainer";
 import { parsePatterns, serializePatterns } from "./utils/pattern";
 import { ButtonIcon } from "./components/ButtonIcon";
@@ -109,16 +112,6 @@ export function App() {
 
   const [highlightedInterceptorMessages, setHighlightedInterceptorMessages] =
     useState<ExtensionInterceptor | undefined>(undefined);
-
-  const hightlightedMessagesRows = useMemo(() => {
-    if (!highlightedInterceptorMessages) return undefined;
-    return messages
-      .filter((m) => m.name === highlightedInterceptorMessages.name)
-      .filter((m) =>
-        keyMatchesPatterns(m.key, highlightedInterceptorMessages.patterns),
-      )
-      .map((x) => `${x.name}:${x.key}`);
-  }, [messages, highlightedInterceptorMessages]);
 
   const onFilterMessages = useCallback((pattenrs: string[] | undefined) => {
     setFilterPatterns(pattenrs ? serializePatterns(pattenrs) : undefined);
@@ -346,7 +339,7 @@ export function App() {
         <MessagesTableContainer
           onTweak={newTweak}
           messages={messages}
-          hightlightedRows={hightlightedMessagesRows}
+          highllightByInterceptor={highlightedInterceptorMessages}
           filterPatterns={deferredFilterPatterns}
           onGoToInterceptorClick={onGoToInterceptorClick}
           className={css`
