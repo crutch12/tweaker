@@ -39,6 +39,7 @@ import { ExtensionInterceptor } from "./features/interceptors/InterceptorItem";
 import { CreateTweakerDropdown } from "./components/CreateTweakerDropdown";
 import { Media } from "./utils/styles";
 import { useResizer } from "./hooks/useResizer";
+import { getDefaultExpression } from "./utils/expressions";
 
 function getResizerMode() {
   return matchMedia(Media.XlAndUp(false)).matches ? "horizontal" : "vertical";
@@ -168,7 +169,7 @@ export function App() {
             setInterceptors(
               message.payload.map((interceptor) => ({
                 ...interceptor,
-                expression: interceptor.expression ?? "  return value",
+                expression: interceptor.expression ?? getDefaultExpression(),
               })),
             );
             break;
@@ -192,7 +193,7 @@ export function App() {
           // sampleId: undefined,
           interactive: false,
           enabled: true,
-          expression: "  return value",
+          expression: getDefaultExpression(),
           // expression: undefined,
           owner: EXTENSION_OWNER,
           timestamp: Date.now(),
@@ -427,7 +428,7 @@ export function App() {
                     // sampleId: undefined,
                     interactive: false,
                     enabled: true,
-                    expression: "  return value",
+                    expression: getDefaultExpression(),
                     // expression: undefined,
                     owner: EXTENSION_OWNER,
                     timestamp: Date.now(),
@@ -457,7 +458,7 @@ export function App() {
                 expression:
                   typeof i.expression === "string"
                     ? i.expression
-                    : "  return value",
+                    : getDefaultExpression(),
                 owner: EXTENSION_OWNER,
                 timestamp: Date.now(),
               },
