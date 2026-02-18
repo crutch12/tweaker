@@ -232,7 +232,11 @@ export function InterceptorItem({
           {onFilterMessages && (
             <ButtonIcon
               disabled={parsePatterns(patterns).length === 0}
-              title="Filter messages"
+              title={
+                parsePatterns(patterns).length === 0
+                  ? undefined
+                  : `Filter messages by patterns "${patterns}"`
+              }
               onClick={() => onFilterMessages(interceptor.patterns)}
             >
               <SelectIcon size="medium" />
