@@ -191,7 +191,8 @@ export function InterceptorItem({
           :hover {
             box-shadow:
               inset 1px 1px 2px ${appColor},
-              inset -1px -1px 2px ${appColor};
+              inset -1px -1px 2px ${appColor},
+              var(--shadow-2);
           }
           &.bounce-appear-active {
             animation: ${bounceIn} 1s ease;
