@@ -261,6 +261,7 @@ export function App() {
   return (
     <Grid
       ref={containerRef}
+      py="1"
       gap="2"
       rows={{
         // 5px for divider
@@ -272,13 +273,13 @@ export function App() {
         // 5px for divider
         xl: `var(--local-resizing-width) 5px 1fr`,
       }}
-      height="calc(100vh - 20px)"
+      height="100vh"
       className={css`
         --local-resizing-width: 50%;
         --local-resizing-height: 50%;
       `}
     >
-      <Flex direction="column" gap="2" gridColumn="1 / -1">
+      <Flex direction="column" gap="2" gridColumn="1 / -1" px="1">
         <Flex gap="2" align="center" wrap="wrap">
           <Heading size="3">
             Tweaker DevTools ({date.toLocaleTimeString()})

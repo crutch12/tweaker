@@ -4,8 +4,6 @@ import { App } from "./App";
 import { Theme } from "@radix-ui/themes";
 import { css } from "@emotion/css";
 
-import "./styles/index.css";
-
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
