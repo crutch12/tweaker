@@ -3,6 +3,7 @@ import {
   useDeferredValue,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -35,7 +36,13 @@ import { ConsoleErrorIcon } from "@devtools-ds/icon";
 import { BlueButton } from "./components/BlueButton";
 import { keyMatchesPatterns } from "@tweaker/core/utils";
 import { ExtensionInterceptor } from "./features/interceptors/InterceptorItem";
-import { CreateTweakerDropdown } from "./components/CreateTweakerButton";
+import { CreateTweakerDropdown } from "./components/CreateTweakerDropdown";
+import { Media } from "./utils/styles";
+import { useResizer } from "./hooks/useResizer";
+
+function getResizerMode() {
+  return matchMedia(Media.XlAndUp(false)).matches ? "horizontal" : "vertical";
+}
 
 export function App() {
   const reloadPage = () => {
@@ -229,46 +236,75 @@ export function App() {
     [],
   );
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const dividerRef = useRef<HTMLDivElement>(null);
+
+  useResizer({
+    containerRef,
+    dividerRef,
+    heightVariable: "--local-resizing-height",
+    widthVariable: "--local-resizing-width",
+    getMode: getResizerMode,
+  });
+
+  const resetResizer = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const isHorizontal = getResizerMode() === "horizontal";
+    if (isHorizontal) {
+      container.style.setProperty("--local-resizing-width", "50%");
+    } else {
+      container.style.setProperty("--local-resizing-height", "50%");
+    }
+  }, []);
+
   return (
     <Grid
+      ref={containerRef}
       gap="2"
       rows={{
-        initial: "auto auto 1fr auto 1fr",
-        xl: "auto auto 1fr",
+        // 5px for divider
+        initial: `auto var(--local-resizing-height) 5px 1fr`,
+        xl: "auto 1fr",
       }}
       columns={{
         initial: "1fr",
-        xl: "1fr auto 1fr",
+        // 5px for divider
+        xl: `var(--local-resizing-width) 5px 1fr`,
       }}
       height="calc(100vh - 20px)"
+      className={css`
+        --local-resizing-width: 50%;
+        --local-resizing-height: 50%;
+      `}
     >
-      <Flex gap="2" align="center" gridColumn="1 / -1">
-        <Heading size="3">
-          Tweaker DevTools ({date.toLocaleTimeString()})
-        </Heading>
-        <BlueButton onClick={reloadPanel}>Reload DevTools Panel</BlueButton>
-        <BlueButton onClick={reloadPage}>Reload Current Page</BlueButton>
-        <BlueButton onClick={checkPageTitle}>Check page title</BlueButton>
-        <BlueButton onClick={evalTweaker}>Eval Tweaker</BlueButton>
-        <BlueButton
-          onClick={() =>
-            sendMessageToPlugin("init", {
-              // name: "test",
-              timestamp: Date.now(),
-              enabled: true,
-              interceptors: [], // TODO: remove
-              // data: ["Message from extension!"],
-            })
-          }
-        >
-          Send Message
-        </BlueButton>
-      </Flex>
-      <Box gridColumn="1 / -1">
+      <Flex direction="column" gap="2" gridColumn="1 / -1">
+        <Flex gap="2" align="center" wrap="wrap">
+          <Heading size="3">
+            Tweaker DevTools ({date.toLocaleTimeString()})
+          </Heading>
+          <BlueButton onClick={reloadPanel}>Reload DevTools Panel</BlueButton>
+          <BlueButton onClick={reloadPage}>Reload Current Page</BlueButton>
+          <BlueButton onClick={checkPageTitle}>Check page title</BlueButton>
+          <BlueButton onClick={evalTweaker}>Eval Tweaker</BlueButton>
+          <BlueButton
+            onClick={() =>
+              sendMessageToPlugin("init", {
+                // name: "test",
+                timestamp: Date.now(),
+                enabled: true,
+                interceptors: [], // TODO: remove
+                // data: ["Message from extension!"],
+              })
+            }
+          >
+            Send Message
+          </BlueButton>
+        </Flex>
         <Separator size="4" orientation="horizontal" />
-      </Box>
+      </Flex>
       <Flex direction="column" overflow="auto" gap="2">
-        <Flex gap="2" align="center">
+        <Flex gap="2" align="center" wrap="wrap">
           <ButtonIcon title="Clear Messages" onClick={clearMessages}>
             <ClearIcon size="medium" />
           </ButtonIcon>
@@ -318,12 +354,32 @@ export function App() {
           `}
         />
       </Flex>
-      <Separator
-        size="4"
-        orientation={{ initial: "horizontal", xl: "vertical" }}
-      />
+      <Box
+        ref={dividerRef}
+        onDoubleClick={resetResizer}
+        px={{ initial: "0", xl: "2px" }}
+        py={{ initial: "2px", xl: "0" }}
+        className={css`
+          border-radius: 4px;
+          :hover {
+            cursor: ns-resize;
+            box-shadow:
+              inset 1px 1px 2px rgb(26, 115, 232),
+              inset -1px -1px 2px rgb(26, 115, 232);
+
+            ${Media.XlAndUp(true)} {
+              cursor: e-resize;
+            }
+          }
+        `}
+      >
+        <Separator
+          size="4"
+          orientation={{ initial: "horizontal", xl: "vertical" }}
+        />
+      </Box>
       <Flex direction="column" overflow="auto" gap="2">
-        <Flex gap="2" align="center">
+        <Flex gap="2" align="center" wrap="wrap">
           <ButtonIcon title="Clear Interceptors" onClick={clearInterceptors}>
             <ClearIcon size="medium" />
           </ButtonIcon>

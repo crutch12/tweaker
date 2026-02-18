@@ -340,7 +340,7 @@ export function InterceptorItem({
           </Flex>
         </Flex>
         {!readOnly && (
-          <Box flexGrow="1">
+          <Box flexGrow="1" overflow="hidden">
             <Flex align="center" gap="1">
               <Flex align="center" gap="1">
                 <Text size="2" as="label">

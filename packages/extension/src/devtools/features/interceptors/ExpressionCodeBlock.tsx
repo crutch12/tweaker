@@ -59,6 +59,7 @@ export function ExpressionCodeBlock({
 
         .pce-wrapper {
           margin: 0;
+          overflow: ${disabled ? "hidden" : undefined};
         }
       `}
       language={language}
