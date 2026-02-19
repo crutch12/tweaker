@@ -3,6 +3,7 @@ import { lazy, Suspense, useMemo, use } from "react";
 import { InspectorIcon } from "@devtools-ds/icon";
 import { ButtonIcon } from "./ButtonIcon";
 import { PopoverContent } from "./base/PopoverContent";
+import { css } from "@emotion/css";
 
 const ExpressionCodeBlock = lazy(() =>
   import("../features/interceptors/ExpressionCodeBlock").then((r) => ({
@@ -80,7 +81,13 @@ export function SourceCodePopover({
               <Text as="label">
                 <Code>{stackLabel}</Code>
               </Text>
-              <Code style={{ whiteSpace: "pre" }}>{stack}</Code>
+              <Code
+                className={css`
+                  white-space: pre;
+                `}
+              >
+                {stack}
+              </Code>
             </Flex>
           )}
         </Flex>

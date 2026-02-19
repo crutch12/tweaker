@@ -1,12 +1,18 @@
 import styled from "@emotion/styled";
-// import styled from "@emotion/styled";
 import { ReactNode } from "react";
-import { css } from "@emotion/react";
+import { css } from "@emotion/css";
+import cn from "classnames";
 
 const APPEARANCES = {
-  primary: "rgb(26, 115, 232)",
-  secondary: "rgb(88, 119, 160)",
-  warn: "rgb(236, 143, 45)",
+  primary: css`
+    background-color: rgb(26, 115, 232);
+  `,
+  secondary: css`
+    background-color: rgb(88, 119, 160);
+  `,
+  warn: css`
+    background-color: rgb(236, 143, 45);
+  `,
 };
 
 const POSITIONS = {
@@ -36,17 +42,29 @@ export interface BadgeProps {
   children: ReactNode;
   appearance: keyof typeof APPEARANCES;
   position: keyof typeof POSITIONS;
+  className?: string;
 }
 
-export function Badge({ children, ...props }: BadgeProps) {
-  return <BadgeContainer {...props}>{children}</BadgeContainer>;
+export function Badge({
+  children,
+  className,
+  position,
+  appearance,
+  ...props
+}: BadgeProps) {
+  return (
+    <BadgeContainer
+      {...props}
+      className={cn(className, POSITIONS[position], APPEARANCES[appearance])}
+    >
+      {children}
+    </BadgeContainer>
+  );
 }
 
-const BadgeContainer = styled.div<BadgeProps>`
+const BadgeContainer = styled.div`
   position: absolute;
   color: white;
   font-weight: 700;
-  background-color: ${({ appearance }) => APPEARANCES[appearance]};
   padding: 5px 10px;
-  ${({ position }) => POSITIONS[position]}
 `;

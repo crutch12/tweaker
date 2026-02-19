@@ -216,9 +216,9 @@ export function InterceptorItem({
             htmlFor={`${uniqueId}-enabled`}
             weight="bold"
             size="3"
-            style={{
-              color: appColor,
-            }}
+            className={css`
+              color: ${appColor};
+            `}
           >
             {interceptor.name}
           </Text>

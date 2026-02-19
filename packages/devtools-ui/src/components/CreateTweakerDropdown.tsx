@@ -2,6 +2,7 @@ import { DropdownMenu, Text, Flex } from "@radix-ui/themes";
 import { BlueButton } from "./BlueButton";
 import { getTextColor } from "../utils/colors";
 import { DropdownMenuContent } from "./base/DropdownMenuContent";
+import { css } from "@emotion/css";
 
 export interface CreateTweakerDropdownProps {
   names: string[];
@@ -29,7 +30,13 @@ export function CreateTweakerDropdown({
             key={name}
             onClick={() => onCreate?.(name)}
           >
-            <Text size="3" weight="bold" style={{ color: getTextColor(name) }}>
+            <Text
+              size="3"
+              weight="bold"
+              className={css`
+                color: ${getTextColor(name)};
+              `}
+            >
               {name}
             </Text>
           </DropdownMenu.Item>

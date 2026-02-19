@@ -87,7 +87,12 @@ export function MessageRow({
           }
         `}
       >
-        <Table.Cell style={{ color: appColor }} title={message.name}>
+        <Table.Cell
+          className={css`
+            color: ${appColor};
+          `}
+          title={message.name}
+        >
           <Text size="2" weight="bold">
             {message.name}
           </Text>
@@ -107,7 +112,13 @@ export function MessageRow({
           <Table.Cell>
             <Flex align="center" gap="1" justify="between">
               {message.error && (
-                <Text color="gray" size="2" style={{ cursor: "default" }}>
+                <Text
+                  color="gray"
+                  size="2"
+                  className={css`
+                    cursor: default;
+                  `}
+                >
                   error
                 </Text>
               )}
@@ -126,7 +137,13 @@ export function MessageRow({
           </Table.Cell>
         ) : (
           <Table.Cell>
-            <Text size="2" color="gray" style={{ cursor: "default" }}>
+            <Text
+              size="2"
+              color="gray"
+              className={css`
+                cursor: default;
+              `}
+            >
               empty
             </Text>
           </Table.Cell>

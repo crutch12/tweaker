@@ -113,9 +113,6 @@ importers:
       '@emotion/css':
         specifier: ^11.13.5
         version: 11.13.5
-      '@emotion/react':
-        specifier: ^11.14.0
-        version: 11.14.0(@types/react@19.2.11)(react@19.2.4)
       '@emotion/styled':
         specifier: ^11.14.1
         version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.11)(react@19.2.4))(@types/react@19.2.11)(react@19.2.4)
@@ -137,6 +134,9 @@ importers:
       acorn:
         specifier: ^8.15.0
         version: 8.15.0
+      classnames:
+        specifier: ^2.5.1
+        version: 2.5.1
       dedent:
         specifier: ^1.7.1
         version: 1.7.1(babel-plugin-macros@3.1.0)
