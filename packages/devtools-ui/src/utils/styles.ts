@@ -14,7 +14,20 @@ export function getMediaQuery(query: string, useMediaPrefix: boolean) {
   return useMediaPrefix ? `@media ${query}` : query;
 }
 
+export function getContainerQuery(query: string) {
+  return `@container tweaker-devtools ${query}`;
+}
+
 export const Media = {
   XlAndUp: (useMediaPrefix: boolean) =>
     getMediaQuery(`(min-width: ${MEDIA_WIDTHS.xl}px)`, useMediaPrefix),
+};
+
+export const Container = {
+  XlAndUp: () => getContainerQuery(`(min-width: ${MEDIA_WIDTHS.xl}px)`),
+};
+
+export const Runtime = {
+  XlAndUp: (el: HTMLElement) =>
+    el.getBoundingClientRect().width > MEDIA_WIDTHS.xl,
 };

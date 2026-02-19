@@ -1,7 +1,7 @@
 import { HTMLAttributes, RefObject, useMemo } from "react";
 import { Box, Separator } from "@radix-ui/themes";
 import { css } from "@emotion/css";
-import { Media } from "../../utils/styles";
+import { Container } from "../../utils/styles";
 
 export interface ResizeDividerProps extends HTMLAttributes<HTMLDivElement> {
   ref: RefObject<HTMLDivElement | null>;
@@ -29,7 +29,7 @@ export function ResizeDivider({ ref, onReset, ...props }: ResizeDividerProps) {
             inset 1px 1px 2px rgb(26, 115, 232),
             inset -1px -1px 2px rgb(26, 115, 232);
 
-          ${Media.XlAndUp(true)} {
+          ${Container.XlAndUp()} {
             cursor: e-resize;
           }
         }

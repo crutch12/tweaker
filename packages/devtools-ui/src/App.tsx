@@ -39,14 +39,10 @@ import { ConsoleErrorIcon } from "@devtools-ds/icon";
 import { BlueButton } from "./components/BlueButton";
 import { ExtensionInterceptor } from "./features/interceptors/InterceptorItem";
 import { CreateTweakerDropdown } from "./components/CreateTweakerDropdown";
-import { Media } from "./utils/styles";
+import { Runtime } from "./utils/styles";
 import { useResizeDivider } from "./components/ResizeDivider/useResizeDivider";
 import { getDefaultExpression } from "./utils/expressions";
 import { ResizeDivider } from "./components/ResizeDivider/ResizeDivider";
-
-function getResizerMode() {
-  return matchMedia(Media.XlAndUp(false)).matches ? "horizontal" : "vertical";
-}
 
 export function App() {
   const reloadPage = () => {
@@ -232,6 +228,11 @@ export function App() {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const dividerRef = useRef<HTMLDivElement>(null);
+
+  const getResizerMode = useCallback(() => {
+    if (!containerRef.current) return "vertical";
+    return Runtime.XlAndUp(containerRef.current) ? "horizontal" : "vertical";
+  }, []);
 
   useResizeDivider({
     containerRef,
