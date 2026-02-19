@@ -15,8 +15,14 @@ export function TweakerDevTools() {
       <Theme
         className={css`
           min-height: unset;
+
           container-type: inline-size;
           container-name: tweaker-devtools;
+
+          &,
+          * {
+            scrollbar-width: thin;
+          }
         `}
       >
         <App />

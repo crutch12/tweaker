@@ -2,6 +2,7 @@ import { Popover, Flex, Code, Text, Skeleton } from "@radix-ui/themes";
 import { lazy, Suspense, useMemo, use } from "react";
 import { InspectorIcon } from "@devtools-ds/icon";
 import { ButtonIcon } from "./ButtonIcon";
+import { PopoverContent } from "./base/PopoverContent";
 
 const ExpressionCodeBlock = lazy(() =>
   import("../features/interceptors/ExpressionCodeBlock").then((r) => ({
@@ -49,10 +50,7 @@ export function SourceCodePopover({
           <InspectorIcon size="medium" />
         </ButtonIcon>
       </Popover.Trigger>
-      <Popover.Content
-        maxWidth="min(70vw, 1200px)"
-        maxHeight="min(70vh, 800px)"
-      >
+      <PopoverContent maxWidth="min(70vw, 1200px)" maxHeight="min(70vh, 800px)">
         <Flex
           gap="2"
           direction="column"
@@ -86,7 +84,7 @@ export function SourceCodePopover({
             </Flex>
           )}
         </Flex>
-      </Popover.Content>
+      </PopoverContent>
     </Popover.Root>
   );
 }

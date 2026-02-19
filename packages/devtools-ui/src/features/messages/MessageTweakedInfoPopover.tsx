@@ -3,6 +3,7 @@ import { ButtonIcon } from "../../components/ButtonIcon";
 import { MoreInfoIcon } from "@devtools-ds/icon";
 import styled from "@emotion/styled";
 import { PluginMessages } from "@tweaker/extension-plugin";
+import { HoverCardContent } from "../../components/base/HoverCardContent";
 
 const DataListLabel = styled(DataList.Label)`
   &::before {
@@ -51,9 +52,9 @@ export function MessageTweakedInfoPopover({
           <MoreInfoIcon size="medium" />
         </ButtonIcon>
       </HoverCard.Trigger>
-      <HoverCard.Content maxWidth="300px">
+      <HoverCardContent maxWidth="300px">
         <MessageTweakedInfo interceptorId={message.interceptorId} />
-      </HoverCard.Content>
+      </HoverCardContent>
     </HoverCard.Root>
   );
 }

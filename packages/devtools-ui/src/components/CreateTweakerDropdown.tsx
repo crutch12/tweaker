@@ -1,6 +1,7 @@
 import { DropdownMenu, Text, Flex } from "@radix-ui/themes";
 import { BlueButton } from "./BlueButton";
 import { getTextColor } from "../utils/colors";
+import { DropdownMenuContent } from "./base/DropdownMenuContent";
 
 export interface CreateTweakerDropdownProps {
   names: string[];
@@ -21,7 +22,7 @@ export function CreateTweakerDropdown({
           </Flex>
         </BlueButton>
       </DropdownMenu.Trigger>
-      <DropdownMenu.Content variant="soft">
+      <DropdownMenuContent variant="soft">
         {names.map((name) => (
           <DropdownMenu.Item
             shortcut="Create"
@@ -33,7 +34,7 @@ export function CreateTweakerDropdown({
             </Text>
           </DropdownMenu.Item>
         ))}
-      </DropdownMenu.Content>
+      </DropdownMenuContent>
     </DropdownMenu.Root>
   );
 }

@@ -4,9 +4,5 @@
 
 @layer tweaker-devtools-radix {
   .radix-themes {
-    scrollbar-width: thin;
-    * {
-      scrollbar-width: thin;
-    }
   }
 }
