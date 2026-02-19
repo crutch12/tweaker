@@ -7,10 +7,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { App } from "./App";
 import { ContainerQueryRootProvider } from "./features/container-query/ContainerQueryRootProvider";
 import { ContainerQueryRootClassName } from "./features/container-query/styles";
+import { DefaultScrollbarClassName } from "./utils/styles";
 
 import "./styles/index.css";
 import "./styles/radix.css";
-import { DefaultScrollbarClassName } from "./utils/styles";
 
 const queryClient = new QueryClient();
 
