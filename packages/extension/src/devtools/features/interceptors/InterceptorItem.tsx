@@ -263,7 +263,7 @@ export function InterceptorItem({
             </Text>
           </RadixBadge>
         </Flex>
-        <Flex gap="2">
+        <Flex gap="2" wrap="wrap">
           <Flex direction="column" gap="2">
             <Flex direction="column">
               <Flex align="center" gap="1">

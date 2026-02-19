@@ -3,6 +3,7 @@ import { HTMLAttributes, memo, MutableRefObject } from "react";
 import { PluginMessages } from "@tweaker/extension-plugin";
 import { MessageRow } from "./MessageRow";
 import { Box, Text } from "@radix-ui/themes";
+import { css } from "@emotion/css";
 
 export interface MessagesTableProps extends HTMLAttributes<HTMLElement> {
   messages: PluginMessages.ValueMessage["payload"][];
@@ -20,7 +21,12 @@ function _MessagesTable({
 }: MessagesTableProps) {
   return (
     <Box ref={ref} {...props}>
-      <Table>
+      <Table
+        className={css`
+          min-width: max-content;
+          overflow: auto;
+        `}
+      >
         <Table.Head>
           <Table.Row>
             <Table.HeadCell style={{ width: "5%" }}>
@@ -31,10 +37,10 @@ function _MessagesTable({
             </Table.HeadCell>
             <Table.HeadCell>Original Value</Table.HeadCell>
             <Table.HeadCell>Tweaked Value</Table.HeadCell>
-            <Table.HeadCell style={{ width: "10%" }}>
+            <Table.HeadCell style={{ width: "8%" }}>
               <Text size="2">Timestamp</Text>
             </Table.HeadCell>
-            <Table.HeadCell style={{ width: "10%" }}>
+            <Table.HeadCell style={{ width: "12%" }}>
               <Text size="2">Actions</Text>
             </Table.HeadCell>
           </Table.Row>
