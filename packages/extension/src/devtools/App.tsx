@@ -37,12 +37,12 @@ import {
 } from "@radix-ui/themes";
 import { ConsoleErrorIcon } from "@devtools-ds/icon";
 import { BlueButton } from "./components/BlueButton";
-import { keyMatchesPatterns } from "@tweaker/core/utils";
 import { ExtensionInterceptor } from "./features/interceptors/InterceptorItem";
 import { CreateTweakerDropdown } from "./components/CreateTweakerDropdown";
 import { Media } from "./utils/styles";
-import { useResizer } from "./hooks/useResizer";
+import { useResizeDivider } from "./components/ResizeDivider/useResizeDivider";
 import { getDefaultExpression } from "./utils/expressions";
+import { ResizeDivider } from "./components/ResizeDivider/ResizeDivider";
 
 function getResizerMode() {
   return matchMedia(Media.XlAndUp(false)).matches ? "horizontal" : "vertical";
@@ -233,7 +233,7 @@ export function App() {
   const containerRef = useRef<HTMLDivElement>(null);
   const dividerRef = useRef<HTMLDivElement>(null);
 
-  useResizer({
+  useResizeDivider({
     containerRef,
     dividerRef,
     heightVariable: "--local-resizing-height",
@@ -349,30 +349,7 @@ export function App() {
           `}
         />
       </Flex>
-      <Box
-        ref={dividerRef}
-        onDoubleClick={resetResizer}
-        px={{ initial: "0", xl: "2px" }}
-        py={{ initial: "2px", xl: "0" }}
-        className={css`
-          border-radius: 4px;
-          :hover {
-            cursor: ns-resize;
-            box-shadow:
-              inset 1px 1px 2px rgb(26, 115, 232),
-              inset -1px -1px 2px rgb(26, 115, 232);
-
-            ${Media.XlAndUp(true)} {
-              cursor: e-resize;
-            }
-          }
-        `}
-      >
-        <Separator
-          size="4"
-          orientation={{ initial: "horizontal", xl: "vertical" }}
-        />
-      </Box>
+      <ResizeDivider ref={dividerRef} onReset={resetResizer} />
       <Flex direction="column" overflow="auto" gap="2" pr="1">
         <Flex gap="2" align="center" wrap="wrap">
           <ButtonIcon title="Clear Interceptors" onClick={clearInterceptors}>
