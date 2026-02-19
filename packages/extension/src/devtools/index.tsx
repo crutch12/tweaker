@@ -6,6 +6,9 @@ import { css } from "@emotion/css";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+import "./styles/index.css";
+import "./styles/radix.css";
+
 const queryClient = new QueryClient();
 
 const container = document.getElementById("root");
@@ -19,6 +22,8 @@ if (container) {
         <Theme
           className={css`
             min-height: unset;
+            container-type: inline-size;
+            container-name: tweaker-devtools;
           `}
         >
           <App />

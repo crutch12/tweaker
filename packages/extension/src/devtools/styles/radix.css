@@ -1,0 +1,12 @@
+@layer tweaker-devtools-radix;
+
+@import "@radix-ui/themes/src/styles/index.css" layer(tweaker-devtools-radix);
+
+@layer tweaker-devtools-radix {
+  .radix-themes {
+    scrollbar-width: thin;
+    * {
+      scrollbar-width: thin;
+    }
+  }
+}
