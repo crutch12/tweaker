@@ -308,7 +308,7 @@ export function App() {
             radius="full"
             placeholder="Filter messages by key (glob, e.g. *.*)"
             className={css`
-              min-width: 260px;
+              width: 260px;
               background-color: ${filterPatterns
                 ? "#FFFAC8" // FABEBE
                 : undefined};
@@ -373,7 +373,7 @@ export function App() {
           orientation={{ initial: "horizontal", xl: "vertical" }}
         />
       </Box>
-      <Flex direction="column" overflow="auto" gap="2">
+      <Flex direction="column" overflow="auto" gap="2" pr="1">
         <Flex gap="2" align="center" wrap="wrap">
           <ButtonIcon title="Clear Interceptors" onClick={clearInterceptors}>
             <ClearIcon size="medium" />
@@ -383,7 +383,7 @@ export function App() {
             radius="full"
             placeholder="Filter interceptors by id/name/patterns"
             className={css`
-              min-width: 260px;
+              width: 260px;
               background-color: ${interceptorsFilter
                 ? "#FFFAC8" // FABEBE
                 : undefined};

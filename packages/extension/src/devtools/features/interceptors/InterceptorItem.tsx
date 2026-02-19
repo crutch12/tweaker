@@ -199,7 +199,7 @@ export function InterceptorItem({
           }
         `}
       >
-        <Flex gap="2" align="center">
+        <Flex gap="2" align="center" wrap="wrap">
           <Checkbox
             id={`${uniqueId}-enabled`}
             disabled={readOnly}

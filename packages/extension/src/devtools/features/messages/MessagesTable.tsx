@@ -5,6 +5,8 @@ import { MessageRow } from "./MessageRow";
 import { Box, Text } from "@radix-ui/themes";
 import { css } from "@emotion/css";
 
+const emptyFn = () => {};
+
 export interface MessagesTableProps extends HTMLAttributes<HTMLElement> {
   messages: PluginMessages.ValueMessage["payload"][];
   ref?: MutableRefObject<any>;
@@ -24,8 +26,10 @@ function _MessagesTable({
       <Table
         className={css`
           min-width: max-content;
+          min-height: 72px;
           overflow: auto;
         `}
+        onSelected={emptyFn}
       >
         <Table.Head>
           <Table.Row>

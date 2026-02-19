@@ -1,7 +1,7 @@
 import { useStickToBottom } from "use-stick-to-bottom";
 import { InterceptorsList, InterceptorsListProps } from "./InterceptorsList";
 import { memo, useMemo } from "react";
-import { Flex, Text } from "@radix-ui/themes";
+import { Flex, Text, Box } from "@radix-ui/themes";
 
 interface InterceptorsListContainerProps extends InterceptorsListProps {
   filter?: string;
@@ -39,13 +39,13 @@ function _InterceptorsListContainer({
   }
 
   return (
-    <div ref={scrollRef} style={{ overflow: "auto" }}>
+    <Box ref={scrollRef} overflow="auto">
       <InterceptorsList
         ref={contentRef}
         interceptors={filteredInterceptors}
         {...props}
       />
-    </div>
+    </Box>
   );
 }
 

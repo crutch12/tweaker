@@ -4,7 +4,7 @@ import { parsePatterns } from "../../utils/pattern";
 import { memo, useMemo } from "react";
 import { keyMatchesPatterns } from "@tweaker/core/utils";
 import { Code, Text } from "@radix-ui/themes";
-import { Flex } from "@radix-ui/themes";
+import { Flex, Box } from "@radix-ui/themes";
 import { css } from "@emotion/css";
 import { ExtensionInterceptor } from "../interceptors/InterceptorItem";
 
@@ -74,9 +74,9 @@ function _MessagesTableContainer({
   }
 
   return (
-    <div
+    <Box
       ref={scrollRef}
-      style={{ overflow: "auto" }}
+      overflow="auto"
       className={css`
         ${highlightedRowsByPatternSelector} {
           background-color: rgb(203, 236, 209) !important;
@@ -87,7 +87,7 @@ function _MessagesTableContainer({
       `}
     >
       <MessagesTable ref={contentRef} {...props} messages={filteredMessages} />
-    </div>
+    </Box>
   );
 }
 
