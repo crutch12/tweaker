@@ -158,7 +158,7 @@ export function App() {
             setInterceptors(
               message.payload.map((interceptor) => ({
                 ...interceptor,
-                expression: interceptor.expression ?? getDefaultExpression(),
+                expression: interceptor.expression,
               })),
             );
             break;
