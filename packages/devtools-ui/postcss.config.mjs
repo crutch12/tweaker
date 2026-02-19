@@ -7,9 +7,9 @@ import postcssDiscardEmpty from "postcss-discard-empty";
 import postcssWhitespace from "@radix-ui/themes/postcss-whitespace.cjs";
 import autoprefixer from "autoprefixer";
 
-/**  @type import('postcss').PluginCreator<{ containerName: string, filter?: (path: string) => boolean }> */
+/**  @type import('postcss').PluginCreator<{ containerName?: string, filter?: (path: string) => boolean }> */
 const postcssReplaceMediaWithContainer = ({
-  containerName,
+  containerName = "",
   filter = () => true,
 }) => {
   const pluginName = "replace-media-with-container";
