@@ -51,7 +51,10 @@ export function SourceCodePopover({
           <InspectorIcon size="medium" />
         </ButtonIcon>
       </Popover.Trigger>
-      <PopoverContent maxWidth="min(70vw, 1200px)" maxHeight="min(70vh, 800px)">
+      <PopoverContent
+        maxWidth="min(70cqw, 1200px)"
+        maxHeight="min(70cqh, 800px)"
+      >
         <Flex
           gap="2"
           direction="column"

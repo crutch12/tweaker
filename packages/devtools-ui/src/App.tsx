@@ -268,7 +268,7 @@ export function App() {
         // 5px for divider
         xl: `var(--local-resizing-width) 5px 1fr`,
       }}
-      height="100vh"
+      height="100cqh"
       className={css`
         --local-resizing-width: 50%;
         --local-resizing-height: 50%;

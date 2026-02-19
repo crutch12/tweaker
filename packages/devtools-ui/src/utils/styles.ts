@@ -1,3 +1,5 @@
+import { css } from "@emotion/css";
+
 /**
  * @see https://www.radix-ui.com/themes/docs/theme/breakpoints
  */
@@ -31,3 +33,10 @@ export const Runtime = {
   XlAndUp: (el: HTMLElement) =>
     el.getBoundingClientRect().width > MEDIA_WIDTHS.xl,
 };
+
+export const DefaultScrollbarClassName = css`
+  &,
+  * {
+    scrollbar-width: thin;
+  }
+`;
