@@ -2,13 +2,24 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { version } from "./package.json";
 import { pollReloadPlugin } from "../../vite-plugins/pollReloadPlugin";
+import { visualizer } from "rollup-plugin-visualizer";
 
 export default defineConfig(({}) => {
   const isWatchMode =
     process.argv.includes("--watch") || process.argv.includes("-w");
 
   return {
-    plugins: [react(), pollReloadPlugin()],
+    plugins: [
+      react(),
+      pollReloadPlugin(),
+      visualizer({
+        template: "treemap",
+        gzipSize: true,
+        brotliSize: true,
+        emitFile: true,
+        filename: "analyse.html",
+      }),
+    ],
 
     define: {
       "import.meta.env.VERSION": `"${version}"`,
