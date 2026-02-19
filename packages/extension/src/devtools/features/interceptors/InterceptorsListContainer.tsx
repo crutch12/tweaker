@@ -32,8 +32,10 @@ function _InterceptorsListContainer({
 
   if (interceptors.length === 0) {
     return (
-      <Flex justify="center" align="center" flexGrow="1">
-        <Text size="3">Interceptors are empty</Text>
+      <Flex justify="center" align="center" flexGrow="1" px="2">
+        <Text size="3" align="center">
+          Interceptors are empty
+        </Text>
       </Flex>
     );
   }

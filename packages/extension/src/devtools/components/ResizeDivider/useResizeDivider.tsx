@@ -15,8 +15,8 @@ export function useResizeDivider({
   dividerRef,
   widthVariable = "--local-resizing-width",
   heightVariable = "--local-resizing-height",
-  minSize = 10,
-  maxSize = 90,
+  minSize = 15,
+  maxSize = 85,
   getMode: _getMode,
 }: UseResizerOptions) {
   const getSizes = useEffectEvent(() => {

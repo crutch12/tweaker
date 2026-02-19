@@ -65,8 +65,8 @@ function _MessagesTableContainer({
 
   if (messages.length === 0) {
     return (
-      <Flex justify="center" align="center" flexGrow="1">
-        <Text size="3">
+      <Flex justify="center" align="center" flexGrow="1" px="2">
+        <Text size="3" align="center">
           Call <Code>tweaker.value()</Code> from in-page code to see logs...
         </Text>
       </Flex>
