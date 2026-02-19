@@ -66,7 +66,7 @@ export default {
     postcssWhitespace(),
     postcssReplaceMediaWithContainer({
       containerName: "tweaker-devtools",
-      filter: (path) => path.includes("devtools/styles/radix.css"),
+      filter: (path) => Boolean(path.match(/styles[\\/]radix\.css/)),
     }),
     autoprefixer(),
   ],

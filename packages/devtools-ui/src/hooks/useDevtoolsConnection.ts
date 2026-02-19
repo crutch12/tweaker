@@ -5,7 +5,7 @@ import {
   EXTENSION_PLUGIN_SOURCE,
 } from "@tweaker/extension-plugin";
 import { useCallback, useEffect, useEffectEvent, useRef } from "react";
-import { version, name } from "../../../package.json";
+import { version, name } from "../../package.json";
 import { useVisibilityChange } from "@uidotdev/usehooks";
 
 type Subscriber = (message: PluginMessages.Message) => void;

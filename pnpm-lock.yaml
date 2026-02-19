@@ -29,6 +29,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.24
         version: 10.4.24(postcss@8.5.6)
+      postcss:
+        specifier: ^8.5.6
+        version: 8.5.6
       postcss-combine-duplicated-selectors:
         specifier: ^10.0.3
         version: 10.0.3(postcss@8.5.6)
@@ -90,7 +93,7 @@ importers:
         specifier: ^10.1.2
         version: 10.1.2
 
-  packages/extension:
+  packages/devtools-ui:
     dependencies:
       '@atlaskit/pragmatic-drag-and-drop':
         specifier: ^1.7.7
@@ -143,18 +146,12 @@ importers:
       fast-safe-stringify:
         specifier: ^2.1.1
         version: 2.1.1
-      p-queue:
-        specifier: ^9.1.0
-        version: 9.1.0
       prism-react-editor:
         specifier: ^3.0.1
         version: 3.0.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react:
         specifier: ^19.2.4
         version: 19.2.4
-      react-dom:
-        specifier: ^19.2.4
-        version: 19.2.4(react@19.2.4)
       react-transition-group:
         specifier: ^4.4.5
         version: 4.4.5(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -167,6 +164,27 @@ importers:
       zustand:
         specifier: ^5.0.11
         version: 5.0.11(@types/react@19.2.11)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
+
+  packages/extension:
+    dependencies:
+      '@tweaker/core':
+        specifier: workspace:*
+        version: link:../core
+      '@tweaker/devtools-ui':
+        specifier: workspace:*
+        version: link:../devtools-ui
+      '@tweaker/extension-plugin':
+        specifier: workspace:*
+        version: link:../extension-plugin
+      p-queue:
+        specifier: ^9.1.0
+        version: 9.1.0
+      react:
+        specifier: ^19.2.4
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.2.4
+        version: 19.2.4(react@19.2.4)
 
   packages/extension-plugin:
     dependencies:

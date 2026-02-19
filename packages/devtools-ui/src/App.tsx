@@ -13,7 +13,7 @@ import {
   EXTENSION_SOURCE,
   EXTENSION_PLUGIN_SOURCE,
 } from "@tweaker/extension-plugin";
-import { version, name } from "../../package.json";
+import { version, name } from "../package.json";
 import { useInterceptorsStore } from "./features/interceptors/useInterceptorsStore";
 import { css } from "@emotion/css";
 import { sendMessageToPlugin } from "./utils/sendMessageToPlugin";

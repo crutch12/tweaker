@@ -1,5 +1,5 @@
 import { ExtensionMessages, EXTENSION_SOURCE } from "@tweaker/extension-plugin";
-import { version, name } from "../../../package.json";
+import { version, name } from "../../package.json";
 
 /**
  * Devtools App -> Tweaker (plugin)
