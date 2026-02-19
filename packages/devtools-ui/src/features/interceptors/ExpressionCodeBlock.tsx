@@ -1,6 +1,9 @@
+import styled from "@emotion/styled";
+import { ReactNode, useEffect, useEffectEvent, useRef } from "react";
+import { css } from "@emotion/css";
+
 import { Editor } from "prism-react-editor";
 import type { PrismEditor } from "prism-react-editor";
-import { BasicSetup } from "prism-react-editor/setups";
 
 // Adding the JS grammar
 import "prism-react-editor/prism/languages/javascript";
@@ -8,9 +11,39 @@ import "prism-react-editor/prism/languages/typescript";
 
 import "prism-react-editor/layout.css";
 import "prism-react-editor/themes/github-light.css";
-import styled from "@emotion/styled";
-import { ReactNode, useEffect, useEffectEvent, useRef } from "react";
-import { css } from "@emotion/css";
+
+import {
+  useDefaultCommands,
+  useEditHistory,
+} from "prism-react-editor/commands";
+import { IndentGuides } from "prism-react-editor/guides";
+import { useBracketMatcher } from "prism-react-editor/match-brackets";
+import { useHighlightBracketPairs } from "prism-react-editor/highlight-brackets";
+import {
+  useTagMatcher,
+  useHighlightMatchingTags,
+} from "prism-react-editor/match-tags";
+import { usePrismEditor } from "prism-react-editor/extensions";
+import {
+  useHighlightSelectionMatches,
+  useShowInvisibles,
+} from "prism-react-editor/search";
+import { useCursorPosition } from "prism-react-editor/cursor";
+
+const BasicSetup = () => {
+  const [editor] = usePrismEditor();
+  useBracketMatcher(editor);
+  useHighlightBracketPairs(editor);
+  useTagMatcher(editor);
+  useHighlightMatchingTags(editor);
+  useDefaultCommands(editor);
+  useEditHistory(editor);
+  // useSearchWidget(editor); // disabled
+  useHighlightSelectionMatches(editor);
+  useShowInvisibles(editor);
+  useCursorPosition(editor);
+  return <IndentGuides />;
+};
 
 export interface ExpressionCodeBlockProps {
   /**
