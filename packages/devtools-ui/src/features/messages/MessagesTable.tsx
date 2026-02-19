@@ -25,9 +25,7 @@ function _MessagesTable({
     <Box ref={ref} {...props}>
       <Table
         className={css`
-          min-width: max-content;
           min-height: 72px;
-          overflow: auto;
         `}
         onSelected={emptyFn}
       >

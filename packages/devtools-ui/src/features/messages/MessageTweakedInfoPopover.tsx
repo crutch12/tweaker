@@ -48,7 +48,7 @@ export function MessageTweakedInfoPopover({
   return (
     <HoverCard.Root>
       <HoverCard.Trigger>
-        <ButtonIcon>
+        <ButtonIcon cursor="default">
           <MoreInfoIcon size="medium" />
         </ButtonIcon>
       </HoverCard.Trigger>

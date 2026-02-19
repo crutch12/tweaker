@@ -107,7 +107,7 @@ export function MessageRow({
           <Table.Cell>
             <Flex align="center" gap="1" justify="between">
               {message.error && (
-                <Text size="2" style={{ opacity: 0.5, cursor: "default" }}>
+                <Text color="gray" size="2" style={{ cursor: "default" }}>
                   error
                 </Text>
               )}
@@ -126,7 +126,7 @@ export function MessageRow({
           </Table.Cell>
         ) : (
           <Table.Cell>
-            <Text size="2" style={{ opacity: 0.5, cursor: "default" }}>
+            <Text size="2" color="gray" style={{ cursor: "default" }}>
               empty
             </Text>
           </Table.Cell>
