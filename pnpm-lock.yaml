@@ -65,6 +65,9 @@ importers:
       vite:
         specifier: ^7.3.1
         version: 7.3.1(@types/node@25.2.0)(tsx@4.21.0)
+      vite-plugin-reload-on-rebuild:
+        specifier: ^0.0.3
+        version: 0.0.3
 
   examples/node:
     dependencies:
@@ -2265,6 +2268,9 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
+  vite-plugin-reload-on-rebuild@0.0.3:
+    resolution: {integrity: sha512-7k/M3qYZ6LrcKYgauQbD+vAksqcTftENCsH6aXbh2QHSd/aEW6s8kFSMHGLwg7aS+Qn3AYd+PYhNpm5GrDXLBg==}
+
   vite@7.3.1:
     resolution: {integrity: sha512-w+N7Hifpc3gRjZ63vYBXA56dvvRlNWRczTdmCBBa+CotUzAPf5b7YMdMR/8CQoeYE5LX3W4wj6RYTgonm1b9DA==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -4419,6 +4425,8 @@ snapshots:
       react: 19.2.4
 
   util-deprecate@1.0.2: {}
+
+  vite-plugin-reload-on-rebuild@0.0.3: {}
 
   vite@7.3.1(@types/node@25.2.0)(tsx@4.21.0):
     dependencies:

@@ -1,5 +1,6 @@
 {
   "name": "@examples/web",
+  "type": "module",
   "dependencies": {
     "@tweaker/core": "workspace:*",
     "@tweaker/extension-plugin": "workspace:*",
