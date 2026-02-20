@@ -26,6 +26,7 @@
     "postcss-custom-media": "^12.0.0",
     "postcss-discard-empty": "^7.0.1",
     "postcss-import": "^16.1.1",
+    "postcss-media-to-container": "^0.0.1",
     "postcss-nesting": "^14.0.0",
     "rollup-plugin-visualizer": "^6.0.5",
     "tsup": "^8.5.1",

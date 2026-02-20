@@ -44,6 +44,9 @@ importers:
       postcss-import:
         specifier: ^16.1.1
         version: 16.1.1(postcss@8.5.6)
+      postcss-media-to-container:
+        specifier: ^0.0.1
+        version: 0.0.1
       postcss-nesting:
         specifier: ^14.0.0
         version: 14.0.0(postcss@8.5.6)
@@ -1948,6 +1951,9 @@ packages:
         optional: true
       yaml:
         optional: true
+
+  postcss-media-to-container@0.0.1:
+    resolution: {integrity: sha512-RnvQz9Wq6BoWT+3a4heb/8XpKSs1D1gdTFxeMZO9Ri53+JK6o/fBagGExw+aDmw8zKKK5dXVHnxMNmLT6MxvZQ==}
 
   postcss-nesting@14.0.0:
     resolution: {integrity: sha512-YGFOfVrjxYfeGTS5XctP1WCI5hu8Lr9SmntjfRC+iX5hCihEO+QZl9Ra+pkjqkgoVdDKvb2JccpElcowhZtzpw==}
@@ -4051,6 +4057,8 @@ snapshots:
     optionalDependencies:
       postcss: 8.5.6
       tsx: 4.21.0
+
+  postcss-media-to-container@0.0.1: {}
 
   postcss-nesting@14.0.0(postcss@8.5.6):
     dependencies:
