@@ -23,7 +23,7 @@ export default {
     postcssWhitespace(),
     postcssMediaToContainer({
       containerName: "tweaker-devtools",
-      filter: (path) => Boolean(path.match(/styles[\\/]radix\.css/)),
+      filter: (path) => Boolean(path.match(/radix-ui[\\/]index\.css/)),
     }),
     autoprefixer(),
   ],

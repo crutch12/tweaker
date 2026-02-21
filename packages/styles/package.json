@@ -1,0 +1,19 @@
+{
+  "name": "@tweaker/styles",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "cleanup": "rimraf dist",
+    "build:radix": "postcss src/radix-ui/index.css --config src/radix-ui -o dist/radix-ui.css --verbose",
+    "build:radix:dev": "pnpm build:radix --watch",
+    "build": "pnpm cleanup && pnpm run '/^(build:radix)$/'",
+    "build:dev": "pnpm run '/^(build:radix:dev)$/'"
+  },
+  "author": "criitch@yandex.ru",
+  "exports": {
+    "./radix-ui.css": "./dist/radix-ui.css"
+  },
+  "dependencies": {
+    "@radix-ui/themes": "^3.3.0"
+  }
+}

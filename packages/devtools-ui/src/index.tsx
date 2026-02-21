@@ -10,7 +10,7 @@ import { ContainerQueryRootClassName } from "./features/container-query/styles";
 import { DefaultScrollbarClassName } from "./utils/styles";
 
 import "./styles/index.css";
-import "./styles/radix.css";
+import "@tweaker/styles/radix-ui.css";
 
 const queryClient = new QueryClient();
 
