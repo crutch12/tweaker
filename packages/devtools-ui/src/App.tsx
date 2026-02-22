@@ -57,15 +57,9 @@ export function App() {
     window.location.reload();
   };
 
-  const checkPageTitle = () => {
-    chrome.devtools.inspectedWindow.eval("document.title", (result) => {
-      alert("Page title: " + result);
-    });
-  };
-
   const evalTweaker = () => {
     chrome.devtools.inspectedWindow.eval(
-      "globalThis.__TWEAKER__.version",
+      "globalThis.__TWEAKER_DEVTOOLS_GLOBAL_HOOK__.version",
       (result) => {
         alert(result);
       },
@@ -262,7 +256,6 @@ export function App() {
           </Heading>
           <BlueButton onClick={reloadPanel}>Reload DevTools Panel</BlueButton>
           <BlueButton onClick={reloadPage}>Reload Current Page</BlueButton>
-          <BlueButton onClick={checkPageTitle}>Check page title</BlueButton>
           <BlueButton onClick={evalTweaker}>Eval Tweaker</BlueButton>
           <BlueButton
             onClick={() =>
