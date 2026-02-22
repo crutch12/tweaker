@@ -94,7 +94,7 @@ function getReplacedDog(dog: Dog): Dog {
   return tweaker.value<Dog>(`dogs.replace.${dog.id}`, newDog);
 }
 
-function Main() {
+function _Example() {
   const [entities, setEntities] = useState<Array<User | Dog>>(() => [
     generateUser(),
     generateDog(),
@@ -245,4 +245,4 @@ function withTweakerReady<P extends {}>(
   };
 }
 
-export const App = withTweakerReady(tweaker, Main);
+export const Example = withTweakerReady(tweaker, _Example);
