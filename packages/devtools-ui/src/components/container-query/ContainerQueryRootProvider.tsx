@@ -46,6 +46,7 @@ export function ContainerQueryRootProvider({
     const element = document.createElement("div");
 
     element.classList.add(
+      "tdrt", // tweaker-devtools-radix-themes namespace
       ContainerQueryProviderClassName,
       ContainerQueryRootClassName,
     );

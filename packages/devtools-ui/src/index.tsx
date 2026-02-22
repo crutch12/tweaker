@@ -23,6 +23,7 @@ export function TweakerDevTools() {
             css`
               min-height: unset;
             `,
+            "tdrt", // tweaker-devtools-radix-themes namespace
             DefaultScrollbarClassName,
             ContainerQueryRootClassName,
           )}
