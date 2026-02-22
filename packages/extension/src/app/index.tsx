@@ -1,17 +1,12 @@
-import { TweakerDevTools } from "@tweaker/devtools-ui";
-import "@tweaker/devtools-ui/styles.css";
+import { renderWidget } from "@tweaker/devtools-widget";
 
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+// import radixStyles from "@tweaker/styles/radix-ui.css?url";
+// import devtoolsStyles from "@tweaker/devtools-ui/styles.css?url";
 
 const container = document.getElementById("root");
 
 if (container) {
-  const root = createRoot(container);
-
-  root.render(
-    <StrictMode>
-      <TweakerDevTools />
-    </StrictMode>,
-  );
+  renderWidget(container, {
+    // includeStyles: [radixStyles, devtoolsStyles],
+  });
 }

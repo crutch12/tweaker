@@ -10,14 +10,19 @@ import { ContainerQueryRootClassName } from "./components/container-query/styles
 import { DefaultScrollbarClassName } from "./utils/styles";
 
 import "./styles/index.css";
-import "@tweaker/styles/radix-ui.css";
 
 const queryClient = new QueryClient();
 
-export function TweakerDevTools() {
+export interface TweakerDevToolsProps {
+  container?: HTMLElement;
+}
+
+export function TweakerDevTools({ container }: TweakerDevToolsProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <ContainerQueryRootProvider>
+      <ContainerQueryRootProvider
+        documentNode={container?.getRootNode() as Document}
+      >
         <Theme
           className={cn(
             css`
