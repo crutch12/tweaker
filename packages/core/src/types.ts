@@ -1,6 +1,6 @@
 export type TweakerKey = string;
 
-export interface TweakerInterceptor<T> {
+export interface InterceptorBase {
   /**
    * Unique interceptor id
    */
@@ -23,10 +23,13 @@ export interface TweakerInterceptor<T> {
    * Should stop via "debugger" during interception
    */
   interactive: boolean;
-  handler: TweakHandler<T>;
   enabled: boolean;
   timestamp: number;
   stack?: string;
+}
+
+export interface TweakerInterceptor<T> extends InterceptorBase {
+  handler: TweakHandler<T>;
 }
 
 // type SyncOnly<T> = T extends Promise<any> ? "Error: Async functions are not allowed" : T;

@@ -3,7 +3,7 @@ import type {
   EXTENSION_SOURCE,
   EXTENSION_TO_SW_SOURCE,
 } from "./const";
-import type { TweakerInterceptor } from "@tweaker/core";
+import type { InterceptorBase } from "@tweaker/core";
 
 interface PluginAnyMessage<T, P> {
   source: typeof EXTENSION_PLUGIN_SOURCE;
@@ -12,17 +12,7 @@ interface PluginAnyMessage<T, P> {
   payload: P;
 }
 
-export type InterceptorPayload<T> = Pick<
-  TweakerInterceptor<T>,
-  | "id"
-  | "staticId"
-  | "enabled"
-  | "interactive"
-  | "owner"
-  | "patterns"
-  | "timestamp"
-  | "stack"
-> & {
+export type InterceptorPayload<T> = InterceptorBase & {
   name: string;
   expression?: string;
   sourceCode?: string;
