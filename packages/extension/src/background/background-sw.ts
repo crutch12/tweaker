@@ -12,8 +12,11 @@ import { version } from "../../package.json";
 
 import PQueue from "p-queue";
 import { setExtensionIconAndPopup } from "./setExtensionIconAndPopup";
+import { setExtensionCounter } from "./setExtensionCounter";
 
 const connections: Record<number, chrome.runtime.Port> = {};
+
+const tweakedCounter: Record<number, number> = {};
 
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name !== "tweaker-devtools-relay") return;
@@ -108,6 +111,12 @@ chrome.runtime.onMessage.addListener(
           break;
         }
         case "value": {
+          if (message.payload.tweaked) {
+            tweakedCounter[tabId] = tweakedCounter[tabId]
+              ? tweakedCounter[tabId] + 1
+              : 1;
+            setExtensionCounter(tweakedCounter[tabId], tabId);
+          }
           saveValueMessage(message);
           sendMessageToDevTools(tabId, message);
           break;
@@ -235,6 +244,10 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   // We look for 'complete' status so the content script is likely ready
   if (changeInfo.status === "complete") {
     setExtensionIconAndPopup("disabled", tabId);
+    if (tabId in tweakedCounter) {
+      delete tweakedCounter[tabId];
+      setExtensionCounter(0, tabId);
+    }
     // chrome.tabs.get(tabId).then((r) => {
     //   debugger;
     // });
