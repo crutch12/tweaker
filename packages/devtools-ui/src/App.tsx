@@ -294,7 +294,7 @@ export function App() {
         `}
       >
         <Flex direction="column" overflow="auto" gap="2">
-          <Flex gap="2" align="center" wrap="wrap">
+          <Flex gap="2" align="center" wrap="wrap" pl="1">
             <ButtonIcon title="Clear Messages" onClick={clearMessages}>
               <ClearIcon size="medium" />
             </ButtonIcon>
