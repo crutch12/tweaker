@@ -254,27 +254,8 @@ export function App() {
   }, []);
 
   return (
-    <Grid
-      ref={containerRef}
-      py="1"
-      gap="2"
-      rows={{
-        // 5px for divider
-        initial: `auto var(--local-resizing-height) 5px 1fr`,
-        xl: "auto 1fr",
-      }}
-      columns={{
-        initial: "1fr",
-        // 5px for divider
-        xl: `var(--local-resizing-width) 5px 1fr`,
-      }}
-      height="100cqh"
-      className={css`
-        --local-resizing-width: 50%;
-        --local-resizing-height: 50%;
-      `}
-    >
-      <Flex direction="column" gap="2" gridColumn="1 / -1" px="1">
+    <Flex height="100cqh" direction="column" py="1" gap="2">
+      <Flex direction="column" gap="2" px="1">
         <Flex gap="2" align="center" wrap="wrap">
           <Heading size="3">
             Tweaker DevTools ({date.toLocaleTimeString()})
@@ -299,146 +280,169 @@ export function App() {
         </Flex>
         <Separator size="4" orientation="horizontal" />
       </Flex>
-      <Flex direction="column" overflow="auto" gap="2">
-        <Flex gap="2" align="center" wrap="wrap">
-          <ButtonIcon title="Clear Messages" onClick={clearMessages}>
-            <ClearIcon size="medium" />
-          </ButtonIcon>
-          <TextField.Root
-            size="1"
-            radius="full"
-            placeholder="Filter messages by key (glob, e.g. *.*)"
-            className={css`
-              width: 260px;
-              background-color: ${filterPatterns
-                ? "#FFFAC8" // FABEBE
-                : undefined};
-            `}
-            type="text"
-            value={filterPatterns ?? ""}
-            onChange={(ev) => setFilterPatterns(ev.target.value)}
-            onBlur={(ev) => {
-              setFilterPatterns(
-                serializePatterns(parsePatterns(ev.target.value)),
-              );
-            }}
-          >
-            <TextField.Slot />
-            {filterPatterns && (
-              <TextField.Slot>
-                <IconButton
-                  onClick={() => setFilterPatterns(undefined)}
-                  size="1"
-                  variant="ghost"
-                >
-                  <ConsoleErrorIcon height="14" width="14" />
-                </IconButton>
-              </TextField.Slot>
-            )}
-          </TextField.Root>
-        </Flex>
-        <MessagesTableContainer
-          onTweak={newTweak}
-          messages={messages}
-          highllightByInterceptor={highlightedInterceptorMessages}
-          filterPatterns={deferredFilterPatterns}
-          onGoToInterceptorClick={onGoToInterceptorClick}
-          className={css`
-            opacity: ${deferredFilterPatterns === filterPatterns
-              ? undefined
-              : 0.5};
-          `}
-        />
-      </Flex>
-      <ResizeDivider ref={dividerRef} onReset={resetResizer} />
-      <Flex direction="column" overflow="auto" gap="2" pr="1">
-        <Flex gap="2" align="center" wrap="wrap">
-          <ButtonIcon title="Clear Interceptors" onClick={clearInterceptors}>
-            <ClearIcon size="medium" />
-          </ButtonIcon>
-          <TextField.Root
-            size="1"
-            radius="full"
-            placeholder="Filter interceptors by id/name/patterns"
-            className={css`
-              width: 260px;
-              background-color: ${interceptorsFilter
-                ? "#FFFAC8" // FABEBE
-                : undefined};
-            `}
-            type="text"
-            value={interceptorsFilter ?? ""}
-            onChange={(ev) => setInterceptorsFilter(ev.target.value)}
-          >
-            <TextField.Slot />
-            {interceptorsFilter && (
-              <TextField.Slot>
-                <IconButton
-                  onClick={() => setInterceptorsFilter(undefined)}
-                  size="1"
-                  variant="ghost"
-                >
-                  <ConsoleErrorIcon height="14" width="14" />
-                </IconButton>
-              </TextField.Slot>
-            )}
-          </TextField.Root>
-          {appNames.length > 0 && (
-            <CreateTweakerDropdown
-              names={appNames}
-              onCreate={(name) => {
-                const id = Math.ceil(Math.random() * 1_000_000_000);
-                addInterceptors([
-                  {
-                    id,
-                    staticId: id,
-                    name: name,
-                    patterns: [],
-                    // fromKey: message.key,
-                    // sampleIds: [],
-                    // sampleId: undefined,
-                    interactive: false,
-                    enabled: true,
-                    expression: getDefaultExpression(),
-                    // expression: undefined,
-                    owner: EXTENSION_OWNER,
-                    timestamp: Date.now(),
-                  },
-                ]);
+      <Grid
+        minHeight="0"
+        flexGrow="1"
+        ref={containerRef}
+        gap="2"
+        rows={{
+          // 5px for divider
+          initial: `calc(var(--local-resizing-height) - 5px) 5px 1fr`,
+          xl: "1fr",
+        }}
+        columns={{
+          initial: "1fr",
+          // 5px for divider
+          xl: `calc(var(--local-resizing-width) - 5px) 5px 1fr`,
+        }}
+        className={css`
+          --local-resizing-width: 50%;
+          --local-resizing-height: 50%;
+        `}
+      >
+        <Flex direction="column" overflow="auto" gap="2">
+          <Flex gap="2" align="center" wrap="wrap">
+            <ButtonIcon title="Clear Messages" onClick={clearMessages}>
+              <ClearIcon size="medium" />
+            </ButtonIcon>
+            <TextField.Root
+              size="1"
+              radius="full"
+              placeholder="Filter messages by key (glob, e.g. *.*)"
+              className={css`
+                width: 260px;
+                background-color: ${filterPatterns
+                  ? "#FFFAC8" // FABEBE
+                  : undefined};
+              `}
+              type="text"
+              value={filterPatterns ?? ""}
+              onChange={(ev) => setFilterPatterns(ev.target.value)}
+              onBlur={(ev) => {
+                setFilterPatterns(
+                  serializePatterns(parsePatterns(ev.target.value)),
+                );
               }}
-            />
-          )}
+            >
+              <TextField.Slot />
+              {filterPatterns && (
+                <TextField.Slot>
+                  <IconButton
+                    onClick={() => setFilterPatterns(undefined)}
+                    size="1"
+                    variant="ghost"
+                  >
+                    <ConsoleErrorIcon height="14" width="14" />
+                  </IconButton>
+                </TextField.Slot>
+              )}
+            </TextField.Root>
+          </Flex>
+          <MessagesTableContainer
+            onTweak={newTweak}
+            messages={messages}
+            highllightByInterceptor={highlightedInterceptorMessages}
+            filterPatterns={deferredFilterPatterns}
+            onGoToInterceptorClick={onGoToInterceptorClick}
+            className={css`
+              opacity: ${deferredFilterPatterns === filterPatterns
+                ? undefined
+                : 0.5};
+            `}
+          />
         </Flex>
-        <InterceptorsListContainer
-          interceptors={interceptors}
-          onInterceptorChange={(i) => {
-            updateInterceptor(i);
-          }}
-          onInterceptorRemove={(i) => removeInterceptors([i])}
-          onFilterMessages={(patterns) => onFilterMessages(patterns)}
-          onDuplicate={(i) => {
-            const id = Math.ceil(Math.random() * 1_000_000_000);
-            addInterceptors([
-              {
-                id,
-                staticId: id,
-                name: i.name,
-                patterns: i.patterns,
-                interactive: i.interactive,
-                enabled: false,
-                expression:
-                  typeof i.expression === "string"
-                    ? i.expression
-                    : getDefaultExpression(),
-                owner: EXTENSION_OWNER,
-                timestamp: Date.now(),
-              },
-            ]);
-          }}
-          onHightLightInterceptor={(v) => setHighlightedInterceptorMessages(v)}
-          filter={deferredInterceptorsFilter}
-        />
-      </Flex>
-    </Grid>
+        <ResizeDivider ref={dividerRef} onReset={resetResizer} />
+        <Flex direction="column" overflow="auto" gap="2" pr="1">
+          <Flex gap="2" align="center" wrap="wrap">
+            <ButtonIcon title="Clear Interceptors" onClick={clearInterceptors}>
+              <ClearIcon size="medium" />
+            </ButtonIcon>
+            <TextField.Root
+              size="1"
+              radius="full"
+              placeholder="Filter interceptors by id/name/patterns"
+              className={css`
+                width: 260px;
+                background-color: ${interceptorsFilter
+                  ? "#FFFAC8" // FABEBE
+                  : undefined};
+              `}
+              type="text"
+              value={interceptorsFilter ?? ""}
+              onChange={(ev) => setInterceptorsFilter(ev.target.value)}
+            >
+              <TextField.Slot />
+              {interceptorsFilter && (
+                <TextField.Slot>
+                  <IconButton
+                    onClick={() => setInterceptorsFilter(undefined)}
+                    size="1"
+                    variant="ghost"
+                  >
+                    <ConsoleErrorIcon height="14" width="14" />
+                  </IconButton>
+                </TextField.Slot>
+              )}
+            </TextField.Root>
+            {appNames.length > 0 && (
+              <CreateTweakerDropdown
+                names={appNames}
+                onCreate={(name) => {
+                  const id = Math.ceil(Math.random() * 1_000_000_000);
+                  addInterceptors([
+                    {
+                      id,
+                      staticId: id,
+                      name: name,
+                      patterns: [],
+                      // fromKey: message.key,
+                      // sampleIds: [],
+                      // sampleId: undefined,
+                      interactive: false,
+                      enabled: true,
+                      expression: getDefaultExpression(),
+                      // expression: undefined,
+                      owner: EXTENSION_OWNER,
+                      timestamp: Date.now(),
+                    },
+                  ]);
+                }}
+              />
+            )}
+          </Flex>
+          <InterceptorsListContainer
+            interceptors={interceptors}
+            onInterceptorChange={(i) => {
+              updateInterceptor(i);
+            }}
+            onInterceptorRemove={(i) => removeInterceptors([i])}
+            onFilterMessages={(patterns) => onFilterMessages(patterns)}
+            onDuplicate={(i) => {
+              const id = Math.ceil(Math.random() * 1_000_000_000);
+              addInterceptors([
+                {
+                  id,
+                  staticId: id,
+                  name: i.name,
+                  patterns: i.patterns,
+                  interactive: i.interactive,
+                  enabled: false,
+                  expression:
+                    typeof i.expression === "string"
+                      ? i.expression
+                      : getDefaultExpression(),
+                  owner: EXTENSION_OWNER,
+                  timestamp: Date.now(),
+                },
+              ]);
+            }}
+            onHightLightInterceptor={(v) =>
+              setHighlightedInterceptorMessages(v)
+            }
+            filter={deferredInterceptorsFilter}
+          />
+        </Flex>
+      </Grid>
+    </Flex>
   );
 }
