@@ -5,8 +5,8 @@ import cn from "classnames";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { App } from "./App";
-import { ContainerQueryRootProvider } from "./features/container-query/ContainerQueryRootProvider";
-import { ContainerQueryRootClassName } from "./features/container-query/styles";
+import { ContainerQueryRootProvider } from "./components/container-query/ContainerQueryRootProvider";
+import { ContainerQueryRootClassName } from "./components/container-query/styles";
 import { DefaultScrollbarClassName } from "./utils/styles";
 
 import "./styles/index.css";

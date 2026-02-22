@@ -1,6 +1,6 @@
 import cn from "classnames";
 import { HoverCard } from "@radix-ui/themes";
-import { useContainerQueryRoot } from "../../features/container-query/ContainerQueryRootProvider";
+import { useContainerQueryRoot } from "../container-query/ContainerQueryRootProvider";
 import { DefaultScrollbarClassName } from "../../utils/styles";
 
 export function HoverCardContent(
