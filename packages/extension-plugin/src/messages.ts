@@ -130,11 +130,41 @@ export namespace ExtensionMessages {
     }
   >;
 
+  export type AddInterceptorsMessage = ExtensionAnyMessage<
+    "interceptors:add",
+    {
+      name: string;
+      timestamp: number;
+      data: InterceptorPayload<unknown>[];
+    }
+  >;
+
+  export type UpdateInterceptorsMessage = ExtensionAnyMessage<
+    "interceptors:update",
+    {
+      name: string;
+      timestamp: number;
+      data: InterceptorPayload<unknown>[];
+    }
+  >;
+
+  export type RemoveInterceptorsMessage = ExtensionAnyMessage<
+    "interceptors:remove",
+    {
+      name: string;
+      timestamp: number;
+      data: Pick<InterceptorPayload<unknown>, "id">[];
+    }
+  >;
+
   export type Message =
     | PingMessage
     | PongMessage
     | InitMessage
-    | InterceptorsMessage;
+    | InterceptorsMessage
+    | AddInterceptorsMessage
+    | UpdateInterceptorsMessage
+    | RemoveInterceptorsMessage;
 }
 
 type ExtensionServiceWorkerAnyMessage<T, P> = {

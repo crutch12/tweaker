@@ -107,7 +107,7 @@ export function InterceptorItem({
     serializePatterns(interceptor.patterns),
   );
 
-  const readOnly = interceptor.owner !== EXTENSION_OWNER;
+  const canChangeExpression = interceptor.owner === EXTENSION_OWNER;
 
   useEffect(() => {
     setPatterns(serializePatterns(interceptor.patterns));
@@ -202,7 +202,6 @@ export function InterceptorItem({
         <Flex gap="2" align="center" wrap="wrap">
           <Checkbox
             id={`${uniqueId}-enabled`}
-            disabled={readOnly}
             checked={interceptor.enabled}
             onCheckedChange={(checked) => {
               onChange?.({
@@ -224,7 +223,6 @@ export function InterceptorItem({
           </Text>
           <ButtonIcon
             title="Remove interceptor"
-            disabled={readOnly}
             onClick={() => onRemove?.(interceptor)}
           >
             <DeleteIcon size="medium" />
@@ -304,7 +302,7 @@ export function InterceptorItem({
                 value={patterns}
                 color={patternsError ? "red" : undefined}
                 variant={patternsError ? "soft" : undefined}
-                disabled={readOnly || !interceptor.enabled}
+                disabled={!interceptor.enabled}
                 onKeyDown={(ev) => {
                   if (ev.key === "Escape") {
                     ev.stopPropagation();
@@ -336,7 +334,7 @@ export function InterceptorItem({
               <Checkbox
                 id={`${uniqueId}-interactive`}
                 checked={interceptor.interactive}
-                disabled={readOnly || !interceptor.enabled}
+                disabled={!interceptor.enabled}
                 onCheckedChange={(checked) => {
                   onChange?.({
                     ...interceptor,
@@ -366,7 +364,7 @@ export function InterceptorItem({
               </Flex>
             </Flex>
           </Flex>
-          {!readOnly && (
+          {canChangeExpression && (
             <Box flexGrow="1" overflow="hidden">
               <Flex align="center" gap="1">
                 <Flex align="center" gap="1">
@@ -401,14 +399,14 @@ export function InterceptorItem({
                     </ButtonIcon>
                   </Tooltip>
                 </Flex>
-                {!readOnly && hasChanges && (
+                {hasChanges && (
                   <BlueButton
                     onClick={() => onChange?.({ ...interceptor, expression })}
                   >
                     Save
                   </BlueButton>
                 )}
-                {!readOnly && hasChanges && (
+                {hasChanges && (
                   <BlueButton onClick={discardChanges}>Discard</BlueButton>
                 )}
               </Flex>
@@ -447,7 +445,7 @@ export function InterceptorItem({
         </Flex>
         <Badge
           position="bottom-right"
-          appearance={readOnly ? "secondary" : "primary"}
+          appearance={canChangeExpression ? "primary" : "secondary"}
         >
           {interceptor.owner}
         </Badge>

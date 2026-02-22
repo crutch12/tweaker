@@ -87,6 +87,7 @@ export class Tweaker {
   private readonly eventEmitter = new EventEmitter<{
     value: (options: ValueEventOptions) => void;
     "intercept.new": <T>(listener: TweakerInterceptor<T>) => void;
+    "intercept.update": <T>(listener: TweakerInterceptor<T>) => void;
     "intercept.remove": <T>(listener: TweakerInterceptor<T>) => void;
   }>();
 
@@ -207,11 +208,8 @@ export class Tweaker {
     );
 
     return () => {
+      this.removeListener(interceptor.id);
       this.listeners.delete(interceptor.id);
-      this.eventEmitter.emit(
-        "intercept.remove",
-        interceptor as TweakerInterceptor<unknown>,
-      );
     };
   }
 
@@ -396,6 +394,25 @@ export class Tweaker {
   }
 
   public removeListener(id: InterceptorId) {
+    const interceptor = this.getListener(id);
+    if (interceptor) {
+      this.eventEmitter.emit(
+        "intercept.remove",
+        interceptor as TweakerInterceptor<unknown>,
+      );
+    }
     return this.listeners.delete(id);
+  }
+
+  public updateListener(
+    id: InterceptorId,
+    value: Partial<TweakerInterceptor<unknown>>,
+  ) {
+    const interceptor = this.getListener(id);
+    if (interceptor) {
+      Object.assign(interceptor, value);
+      this.eventEmitter.emit("intercept.update", interceptor);
+    }
+    return interceptor;
   }
 }

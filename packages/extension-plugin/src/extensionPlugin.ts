@@ -163,11 +163,12 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
           continue;
         }
 
-        expressions.delete(listener.id);
         if (_instance.hasListener(listener.id)) {
           _instance.removeListener(listener.id);
         }
+
         expressions.set(listener.id, listener.expression ?? "");
+
         _instance.intercept(
           listener.patterns,
           (key, value) => {
@@ -186,6 +187,76 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
       }
     }
 
+    function handleAddedInterceptors(
+      interceptors: ExtensionMessages.AddInterceptorsMessage["payload"]["data"],
+    ) {
+      for (const listener of interceptors) {
+        if (listener.owner !== EXTENSION_OWNER) {
+          continue;
+        }
+        if (_instance.hasListener(listener.id)) {
+          continue;
+        }
+
+        expressions.set(listener.id, listener.expression ?? "");
+
+        _instance.intercept(
+          listener.patterns,
+          (key, value) => {
+            return new Function("key", "value", listener.expression ?? "")(
+              key,
+              value,
+            );
+          },
+          {
+            id: listener.id,
+            owner: listener.owner,
+            interactive: listener.interactive,
+            enabled: listener.enabled,
+          },
+        );
+      }
+    }
+
+    function handleUpdatedInterceptors(
+      interceptors: ExtensionMessages.UpdateInterceptorsMessage["payload"]["data"],
+    ) {
+      for (const listener of interceptors) {
+        const found = _instance.getListener(listener.id);
+        if (!found) {
+          continue;
+        }
+
+        if (expressions.has(listener.id)) {
+          expressions.set(listener.id, listener.expression ?? "");
+        }
+
+        _instance.updateListener(listener.id, {
+          owner: listener.owner,
+          interactive: listener.interactive,
+          enabled: listener.enabled,
+          patterns: listener.patterns,
+          ...(found.owner === EXTENSION_OWNER && {
+            handler: (key, value) => {
+              return new Function("key", "value", listener.expression ?? "")(
+                key,
+                value,
+              );
+            },
+          }),
+        });
+      }
+    }
+
+    function handleRemovedInterceptors(
+      interceptors: ExtensionMessages.RemoveInterceptorsMessage["payload"]["data"],
+    ) {
+      for (const listener of interceptors) {
+        _instance.removeListener(listener.id);
+        expressions.delete(listener.id);
+      }
+    }
+
     globalThis.addEventListener(
       "message",
       (event: MessageEvent<ExtensionMessages.Message>) => {
@@ -195,6 +266,18 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
           switch (event.data.type) {
             case "interceptors": {
               handleInterceptors(event.data.payload.data);
+              break;
+            }
+            case "interceptors:add": {
+              handleAddedInterceptors(event.data.payload.data);
+              break;
+            }
+            case "interceptors:update": {
+              handleUpdatedInterceptors(event.data.payload.data);
+              break;
+            }
+            case "interceptors:remove": {
+              handleRemovedInterceptors(event.data.payload.data);
               break;
             }
             case "ping":

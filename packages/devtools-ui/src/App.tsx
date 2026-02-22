@@ -164,46 +164,131 @@ export function App() {
     });
   }, []);
 
-  const newTweak = useCallback(
+  const createInterceptorByMessage = useCallback(
     (message: PluginMessages.ValueMessage["payload"]) => {
       const id = generateNumberId();
-      addInterceptors([
-        {
-          id,
-          staticId: id,
-          name: message.name,
-          patterns: [message.key],
-          // fromKey: message.key,
-          // sampleIds: [],
-          // sampleId: undefined,
-          interactive: false,
-          enabled: true,
-          expression: getDefaultExpression(),
-          // expression: undefined,
-          owner: EXTENSION_OWNER,
-          timestamp: Date.now(),
-        },
-      ]);
+      const interceptor: ExtensionInterceptor = {
+        id,
+        staticId: id,
+        name: message.name,
+        patterns: [message.key],
+        // fromKey: message.key,
+        // sampleIds: [],
+        // sampleId: undefined,
+        interactive: false,
+        enabled: true,
+        expression: getDefaultExpression(),
+        // expression: undefined,
+        owner: EXTENSION_OWNER,
+        timestamp: Date.now(),
+      };
+      addInterceptors([interceptor]);
+      sendMessageToPlugin("interceptors:add", {
+        name: interceptor.name,
+        data: [interceptor],
+        timestamp: Date.now(),
+      });
     },
     [addInterceptors],
   );
 
-  useEffect(() => {
-    const message: ExtensionMessages.InterceptorsMessage = {
-      type: "interceptors",
-      version,
-      source: EXTENSION_SOURCE,
-      payload: {
-        name: "test",
+  const onInterceptorCreate = useCallback(
+    (name: string) => {
+      const id = generateNumberId();
+      const interceptor: ExtensionInterceptor = {
+        id,
+        staticId: id,
+        name: name,
+        patterns: [],
+        // fromKey: message.key,
+        // sampleIds: [],
+        // sampleId: undefined,
+        interactive: false,
+        enabled: true,
+        expression: getDefaultExpression(),
+        // expression: undefined,
+        owner: EXTENSION_OWNER,
         timestamp: Date.now(),
-        data: interceptors.map((interceptor) => ({
-          ...interceptor,
-        })),
-      },
-    };
+      };
+      addInterceptors([interceptor]);
+      sendMessageToPlugin("interceptors:add", {
+        name: interceptor.name,
+        data: [interceptor],
+        timestamp: Date.now(),
+      });
+    },
+    [addInterceptors],
+  );
 
-    chrome.tabs.sendMessage(chrome.devtools.inspectedWindow.tabId, message);
-  }, [interceptors]);
+  const onInterceptorDuplicate = useCallback(
+    (i: ExtensionInterceptor) => {
+      {
+        const id = generateNumberId();
+        const interceptor: ExtensionInterceptor = {
+          id,
+          staticId: id,
+          name: i.name,
+          patterns: i.patterns,
+          interactive: i.interactive,
+          enabled: false,
+          expression:
+            typeof i.expression === "string"
+              ? i.expression
+              : getDefaultExpression(),
+          owner: EXTENSION_OWNER,
+          timestamp: Date.now(),
+        };
+        addInterceptors([interceptor]);
+        sendMessageToPlugin("interceptors:add", {
+          name: interceptor.name,
+          data: [interceptor],
+          timestamp: Date.now(),
+        });
+      }
+    },
+    [addInterceptors],
+  );
+
+  const onInterceptorChange = useCallback(
+    (interceptor: ExtensionInterceptor) => {
+      updateInterceptor(interceptor);
+      sendMessageToPlugin("interceptors:update", {
+        name: interceptor.name,
+        data: [interceptor],
+        timestamp: Date.now(),
+      });
+    },
+    [updateInterceptor],
+  );
+
+  const onInterceptorRemove = useCallback(
+    (interceptor: ExtensionInterceptor) => {
+      removeInterceptors([interceptor]);
+      sendMessageToPlugin("interceptors:remove", {
+        name: interceptor.name,
+        data: [interceptor],
+        timestamp: Date.now(),
+      });
+    },
+    [removeInterceptors],
+  );
+
+  // useEffect(() => {
+  //   const message: ExtensionMessages.InterceptorsMessage = {
+  //     type: "interceptors",
+  //     version,
+  //     source: EXTENSION_SOURCE,
+  //     payload: {
+  //       name: "test",
+  //       timestamp: Date.now(),
+  //       data: interceptors.map((interceptor) => ({
+  //         ...interceptor,
+  //       })),
+  //     },
+  //   };
+
+  //   chrome.tabs.sendMessage(chrome.devtools.inspectedWindow.tabId, message);
+  // }, [interceptors]);
 
   const clearMessages = () => {
     sendMessage("clear-messages", { timestamp: Date.now() });
@@ -331,7 +416,7 @@ export function App() {
             </TextField.Root>
           </Flex>
           <MessagesTableContainer
-            onTweak={newTweak}
+            onTweak={createInterceptorByMessage}
             messages={messages}
             highllightByInterceptor={highlightedInterceptorMessages}
             filterPatterns={deferredFilterPatterns}
@@ -379,58 +464,17 @@ export function App() {
             {appNames.length > 0 && (
               <CreateTweakerDropdown
                 names={appNames}
-                onCreate={(name) => {
-                  const id = generateNumberId();
-                  addInterceptors([
-                    {
-                      id,
-                      staticId: id,
-                      name: name,
-                      patterns: [],
-                      // fromKey: message.key,
-                      // sampleIds: [],
-                      // sampleId: undefined,
-                      interactive: false,
-                      enabled: true,
-                      expression: getDefaultExpression(),
-                      // expression: undefined,
-                      owner: EXTENSION_OWNER,
-                      timestamp: Date.now(),
-                    },
-                  ]);
-                }}
+                onCreate={onInterceptorCreate}
               />
             )}
           </Flex>
           <InterceptorsListContainer
             interceptors={interceptors}
-            onInterceptorChange={(i) => {
-              updateInterceptor(i);
-            }}
-            onInterceptorRemove={(i) => removeInterceptors([i])}
-            onFilterMessages={(patterns) => onFilterMessages(patterns)}
-            onDuplicate={(i) => {
-              const id = generateNumberId();
-              addInterceptors([
-                {
-                  id,
-                  staticId: id,
-                  name: i.name,
-                  patterns: i.patterns,
-                  interactive: i.interactive,
-                  enabled: false,
-                  expression:
-                    typeof i.expression === "string"
-                      ? i.expression
-                      : getDefaultExpression(),
-                  owner: EXTENSION_OWNER,
-                  timestamp: Date.now(),
-                },
-              ]);
-            }}
-            onHightLightInterceptor={(v) =>
-              setHighlightedInterceptorMessages(v)
-            }
+            onInterceptorChange={onInterceptorChange}
+            onInterceptorRemove={onInterceptorRemove}
+            onFilterMessages={onFilterMessages}
+            onDuplicate={onInterceptorDuplicate}
+            onHightLightInterceptor={setHighlightedInterceptorMessages}
             filter={deferredInterceptorsFilter}
           />
         </Flex>
