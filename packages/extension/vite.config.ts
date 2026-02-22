@@ -44,6 +44,12 @@ export default defineConfig(({}) => {
         version,
         devtools_page: "src/devtools/index.html",
         permissions: ["tabs", "scripting", "storage"],
+        icons: {
+          "16": "icons/16-enabled.png",
+          "32": "icons/32-enabled.png",
+          "48": "icons/48-enabled.png",
+          "128": "icons/128-enabled.png",
+        },
         action: {
           default_title: "Tweaker DevTools",
           default_icon: {
