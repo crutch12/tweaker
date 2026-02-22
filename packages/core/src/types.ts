@@ -1,14 +1,16 @@
 export type TweakerKey = string;
 
+export type InterceptorId = string | number;
+
 export interface InterceptorBase {
   /**
    * Unique interceptor id
    */
-  id: number | string;
+  id: InterceptorId;
   /**
    * If staticId is provided, extension-plugin can persist this interceptor
    */
-  staticId?: number | string;
+  staticId?: InterceptorId;
   /**
    * "Creator" of interceptor (e.g. 'tweaker', 'extension')
    * @default 'tweaker'

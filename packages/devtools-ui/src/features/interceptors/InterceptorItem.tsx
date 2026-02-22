@@ -257,7 +257,10 @@ export function InterceptorItem({
               title="Show interceptor source code (formatted)"
             />
           )}
-          <RadixBadge title={new Date(interceptor.timestamp).toLocaleString()}>
+          <RadixBadge
+            title={new Date(interceptor.timestamp).toLocaleString()}
+            color="cyan"
+          >
             <Text size="1" weight="bold">
               {interceptor.id}
             </Text>

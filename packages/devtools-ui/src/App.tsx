@@ -13,6 +13,8 @@ import {
   EXTENSION_SOURCE,
   EXTENSION_PLUGIN_SOURCE,
 } from "@tweaker/extension-plugin";
+import { generateNumberId } from "@tweaker/core/utils";
+import type { InterceptorId } from "@tweaker/core";
 import { version, name } from "../package.json";
 import { useInterceptorsStore } from "./features/interceptors/useInterceptorsStore";
 import { css } from "@emotion/css";
@@ -164,7 +166,7 @@ export function App() {
 
   const newTweak = useCallback(
     (message: PluginMessages.ValueMessage["payload"]) => {
-      const id = Math.ceil(Math.random() * 1_000_000_000);
+      const id = generateNumberId();
       addInterceptors([
         {
           id,
@@ -213,12 +215,9 @@ export function App() {
     setInterceptors([]);
   };
 
-  const onGoToInterceptorClick = useCallback(
-    (interceptorId: string | number) => {
-      setInterceptorsFilter(String(interceptorId));
-    },
-    [],
-  );
+  const onGoToInterceptorClick = useCallback((interceptorId: InterceptorId) => {
+    setInterceptorsFilter(String(interceptorId));
+  }, []);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const dividerRef = useRef<HTMLDivElement>(null);
@@ -381,7 +380,7 @@ export function App() {
               <CreateTweakerDropdown
                 names={appNames}
                 onCreate={(name) => {
-                  const id = Math.ceil(Math.random() * 1_000_000_000);
+                  const id = generateNumberId();
                   addInterceptors([
                     {
                       id,
@@ -411,7 +410,7 @@ export function App() {
             onInterceptorRemove={(i) => removeInterceptors([i])}
             onFilterMessages={(patterns) => onFilterMessages(patterns)}
             onDuplicate={(i) => {
-              const id = Math.ceil(Math.random() * 1_000_000_000);
+              const id = generateNumberId();
               addInterceptors([
                 {
                   id,

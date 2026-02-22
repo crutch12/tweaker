@@ -3,11 +3,12 @@ import {
   TweakerKey,
   TweakHandler,
   TweakerInterceptor,
+  InterceptorId,
 } from "./types";
 import { EventEmitter } from "eventemitter3";
 import { TweakerPlugin } from "./plugin";
 import { TWEAKER_OWNER } from "./const";
-import { keyMatchesPatterns } from "./utils";
+import { generateNumberId, keyMatchesPatterns } from "./utils";
 
 export interface InterceptOptions {
   /**
@@ -18,7 +19,7 @@ export interface InterceptOptions {
   /**
    * Unique interceptor id. If provided, extension-plugin can persist this interceptor
    */
-  id?: number | string;
+  id?: InterceptorId;
   enabled?: boolean;
 }
 
@@ -71,7 +72,7 @@ type ValueEventOptions = {
   key: string;
   tweaked: boolean;
   originalValue: unknown;
-  interceptorId?: string | number;
+  interceptorId?: InterceptorId;
   result?: unknown;
   error?: boolean;
   stack?: string;
@@ -159,7 +160,7 @@ export class Tweaker {
       });
   }
 
-  private listeners = new Map<number | string, TweakerInterceptor<any>>([]);
+  private listeners = new Map<InterceptorId, TweakerInterceptor<any>>([]);
 
   public value<T>(
     key: TweakerKey,
@@ -184,7 +185,7 @@ export class Tweaker {
     const stack = new Error().stack;
     const owner = options.owner || TWEAKER_OWNER;
     const interceptor: TweakerInterceptor<T> = {
-      id: options.id ?? Math.ceil(Math.random() * 1_000_000_000),
+      id: options.id ?? generateNumberId(),
       staticId: options.id,
       interactive: options.interactive,
       patterns: Array.isArray(patterns) ? patterns : [patterns],
@@ -256,6 +257,16 @@ export class Tweaker {
     stack?: string,
   ): [boolean, T | undefined] {
     this.debug(key, "value", value);
+
+    if (!this.enabled) {
+      this.eventEmitter.emit("value", {
+        key,
+        tweaked: false,
+        originalValue: value,
+        stack,
+      });
+      return [false, undefined];
+    }
 
     const listeners = this.findListeners(key);
 
@@ -372,7 +383,7 @@ export class Tweaker {
     // this.eventEmitter.removeAllListeners(); // @TODO: should we?
   }
 
-  public getListener(id: number | string): TweakerInterceptor<any> | undefined {
+  public getListener(id: InterceptorId): TweakerInterceptor<any> | undefined {
     return this.listeners.get(id);
   }
 
@@ -380,11 +391,11 @@ export class Tweaker {
     return Array.from(this.listeners.values());
   }
 
-  public hasListener(id: number | string) {
+  public hasListener(id: InterceptorId) {
     return this.listeners.has(id);
   }
 
-  public removeListener(id: number | string) {
+  public removeListener(id: InterceptorId) {
     return this.listeners.delete(id);
   }
 }

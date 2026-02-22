@@ -12,11 +12,12 @@ import { ButtonIcon } from "../../components/ButtonIcon";
 import { SelectIcon, ExportIcon } from "@devtools-ds/icon";
 import { Flex, Text, Box } from "@radix-ui/themes";
 import { MessageTweakedInfoPopover } from "./MessageTweakedInfoPopover";
+import type { InterceptorId } from "@tweaker/core";
 
 export interface MessageRowProps {
   message: PluginMessages.ValueMessage["payload"];
   onTweak?: (payload: PluginMessages.ValueMessage["payload"]) => void;
-  onGoToInterceptorClick?: (interceptorId: string | number) => void;
+  onGoToInterceptorClick?: (interceptorId: InterceptorId) => void;
 }
 
 export function MessageRow({

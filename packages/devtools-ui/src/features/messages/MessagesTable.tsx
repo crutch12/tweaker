@@ -4,6 +4,7 @@ import { PluginMessages } from "@tweaker/extension-plugin";
 import { MessageRow } from "./MessageRow";
 import { Box, Text } from "@radix-ui/themes";
 import { css } from "@emotion/css";
+import type { InterceptorId } from "@tweaker/core";
 
 const emptyFn = () => {};
 
@@ -11,7 +12,7 @@ export interface MessagesTableProps extends HTMLAttributes<HTMLElement> {
   messages: PluginMessages.ValueMessage["payload"][];
   ref?: MutableRefObject<any>;
   onTweak?: (payload: PluginMessages.ValueMessage["payload"]) => void;
-  onGoToInterceptorClick?: (interceptorId: string | number) => void;
+  onGoToInterceptorClick?: (interceptorId: InterceptorId) => void;
 }
 
 function _MessagesTable({

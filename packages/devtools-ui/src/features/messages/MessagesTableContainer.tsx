@@ -3,15 +3,15 @@ import { MessagesTable, MessagesTableProps } from "./MessagesTable";
 import { parsePatterns } from "../../utils/pattern";
 import { memo, useMemo } from "react";
 import { keyMatchesPatterns } from "@tweaker/core/utils";
-import { Code, Text } from "@radix-ui/themes";
-import { Flex, Box } from "@radix-ui/themes";
+import { Code, Text, Flex, Box } from "@radix-ui/themes";
 import { css } from "@emotion/css";
 import { ExtensionInterceptor } from "../interceptors/InterceptorItem";
+import type { InterceptorId } from "@tweaker/core";
 
 export interface HighlightRow {
   id: string;
   pattern?: boolean;
-  interceptorId?: string | number;
+  interceptorId?: InterceptorId;
 }
 
 export interface MessagesTableContainerProps extends MessagesTableProps {

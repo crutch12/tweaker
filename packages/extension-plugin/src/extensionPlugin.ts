@@ -1,4 +1,5 @@
 import { TweakerPlugin } from "@tweaker/core/plugin";
+import { generateStringId } from "@tweaker/core/utils";
 import { version, name } from "../package.json";
 import {
   ExtensionMessages,
@@ -6,7 +7,7 @@ import {
   PluginMessages,
 } from "./messages";
 import { klona } from "klona/json";
-import { Tweaker, TWEAKER_OWNER } from "@tweaker/core";
+import { Tweaker, TWEAKER_OWNER, InterceptorId } from "@tweaker/core";
 import { serializeError, isErrorLike } from "serialize-error";
 import {
   registerInstance,
@@ -28,7 +29,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
 
   let _instance: Tweaker;
 
-  let expressions = new Map<number | string, string>();
+  let expressions = new Map<InterceptorId, string>();
 
   function subscribe(instance: Tweaker) {
     if (!("postMessage" in globalThis)) return;
@@ -49,6 +50,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
           version,
           type: "value",
           payload: {
+            id: generateStringId(),
             name: instance.name,
             key,
             originalValue: isErrorLike(originalValue)

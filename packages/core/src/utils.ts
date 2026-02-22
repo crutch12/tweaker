@@ -15,3 +15,16 @@ export function keyMatchesPatterns(
   }
   return false;
 }
+
+export function generateNumberId(length = 9) {
+  const firstDigit = Math.ceil(Math.random() * 9);
+  const restDigits = Math.random()
+    .toString()
+    .slice(2)
+    .slice(0, length - 1);
+  return Number(`${firstDigit}${restDigits}`);
+}
+
+export function generateStringId(length = 9) {
+  return globalThis.crypto.randomUUID().replace("-", "").slice(-length);
+}

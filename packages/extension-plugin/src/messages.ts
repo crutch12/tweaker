@@ -3,7 +3,7 @@ import type {
   EXTENSION_SOURCE,
   EXTENSION_TO_SW_SOURCE,
 } from "./const";
-import type { InterceptorBase } from "@tweaker/core";
+import type { InterceptorBase, InterceptorId } from "@tweaker/core";
 
 interface PluginAnyMessage<T, P> {
   source: typeof EXTENSION_PLUGIN_SOURCE;
@@ -48,6 +48,7 @@ export namespace PluginMessages {
   export type ValueMessage = PluginAnyMessage<
     "value",
     {
+      id: string;
       name: string;
       key: string;
       originalValue: unknown;
@@ -55,7 +56,7 @@ export namespace PluginMessages {
       timestamp: number;
       tweaked: boolean;
       error: boolean;
-      interceptorId: string | number | undefined;
+      interceptorId: InterceptorId | undefined;
       stack: string | undefined;
     }
   >;
@@ -74,7 +75,7 @@ export namespace PluginMessages {
     "remove-intercept",
     {
       name: string;
-      id: string | number;
+      id: InterceptorId;
     }
   >;
 
