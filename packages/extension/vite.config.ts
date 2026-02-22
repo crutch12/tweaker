@@ -13,6 +13,7 @@ export default defineConfig(({}) => {
       react(),
       reloadOnRebuild({
         interval: 1000,
+        filter: (path) => Boolean(path.match(/devtools[\\/]index\.html/)),
       }),
       visualizer({
         template: "treemap",
@@ -49,6 +50,7 @@ export default defineConfig(({}) => {
       rollupOptions: {
         input: [
           "src/devtools/index.html",
+          "src/devtools/devtools.html",
           "src/devtools/background-sw.ts",
           "src/devtools/content-script.ts",
         ],

@@ -4,25 +4,25 @@ import { InterceptorPayload, PluginMessages } from "./messages";
 import { EXTENSION_PLUGIN_SOURCE } from "./const";
 
 declare global {
-  var __TWEAKER__: {
+  var __TWEAKER_DEVTOOLS_GLOBAL_HOOK__: {
     version: string;
-    instances: Record<string, Tweaker>;
+    instances: Map<string, Tweaker>;
   };
 }
 
 function getGlobalRegistry() {
-  if (!globalThis.__TWEAKER__) {
-    globalThis.__TWEAKER__ = {
+  if (!globalThis.__TWEAKER_DEVTOOLS_GLOBAL_HOOK__) {
+    globalThis.__TWEAKER_DEVTOOLS_GLOBAL_HOOK__ = {
       version,
-      instances: {},
+      instances: new Map(),
     };
   }
-  return globalThis.__TWEAKER__;
+  return globalThis.__TWEAKER_DEVTOOLS_GLOBAL_HOOK__;
 }
 
 export function registerInstance(instance: Tweaker) {
   const registry = getGlobalRegistry();
-  registry.instances[instance.name] = instance;
+  registry.instances.set(instance.name, instance);
 }
 
 export function notifyExtensionInit<T>(

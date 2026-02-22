@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Tweaker DevTools Extension",
   "version": "1.0",
-  "devtools_page": "devtools.html",
+  "devtools_page": "src/devtools/devtools.html",
   "permissions": ["tabs", "scripting", "storage"],
   "action": {
     "default_title": "Tweaker DevTools"
