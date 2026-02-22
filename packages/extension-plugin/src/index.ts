@@ -1,3 +1,3 @@
-export * from "./ExtensionPlugin";
+export * from "./extensionPlugin";
 export * from "./messages";
 export * from "./const";
