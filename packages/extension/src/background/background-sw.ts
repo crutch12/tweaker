@@ -11,6 +11,7 @@ import {
 import { version } from "../../package.json";
 
 import PQueue from "p-queue";
+import { setExtensionIconAndPopup } from "./setExtensionIconAndPopup";
 
 const connections: Record<number, chrome.runtime.Port> = {};
 
@@ -80,6 +81,7 @@ chrome.runtime.onMessage.addListener(
           break;
         }
         case "init": {
+          setExtensionIconAndPopup("enabled", tabId);
           handleInterceptors(message.payload.interceptors).then(
             (interceptors) => {
               const _message: ExtensionMessages.InitMessage = {
@@ -232,6 +234,7 @@ async function getInterceptors() {
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   // We look for 'complete' status so the content script is likely ready
   if (changeInfo.status === "complete") {
+    setExtensionIconAndPopup("disabled", tabId);
     // chrome.tabs.get(tabId).then((r) => {
     //   debugger;
     // });
