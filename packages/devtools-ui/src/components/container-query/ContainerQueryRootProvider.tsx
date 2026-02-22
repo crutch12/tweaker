@@ -37,8 +37,10 @@ const ContainerQueryProviderClassName = css`
 
 export function ContainerQueryRootProvider({
   children,
+  documentNode,
 }: {
   children: ReactNode;
+  documentNode: Document | null | undefined;
 }) {
   const container = useRef<HTMLElement>(null);
 
@@ -50,14 +52,16 @@ export function ContainerQueryRootProvider({
       ContainerQueryRootClassName,
     );
 
-    document.body.append(element);
+    const body = documentNode?.body ?? document.body;
+
+    body.append(element);
 
     container.current = element;
 
     return () => {
       element.remove();
     };
-  }, []);
+  }, [documentNode]);
 
   const value = useMemo(() => {
     return { container };

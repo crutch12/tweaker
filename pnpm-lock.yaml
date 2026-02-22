@@ -180,6 +180,18 @@ importers:
         specifier: ^5.0.11
         version: 5.0.11(@types/react@19.2.11)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
 
+  packages/devtools-widget:
+    dependencies:
+      '@tweaker/devtools-ui':
+        specifier: workspace:*
+        version: link:../devtools-ui
+      react:
+        specifier: ^19.2.4
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.2.4
+        version: 19.2.4(react@19.2.4)
+
   packages/extension:
     dependencies:
       '@tweaker/core':
@@ -188,18 +200,18 @@ importers:
       '@tweaker/devtools-ui':
         specifier: workspace:*
         version: link:../devtools-ui
+      '@tweaker/devtools-widget':
+        specifier: workspace:*
+        version: link:../devtools-widget
       '@tweaker/extension-plugin':
         specifier: workspace:*
         version: link:../extension-plugin
+      '@tweaker/styles':
+        specifier: workspace:*
+        version: link:../styles
       p-queue:
         specifier: ^9.1.0
         version: 9.1.0
-      react:
-        specifier: ^19.2.4
-        version: 19.2.4
-      react-dom:
-        specifier: ^19.2.4
-        version: 19.2.4(react@19.2.4)
 
   packages/extension-plugin:
     dependencies:
