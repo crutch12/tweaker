@@ -166,8 +166,17 @@ function _Example() {
     });
   }, []);
 
+  const [extensionIsLoaded, setExtensionsIsLoaded] = useState(false);
+
+  useEffect(() => {
+    tweaker.ready().then((success) => {
+      setExtensionsIsLoaded(success);
+    });
+  }, []);
+
   return (
     <div>
+      <h3>Extension loaded: {JSON.stringify(extensionIsLoaded)}</h3>
       <div style={{ display: "flex", gap: "10px" }}>
         <button
           style={{
@@ -226,8 +235,11 @@ function withTweakerReady<P extends {}>(
       let start = Date.now();
       tweaker
         .ready()
-        .then(() => {
-          console.log("tweaker ready, spent time:", Date.now() - start);
+        .then((success) => {
+          console.log(
+            `tweaker is ready with status: ${success}, spent time:`,
+            Date.now() - start,
+          );
         })
         .catch((err) => {
           console.error("tweaker ready error", err, Date.now() - start);
