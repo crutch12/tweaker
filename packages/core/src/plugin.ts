@@ -4,5 +4,5 @@ export interface TweakerPlugin {
   name: string;
   version: string;
   setup(instance: Tweaker): void;
-  ready(): Promise<void>;
+  ready(): Promise<boolean>;
 }

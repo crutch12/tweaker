@@ -30,12 +30,14 @@ export interface InterceptorBase {
   stack?: string;
 }
 
-export interface TweakerInterceptor<T> extends InterceptorBase {
-  handler: TweakHandler<T>;
+export interface TweakerInterceptor<K, V> extends InterceptorBase {
+  handler: TweakHandler<K, V>;
 }
 
 // type SyncOnly<T> = T extends Promise<any> ? "Error: Async functions are not allowed" : T;
 
-export type TweakHandler<T> = (key: TweakerKey, originalValue: T) => T;
+export type TweakHandler<K, V> = (key: K, originalValue: V) => V;
 
 export type RemoveListener = () => void;
+
+export type TweakerAnyInterceptor = TweakerInterceptor<TweakerKey, any>;

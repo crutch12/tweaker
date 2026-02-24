@@ -300,8 +300,8 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
       subscribe(instance);
       start();
     },
-    ready: async () => {
-      await Promise.all(promises);
+    ready: () => {
+      return Promise.all(promises).then(() => true);
     },
   };
 }

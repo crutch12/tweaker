@@ -1,7 +1,14 @@
 import { Tweaker, TweakerSample } from "@tweaker/core";
 import { extensionPlugin } from "@tweaker/extension-plugin";
+import { Dog, User } from "./Example";
 
-const tweaker = new Tweaker({
+const tweaker = new Tweaker<{
+  patterns: {
+    "users.generate": User;
+    "dogs.generate": Dog;
+    "dogs.replace.*": Dog;
+  };
+}>({
   name: "web",
   plugins: [extensionPlugin()],
 });

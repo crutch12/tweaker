@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, Component, ComponentType } from "react";
 import { tweaker } from "./tweaker";
 import type { Tweaker } from "@tweaker/core";
 
-interface User {
+export interface User {
   id: number;
   name: string;
   year: number;
@@ -49,7 +49,7 @@ function generateUser(): User {
   );
 }
 
-interface Dog {
+export interface Dog {
   id: number;
   name: string;
   type: "male" | "female";
@@ -108,7 +108,7 @@ function _Example() {
   useEffect(() => {
     if (tweakerEnabled) {
       return tweaker.intercept(
-        "users.*",
+        "users.generate",
         (key, value): User => {
           return {
             ...value,

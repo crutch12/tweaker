@@ -4,6 +4,7 @@ import {
   TweakHandler,
   TweakerInterceptor,
   InterceptorId,
+  TweakerAnyInterceptor,
 } from "./types";
 import { EventEmitter } from "eventemitter3";
 import { TweakerPlugin } from "./plugin";
@@ -31,13 +32,13 @@ export interface SubscribeOptions {
   mode: "all" | "tweaked" | "non-tweaked";
 }
 
-export interface TweakerSample<T> {
+export interface TweakerSample<V> {
   id: string;
-  value(): T;
+  value(): V;
 }
 
-export interface TweakerValueOptions<T> {
-  samples: TweakerSample<T>[];
+export interface TweakerValueOptions<V> {
+  samples: TweakerSample<V>[];
 }
 
 interface ReadyOptions {
@@ -79,7 +80,30 @@ type ValueEventOptions = {
   stack?: string;
 };
 
-export class Tweaker {
+type TweakerValueParams = {
+  patterns: Record<TweakerKey, any>;
+};
+
+type TweakerValidParams = Partial<TweakerValueParams>;
+
+type GlobToTemplate<T extends string> = T extends `${infer Pre}**${infer Post}`
+  ? `${Pre}${string}${GlobToTemplate<Post>}`
+  : T extends `${infer Pre}*${infer Post}`
+    ? `${Pre}${string}${GlobToTemplate<Post>}`
+    : T;
+
+export type TweakerValueKeys<T extends TweakerValidParams> =
+  T extends TweakerValueParams ? keyof T["patterns"] : TweakerKey;
+
+export type TweakerKeyValues<
+  T extends TweakerValidParams,
+  Key extends TweakerKey,
+> = T extends TweakerValueParams ? T["patterns"][Key] : any;
+
+export type TweakerGlobKeys<T extends TweakerValidParams> =
+  T extends TweakerValueParams ? keyof T["patterns"] : TweakerKey;
+
+export class Tweaker<T extends TweakerValidParams = {}> {
   public readonly name: string;
   public readonly plugins: TweakerPlugin[];
   private _enabled = true;
@@ -87,9 +111,9 @@ export class Tweaker {
 
   private readonly eventEmitter = new EventEmitter<{
     value: (options: ValueEventOptions) => void;
-    "intercept.new": <T>(listener: TweakerInterceptor<T>) => void;
-    "intercept.update": <T>(listener: TweakerInterceptor<T>) => void;
-    "intercept.remove": <T>(listener: TweakerInterceptor<T>) => void;
+    "intercept.new": (listener: TweakerInterceptor<TweakerKey, any>) => void;
+    "intercept.update": (listener: TweakerInterceptor<TweakerKey, any>) => void;
+    "intercept.remove": (listener: TweakerInterceptor<TweakerKey, any>) => void;
   }>();
 
   constructor({ name, plugins, enabled }: TweakerOptions) {
@@ -110,6 +134,10 @@ export class Tweaker {
 
   public disable() {
     this._enabled = false;
+  }
+
+  public get untyped(): Tweaker<{}> {
+    return this;
   }
 
   /**
@@ -134,19 +162,19 @@ export class Tweaker {
    * @param options
    * @returns
    */
-  public async ready(options?: ReadyOptions) {
+  public async ready(options?: ReadyOptions): Promise<boolean> {
     options = {
       timeout: 1000,
       throw: false,
       ...options,
     };
 
-    const timeoutPromise = new Promise((resolve, reject) =>
+    const timeoutPromise = new Promise<boolean>((resolve, reject) =>
       setTimeout(() => {
         if (options.throw) {
           reject(new Error("tweaker plugins timeout"));
         }
-        resolve(undefined);
+        resolve(false);
       }, options.timeout),
     );
     const promises = this.plugins.map((plugin) => plugin.ready());
@@ -154,35 +182,44 @@ export class Tweaker {
       ? Promise.all(promises)
       : Promise.allSettled(promises);
 
-    return Promise.race([timeoutPromise, pluginsPromise])
-      .then(() => {
-        return undefined;
+    return Promise.race([
+      timeoutPromise,
+      pluginsPromise.then((arr) => arr.every(Boolean)),
+    ])
+      .then((success) => {
+        return success;
       })
       .finally(() => {
-        this._isReady = true;
+        this._isReady = true; // TODO: is it okay?
       });
   }
 
-  private listeners = new Map<InterceptorId, TweakerInterceptor<any>>([]);
+  private listeners = new Map<InterceptorId, TweakerAnyInterceptor>([]);
 
-  public value<T>(
-    key: TweakerKey,
-    value: T,
-    options?: Partial<TweakerValueOptions<T>>,
-  ): T {
+  public value<
+    V extends TweakerKeyValues<T, K>,
+    K extends GlobToTemplate<TweakerValueKeys<T>> = GlobToTemplate<
+      TweakerValueKeys<T>
+    >,
+  >(key: K, value: V, options?: Partial<TweakerValueOptions<V>>): V {
     const stack = new Error().stack;
     const [handled, result] = this.handleValue(
       key,
       value,
       stack ? stack.replace("Error\n", "") : undefined,
     );
-    if (handled) return result as T;
+    if (handled) return result as V;
     return value;
   }
 
-  public intercept<T>(
-    patterns: string | readonly string[],
-    handler: TweakHandler<T>,
+  public intercept<
+    V extends TweakerKeyValues<T, K>,
+    K extends GlobToTemplate<TweakerValueKeys<T>> = GlobToTemplate<
+      TweakerValueKeys<T>
+    >,
+  >(
+    patterns: K | K[],
+    handler: TweakHandler<K, V>,
     {
       id,
       owner = TWEAKER_OWNER,
@@ -191,7 +228,7 @@ export class Tweaker {
     }: InterceptOptions = {},
   ): RemoveListener {
     const stack = new Error().stack;
-    const interceptor: TweakerInterceptor<T> = {
+    const interceptor: TweakerInterceptor<K, V> = {
       id: id ?? generateNumberId(),
       staticId: id,
       interactive,
@@ -206,11 +243,11 @@ export class Tweaker {
           : undefined,
     };
 
-    this.listeners.set(interceptor.id, interceptor);
+    this.listeners.set(interceptor.id, interceptor as TweakerAnyInterceptor);
 
     this.eventEmitter.emit(
       "intercept.new",
-      interceptor as TweakerInterceptor<unknown>,
+      interceptor as TweakerAnyInterceptor,
     );
 
     return () => {
@@ -232,8 +269,8 @@ export class Tweaker {
   }
 
   private findListeners(key: TweakerKey) {
-    const exactListeners: TweakerInterceptor<any>[] = [];
-    const patternListeners: TweakerInterceptor<any>[] = [];
+    const exactListeners: TweakerAnyInterceptor[] = [];
+    const patternListeners: TweakerAnyInterceptor[] = [];
 
     for (const listener of this.listeners.values()) {
       if (!listener.enabled) continue;
@@ -255,11 +292,11 @@ export class Tweaker {
     return patternListeners;
   }
 
-  private handleValue<T>(
+  private handleValue<V>(
     key: TweakerKey,
     value: unknown,
     stack?: string,
-  ): [boolean, T | undefined] {
+  ): [boolean, V | undefined] {
     this.debug(key, "value", value);
 
     if (!this.enabled) {
@@ -292,7 +329,7 @@ export class Tweaker {
     const listener = listeners[listeners.length - 1];
 
     try {
-      let result = listener.handler(key, value) as T;
+      let result = listener.handler(key, value) as V;
 
       if (listener.interactive) {
         this.log(key, "interactive", [value, result]);
@@ -334,7 +371,7 @@ export class Tweaker {
   }
 
   public subscribe(
-    patterns: string | readonly string[],
+    patterns: string | string[],
     fn: (options: ValueEventOptions) => void,
     options?: Partial<SubscribeOptions>,
   ) {
@@ -374,7 +411,7 @@ export class Tweaker {
 
   public on(
     event: "intercept.new" | "intercept.remove",
-    fn: <T>(listener: TweakerInterceptor<T>) => void,
+    fn: <T>(listener: TweakerAnyInterceptor) => void,
   ) {
     this.eventEmitter.addListener(event, fn);
     return () => {
@@ -387,11 +424,11 @@ export class Tweaker {
     // this.eventEmitter.removeAllListeners(); // @TODO: should we?
   }
 
-  public getListener(id: InterceptorId): TweakerInterceptor<any> | undefined {
+  public getListener(id: InterceptorId): TweakerAnyInterceptor | undefined {
     return this.listeners.get(id);
   }
 
-  public getListeners(): TweakerInterceptor<any>[] {
+  public getListeners(): TweakerAnyInterceptor[] {
     return Array.from(this.listeners.values());
   }
 
@@ -404,7 +441,7 @@ export class Tweaker {
     if (interceptor) {
       this.eventEmitter.emit(
         "intercept.remove",
-        interceptor as TweakerInterceptor<unknown>,
+        interceptor as TweakerAnyInterceptor,
       );
     }
     return this.listeners.delete(id);
@@ -412,7 +449,7 @@ export class Tweaker {
 
   public updateListener(
     id: InterceptorId,
-    value: Partial<TweakerInterceptor<unknown>>,
+    value: Partial<TweakerAnyInterceptor>,
   ) {
     const interceptor = this.getListener(id);
     if (interceptor) {
@@ -422,3 +459,45 @@ export class Tweaker {
     return interceptor;
   }
 }
+
+const tw = new Tweaker<{
+  patterns: {
+    "users.replace": string;
+    "meta.*": number;
+    "meta.users.*": boolean;
+  };
+}>({ name: "123" });
+
+tw.value("users.replace", "scs");
+tw.value("meta.123", Math.random());
+tw.value("meta.users.123", true);
+
+tw.intercept("users.replace", (key, value) => {
+  return "123";
+});
+
+tw.intercept("meta.*", (key, value) => {
+  return Math.random();
+});
+
+tw.intercept([`meta.*`, "meta.use1rs.456"], (key, value) => {
+  return Math.random();
+});
+
+const tw2 = new Tweaker({ name: "123" });
+
+const num = tw2.value("users.replace", Math.random(), {
+  samples: [
+    {
+      id: "",
+      value: () => 1,
+    },
+  ],
+});
+
+tw2.intercept("users.replace", (key, value) => {
+  return Math.random();
+});
+tw2.intercept("users.repla1ce", () => {
+  return Math.random();
+});

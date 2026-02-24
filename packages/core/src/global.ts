@@ -39,9 +39,9 @@ export interface WithInstanceOptions {
   timeout?: number;
 }
 
-export function withInstance(
+export function withInstance<T extends Tweaker = Tweaker>(
   name: string,
-  cb: (tweaker: Tweaker) => void,
+  cb: (tweaker: T) => void,
   { timeout = 5000 }: WithInstanceOptions = {},
 ) {
   const registry = getRegistry();
@@ -49,13 +49,13 @@ export function withInstance(
   const instance = registry.instances.get(name);
 
   if (instance) {
-    cb(instance);
+    cb(instance as T);
     return emptyFn;
   }
 
   function handleInstance(instance: Tweaker) {
     if (instance.name === name) {
-      cb(instance);
+      cb(instance as T);
     }
   }
 
