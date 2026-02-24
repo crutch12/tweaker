@@ -9,12 +9,13 @@ import { EventEmitter } from "eventemitter3";
 import { TweakerPlugin } from "./plugin";
 import { TWEAKER_OWNER } from "./const";
 import { generateNumberId, keyMatchesPatterns } from "./utils";
+import { registerInstance } from "./global";
 
 export interface InterceptOptions {
   /**
    * Calls "debugger" when tweaks result
    */
-  interactive: boolean;
+  interactive?: boolean;
   owner?: string;
   /**
    * Unique interceptor id. If provided, extension-plugin can persist this interceptor
@@ -96,6 +97,7 @@ export class Tweaker {
     this.plugins = plugins ?? [];
     this._enabled = enabled ?? true;
     this.setup();
+    registerInstance(this);
   }
 
   public get enabled() {
@@ -181,18 +183,22 @@ export class Tweaker {
   public intercept<T>(
     patterns: string | readonly string[],
     handler: TweakHandler<T>,
-    options: InterceptOptions,
+    {
+      id,
+      owner = TWEAKER_OWNER,
+      enabled = true,
+      interactive = false,
+    }: InterceptOptions = {},
   ): RemoveListener {
     const stack = new Error().stack;
-    const owner = options.owner || TWEAKER_OWNER;
     const interceptor: TweakerInterceptor<T> = {
-      id: options.id ?? generateNumberId(),
-      staticId: options.id,
-      interactive: options.interactive,
+      id: id ?? generateNumberId(),
+      staticId: id,
+      interactive,
       patterns: Array.isArray(patterns) ? patterns : [patterns],
       handler,
       owner,
-      enabled: options.enabled ?? true,
+      enabled,
       timestamp: Date.now(),
       stack:
         owner === TWEAKER_OWNER && stack

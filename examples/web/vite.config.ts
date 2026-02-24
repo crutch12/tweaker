@@ -1,20 +1,27 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
+import preview from "vite-live-preview";
 
-export default defineConfig({
-  plugins: [react()],
+export default defineConfig(() => {
+  const isWatchMode =
+    process.argv.includes("--watch") || process.argv.includes("-w");
 
-  server: {
-    port: 3000,
-    open: true,
-  },
+  return {
+    plugins: [react(), preview()],
 
-  preview: {
-    port: 3000,
-    open: true,
-  },
+    server: {
+      port: 3000,
+      open: true,
+    },
 
-  build: {
-    outDir: "dist",
-  },
+    preview: {
+      port: 3000,
+      open: true,
+    },
+
+    build: {
+      minify: !isWatchMode,
+      outDir: "dist",
+    },
+  };
 });

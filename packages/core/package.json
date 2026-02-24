@@ -2,8 +2,8 @@
   "name": "@tweaker/core",
   "version": "0.0.1",
   "type": "module",
-  "types": "dist/index.d.ts",
-  "module": "dist/index.js",
+  "types": "dist/esm/index.d.ts",
+  "module": "dist/esm/index.js",
   "scripts": {
     "build": "tsup",
     "build:dev": "tsup --watch"
@@ -11,23 +11,35 @@
   "author": "criitch@yandex.ru",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "default": "./dist/esm/index.js"
     },
     "./plugin": {
-      "types": "./dist/plugin.d.ts",
-      "import": "./dist/plugin.js",
-      "default": "./dist/plugin.js"
+      "types": "./dist/esm/plugin.d.ts",
+      "import": "./dist/esm/plugin.js",
+      "default": "./dist/esm/plugin.js"
     },
     "./utils": {
-      "types": "./dist/utils.d.ts",
-      "import": "./dist/utils.js",
-      "default": "./dist/utils.js"
+      "types": "./dist/esm/utils.d.ts",
+      "import": "./dist/esm/utils.js",
+      "default": "./dist/esm/utils.js"
+    },
+    "./global": {
+      "types": "./dist/esm/global.d.ts",
+      "import": "./dist/esm/global.js",
+      "default": "./dist/esm/global.js"
+    },
+    "./iife/global": {
+      "types": "./dist/iife/global.d.ts",
+      "default": "./dist/iife/global.js"
     }
   },
   "dependencies": {
     "eventemitter3": "^5.0.4",
     "minimatch": "^10.1.2"
-  }
+  },
+  "sideEffects": [
+    "./dist/esm/global.js"
+  ]
 }

@@ -4,7 +4,6 @@
   "description": "",
   "packageManager": "pnpm@10.28.2",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "build": "pnpm --filter '@tweaker/*' run build",
     "build:dev": "pnpm --parallel --filter '@tweaker/*' run build:dev",
     "example:node": "pnpm --filter '@examples/node' run dev",
@@ -14,6 +13,7 @@
   "author": "criitch@yandex.ru",
   "license": "ISC",
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@types/chrome": "^0.1.36",
     "@types/node": "^25.2.0",
     "@types/react": "^19.2.11",
@@ -35,6 +35,7 @@
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
+    "vite-live-preview": "^0.4.0",
     "vite-plugin-reload-on-rebuild": "0.0.4"
   }
 }
