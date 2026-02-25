@@ -1,3 +1,4 @@
+import "../extension-polyfill";
 import { renderWidget } from "@tweaker/devtools-widget";
 
 import "@tweaker/styles/radix-ui.css";

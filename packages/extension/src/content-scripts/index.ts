@@ -3,11 +3,15 @@ import type {
   ExtensionMessages,
 } from "@tweaker/extension-plugin";
 
+if (!globalThis["chrome"]) {
+  globalThis["chrome"] = globalThis["browser"];
+}
+
 // @TODO: restrict any import (except types)
 
 const version = import.meta.env.VERSION;
 
-// plugin -> extension (via runtime.sendMessage)
+// plugin -> background
 window.addEventListener(
   "message",
   (event: MessageEvent<PluginMessages.Message>) => {
@@ -17,12 +21,13 @@ window.addEventListener(
   },
 );
 
-// extension -> plugin (via tabs.sendMessage)
+// background -> plugin
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.source === "@tweaker/extension") {
-    // alert(message);
+    console.log(message.type, message.tabId);
     window.postMessage(message, "*");
   }
+  return false;
 });
 
 function init() {

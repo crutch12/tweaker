@@ -67,8 +67,11 @@ export default defineConfig(({}) => {
           },
         ],
         background: {
+          // chrome, safari
           service_worker: "background-sw.js",
           type: "module",
+          // @ts-expect-error // firefox
+          scripts: ["background-sw.js"],
         },
       }),
     ],

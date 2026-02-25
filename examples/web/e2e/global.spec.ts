@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { fileURLToPath } from "node:url";
 
 test.describe("registry", () => {
-  test("exists", async ({ page }) => {
+  test("exists", async ({ page }, testInfo) => {
     await page.addInitScript({
       path: fileURLToPath(import.meta.resolve("@tweaker/core/iife/global")),
     });

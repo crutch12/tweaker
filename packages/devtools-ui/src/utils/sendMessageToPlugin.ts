@@ -19,5 +19,8 @@ export function sendMessageToPlugin<
     type,
     payload,
   } as ExtensionMessages.Message;
-  chrome.tabs.sendMessage(currentTabId, message);
+  chrome.runtime.sendMessage({
+    tabId: currentTabId,
+    ...message,
+  });
 }

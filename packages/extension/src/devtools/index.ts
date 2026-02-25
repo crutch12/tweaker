@@ -1,3 +1,4 @@
+import "../extension-polyfill";
 import debounce from "../utils/debounce";
 
 const evalScripts = {
@@ -21,7 +22,7 @@ function mountTweakerDevTools(reload = false) {
   chrome.devtools.panels.create(
     "Tweaker",
     "",
-    "src/app/index.html",
+    "/src/app/index.html",
     (createdPanel) => {
       tweakerPanel = createdPanel;
       createdPanel.onShown.addListener((container) => {

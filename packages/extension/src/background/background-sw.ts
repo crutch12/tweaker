@@ -1,4 +1,4 @@
-/// <reference lib="webworker" />
+import "../extension-polyfill";
 
 import {
   ExtensionMessages,
@@ -53,7 +53,7 @@ chrome.runtime.onConnect.addListener((port) => {
 });
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.session.setAccessLevel({
+  chrome.storage.session.setAccessLevel?.({
     accessLevel: "TRUSTED_CONTEXTS",
   });
 });
@@ -64,6 +64,7 @@ function sendMessageToDevTools(tabId: number, data: PluginMessages.Message) {
   }
 }
 
+// plugin <-> background -> devtools
 chrome.runtime.onMessage.addListener(
   (message: PluginMessages.Message, sender) => {
     const tabId = sender.tab?.id;
@@ -124,6 +125,18 @@ chrome.runtime.onMessage.addListener(
         default: {
           sendMessageToDevTools(tabId, message);
         }
+      }
+    }
+    return false;
+  },
+);
+
+// devtools -> background -> plugin
+chrome.runtime.onMessage.addListener(
+  (message: ExtensionMessages.Message & { tabId?: number }, sender) => {
+    if (message.source === EXTENSION_SOURCE) {
+      if (message.tabId) {
+        chrome.tabs.sendMessage(message.tabId, message);
       }
     }
     return false;
