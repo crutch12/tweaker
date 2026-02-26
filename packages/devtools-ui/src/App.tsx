@@ -281,32 +281,13 @@ export function App() {
     [removeInterceptors],
   );
 
-  // useEffect(() => {
-  //   const message: ExtensionMessages.InterceptorsMessage = {
-  //     type: "interceptors",
-  //     version,
-  //     source: EXTENSION_SOURCE,
-  //     payload: {
-  //       name: "test",
-  //       timestamp: Date.now(),
-  //       data: interceptors.map((interceptor) => ({
-  //         ...interceptor,
-  //       })),
-  //     },
-  //   };
-
-  //   chrome.tabs.sendMessage(chrome.devtools.inspectedWindow.tabId, message);
-  // }, [interceptors]);
-
   const clearMessages = () => {
     sendMessageToPlugin("clear-messages", { timestamp: Date.now() });
-    // sendMessage("clear-messages", { timestamp: Date.now() });
     setMessages([]);
   };
 
   const clearInterceptors = () => {
     sendMessageToPlugin("clear-interceptors", { timestamp: Date.now() });
-    // sendMessage("clear-interceptors", { timestamp: Date.now() });
     setInterceptors([]);
   };
 

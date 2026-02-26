@@ -114,6 +114,7 @@ export class Tweaker<T extends TweakerValidParams = {}> {
     "intercept.new": (listener: TweakerInterceptor<TweakerKey, any>) => void;
     "intercept.update": (listener: TweakerInterceptor<TweakerKey, any>) => void;
     "intercept.remove": (listener: TweakerInterceptor<TweakerKey, any>) => void;
+    interceptors: (listener: TweakerInterceptor<TweakerKey, any>[]) => void;
   }>();
 
   constructor({ name, plugins, enabled }: TweakerOptions) {
@@ -421,6 +422,7 @@ export class Tweaker<T extends TweakerValidParams = {}> {
 
   public reset() {
     this.listeners.clear();
+    this.eventEmitter.emit("interceptors", []);
     // this.eventEmitter.removeAllListeners(); // @TODO: should we?
   }
 

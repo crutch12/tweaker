@@ -175,44 +175,52 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
       }
     }
 
+    function handleClearInterceptors() {
+      _instance.reset();
+    }
+
     function subscribeForExtensionMessages() {
       if (!("addEventListener" in globalThis)) return;
 
-      globalThis.addEventListener("message", (event: MessageEvent) => {
+      globalThis.addEventListener("message", async (event: MessageEvent) => {
         if (!isForPluginMessage(event.data)) return;
 
-        readyPromise.finally(() => {
-          switch (event.data.type) {
-            case "interceptors": {
-              handleInterceptors(event.data.payload.data);
-              break;
-            }
-            case "interceptors:add": {
-              handleAddedInterceptors(event.data.payload.data);
-              break;
-            }
-            case "interceptors:update": {
-              handleUpdatedInterceptors(event.data.payload.data);
-              break;
-            }
-            case "interceptors:remove": {
-              handleRemovedInterceptors(event.data.payload.data);
-              break;
-            }
-            case "ping":
-            case "pong": {
-              notifyExtensionInterceptors(getListeners());
-              break;
-            }
+        await readyPromise.finally();
+
+        switch (event.data.type) {
+          case "interceptors": {
+            handleInterceptors(event.data.payload.data);
+            break;
           }
-        });
+          case "interceptors:add": {
+            handleAddedInterceptors(event.data.payload.data);
+            break;
+          }
+          case "interceptors:update": {
+            handleUpdatedInterceptors(event.data.payload.data);
+            break;
+          }
+          case "interceptors:remove": {
+            handleRemovedInterceptors(event.data.payload.data);
+            break;
+          }
+          case "clear-interceptors": {
+            handleClearInterceptors();
+            break;
+          }
+          case "ping":
+          case "pong": {
+            notifyExtensionInterceptors(getListeners());
+            break;
+          }
+        }
       });
     }
 
     function subscribeForInstanceMessages() {
       _instance.subscribe(
         "*",
-        ({
+        async ({
           key,
           tweaked,
           originalValue,
@@ -221,40 +229,37 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
           interceptorId,
           stack,
         }) => {
-          readyPromise.finally(() => {
-            sendMessageToExtension("value", {
-              id: generateStringId(),
-              name: _instance.name,
-              key,
-              originalValue: isErrorLike(originalValue)
-                ? serializeError(originalValue)
-                : klona(originalValue),
-              result: isErrorLike(result)
-                ? serializeError(result)
-                : klona(result),
-              timestamp: Date.now(),
-              tweaked,
-              error: error ?? false,
-              interceptorId,
-              stack,
-            });
+          await readyPromise.finally();
+          sendMessageToExtension("value", {
+            id: generateStringId(),
+            name: _instance.name,
+            key,
+            originalValue: isErrorLike(originalValue)
+              ? serializeError(originalValue)
+              : klona(originalValue),
+            result: isErrorLike(result)
+              ? serializeError(result)
+              : klona(result),
+            timestamp: Date.now(),
+            tweaked,
+            error: error ?? false,
+            interceptorId,
+            stack,
           });
         },
         { mode: "all" },
       );
 
-      _instance.on("intercept.new", (listener) => {
+      _instance.on("intercept.new", async (listener) => {
         if (listener.owner !== TWEAKER_OWNER) return;
-        readyPromise.finally(() => {
-          notifyExtensionNewIntercept(_instance, listener);
-        });
+        await readyPromise.finally();
+        notifyExtensionNewIntercept(_instance, listener);
       });
 
-      _instance.on("intercept.remove", (listener) => {
+      _instance.on("intercept.remove", async (listener) => {
         if (listener.owner !== TWEAKER_OWNER) return;
-        readyPromise.finally(() => {
-          notifyExtensionRemoveIntercept(_instance, listener);
-        });
+        await readyPromise.finally();
+        notifyExtensionRemoveIntercept(_instance, listener);
       });
     }
 

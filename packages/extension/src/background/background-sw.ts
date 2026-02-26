@@ -129,6 +129,7 @@ chrome.runtime.onMessage.addListener((message: unknown, sender): boolean => {
       break;
     case "clear-interceptors":
       clearInterceptors();
+      sendMessageToPlugin(message.tabId, _message);
       break;
     case "clear-messages":
       clearMessages();
