@@ -90,7 +90,7 @@ export default defineConfig(({}) => {
     ],
 
     define: {
-      "import.meta.env.VERSION": `"${version}"`,
+      "import.meta.env.VERSION": JSON.stringify(version),
     },
 
     optimizeDeps: {
