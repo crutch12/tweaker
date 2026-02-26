@@ -8,7 +8,7 @@
     "build:dev": "pnpm --parallel --filter '@tweaker/*' run build:dev",
     "example:node": "pnpm --filter '@examples/node' run dev",
     "example:web": "pnpm --filter '@examples/web' run dev",
-    "dev": "pnpm run '/^(example:web|build:dev)$/'",
+    "dev": "concurrently 'pnpm example:web' 'pnpm build:dev'",
     "e2e": "pnpm --parallel --filter '*' run e2e",
     "e2e:ui": "pnpm --parallel --filter '*' run e2e:ui"
   },
