@@ -14,8 +14,7 @@ declare global {
 }
 
 export function getRegistry(): TweakerRegistry {
-  const registry: TweakerRegistry | undefined =
-    globalThis["__TWEAKER_REGISTRY__"];
+  const registry: TweakerRegistry | undefined = globalThis.__TWEAKER_REGISTRY__;
 
   if (registry) return registry;
 
@@ -25,7 +24,7 @@ export function getRegistry(): TweakerRegistry {
     withInstance,
   };
 
-  globalThis["__TWEAKER_REGISTRY__"] = newRegistry;
+  globalThis.__TWEAKER_REGISTRY__ = newRegistry;
 
   return newRegistry;
 }

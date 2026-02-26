@@ -1,27 +1,20 @@
 import { TweakerPlugin } from "@tweaker/core/plugin";
 import { generateStringId } from "@tweaker/core/utils";
 import { version, name } from "../package.json";
-import {
-  ExtensionDevtoolsMessages,
-  ExtensionPluginMessages,
-} from "./messages/types";
+import { ExtensionDevtoolsMessages } from "./messages/types";
 import { klona } from "klona/json";
 import { Tweaker, TWEAKER_OWNER, InterceptorId } from "@tweaker/core";
 import { serializeError, isErrorLike } from "serialize-error";
+import { registerInstance } from "./global";
+import { EXTENSION_OWNER } from "./const";
+import type { InterceptorPayload } from "./types";
 import {
-  registerInstance,
+  sendMessageToExtension,
   notifyExtensionNewIntercept,
   notifyExtensionRemoveIntercept,
   notifyExtensionInit,
   notifyExtensionInterceptors,
-} from "./global";
-import {
-  EXTENSION_OWNER,
-  EXTENSION_PLUGIN_SOURCE,
-  EXTENSION_DEVTOOLS_SOURCE,
-} from "./const";
-import type { InterceptorPayload } from "./types";
-import { sendMessageToExtension } from "./sendMessageToExtension";
+} from "./sendMessageToExtension";
 import { isForPluginMessage } from "./messages";
 
 export interface ExtensionPluginOptions {}
