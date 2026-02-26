@@ -41,7 +41,14 @@ export default defineConfig(({}) => {
       generateExtensionManifest({
         manifest_version: 3,
         name: "Tweaker DevTools",
+        short_name: "Tweaker",
         version,
+        homepage_url: "https://github.com/crutch12/tweaker",
+        description:
+          "Allows debug and modify @tweaker/core usage via DevTools panel",
+        author: {
+          email: "criitch@yandex.ru",
+        },
         devtools_page: "src/devtools/index.html",
         permissions: ["tabs", "scripting", "storage"],
         icons: {
@@ -73,6 +80,7 @@ export default defineConfig(({}) => {
           // @ts-expect-error // firefox
           scripts: ["background-sw.js"],
         },
+        // custom options
         browser_specific_settings: {
           gecko: {
             id: "@tweaker-devtools",
