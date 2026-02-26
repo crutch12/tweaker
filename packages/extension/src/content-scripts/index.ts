@@ -1,6 +1,6 @@
 import type {
-  PluginMessages,
-  ExtensionMessages,
+  ExtensionPluginMessages,
+  ExtensionDevtoolsMessages,
 } from "@tweaker/extension-plugin";
 
 if (!globalThis["chrome"]) {
@@ -14,29 +14,30 @@ const version = import.meta.env.VERSION;
 // plugin -> background
 window.addEventListener(
   "message",
-  (event: MessageEvent<PluginMessages.Message>) => {
-    if (event.data && event.data.source === "@tweaker/extension-plugin") {
+  (event: MessageEvent<ExtensionPluginMessages.Message>) => {
+    if (event.data && event.data.source === "tweaker-extension-plugin") {
       chrome.runtime.sendMessage(event.data);
     }
   },
 );
 
 // background -> plugin
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.source === "@tweaker/extension") {
-    console.log(message.type, message.tabId);
-    window.postMessage(message, "*");
-  }
-  return false;
-});
+chrome.runtime.onMessage.addListener(
+  (message: ExtensionDevtoolsMessages.Message, sender, sendResponse) => {
+    if (message.source === "tweaker-extension-devtools") {
+      window.postMessage(message, "*");
+    }
+    return false;
+  },
+);
 
 function init() {
-  const message: ExtensionMessages.PingMessage = {
+  const message: ExtensionDevtoolsMessages.PingMessage = {
     type: "ping",
     payload: {
       timestamp: Date.now(),
     },
-    source: "@tweaker/extension",
+    source: "tweaker-extension-devtools",
     version,
   };
   window.postMessage(message, "*");

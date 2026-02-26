@@ -1,3 +1,4 @@
 export * from "./extensionPlugin";
-export * from "./messages";
+export * from "./messages/types/index";
 export * from "./const";
+export * from "./types";

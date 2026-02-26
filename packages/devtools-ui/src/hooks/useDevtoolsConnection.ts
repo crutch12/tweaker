@@ -1,14 +1,14 @@
 import {
-  ExtensionServiceWorkerMessages,
-  PluginMessages,
-  EXTENSION_TO_SW_SOURCE,
+  ExtensionBackgroundMessages,
+  ExtensionPluginMessages,
+  EXTENSION_BACKGROUND_SOURCE,
   EXTENSION_PLUGIN_SOURCE,
 } from "@tweaker/extension-plugin";
 import { useCallback, useEffect, useEffectEvent, useRef } from "react";
 import { version, name } from "../../package.json";
 import { useVisibilityChange } from "@uidotdev/usehooks";
 
-type Subscriber = (message: PluginMessages.Message) => void;
+type Subscriber = (message: ExtensionPluginMessages.Message) => void;
 
 export function useDevtoolsConnection() {
   const portRef = useRef<chrome.runtime.Port>(undefined);
@@ -16,11 +16,14 @@ export function useDevtoolsConnection() {
 
   const subscribers = useRef(new Set<Subscriber>());
 
-  const handleMessage = useCallback((message: PluginMessages.Message) => {
-    if (message.source === EXTENSION_PLUGIN_SOURCE) {
-      subscribers.current.forEach((subscriber) => subscriber(message));
-    }
-  }, []);
+  const handleMessage = useCallback(
+    (message: ExtensionPluginMessages.Message) => {
+      if (message.source === EXTENSION_PLUGIN_SOURCE) {
+        subscribers.current.forEach((subscriber) => subscriber(message));
+      }
+    },
+    [],
+  );
 
   const onDisconnect = useCallback(() => {
     console.log(
@@ -33,16 +36,16 @@ export function useDevtoolsConnection() {
   }, []);
 
   const sendMessage = useCallback(
-    <T extends ExtensionServiceWorkerMessages.Message["type"]>(
+    <T extends ExtensionBackgroundMessages.Message["type"]>(
       type: T,
       payload: Extract<
-        ExtensionServiceWorkerMessages.Message,
+        ExtensionBackgroundMessages.Message,
         { type: T }
       >["payload"],
     ) => {
       if (!portRef.current) return;
-      const message: ExtensionServiceWorkerMessages.Message = {
-        source: EXTENSION_TO_SW_SOURCE,
+      const message: ExtensionBackgroundMessages.Message = {
+        source: EXTENSION_BACKGROUND_SOURCE,
         version,
         type,
         payload,

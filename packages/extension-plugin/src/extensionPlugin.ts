@@ -2,10 +2,9 @@ import { TweakerPlugin } from "@tweaker/core/plugin";
 import { generateStringId } from "@tweaker/core/utils";
 import { version, name } from "../package.json";
 import {
-  ExtensionMessages,
-  InterceptorPayload,
-  PluginMessages,
-} from "./messages";
+  ExtensionDevtoolsMessages,
+  ExtensionPluginMessages,
+} from "./messages/types";
 import { klona } from "klona/json";
 import { Tweaker, TWEAKER_OWNER, InterceptorId } from "@tweaker/core";
 import { serializeError, isErrorLike } from "serialize-error";
@@ -19,8 +18,9 @@ import {
 import {
   EXTENSION_OWNER,
   EXTENSION_PLUGIN_SOURCE,
-  EXTENSION_SOURCE,
+  EXTENSION_DEVTOOLS_SOURCE,
 } from "./const";
+import type { InterceptorPayload } from "./types";
 
 export interface ExtensionPluginOptions {}
 
@@ -45,7 +45,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
         interceptorId,
         stack,
       }) => {
-        const message: PluginMessages.ValueMessage = {
+        const message: ExtensionPluginMessages.ValueMessage = {
           source: EXTENSION_PLUGIN_SOURCE,
           version,
           type: "value",
@@ -89,7 +89,9 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
     if (!("postMessage" in globalThis)) return;
 
     function notify(type: "ping" | "pong") {
-      const message: PluginMessages.PingMessage | PluginMessages.PongMessage = {
+      const message:
+        | ExtensionPluginMessages.PingMessage
+        | ExtensionPluginMessages.PongMessage = {
         source: EXTENSION_PLUGIN_SOURCE,
         version,
         type,
@@ -127,8 +129,10 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
 
     const promise = new Promise<void>((resolve) => {
       notify("ping");
-      const handler = (event: MessageEvent<ExtensionMessages.Message>) => {
-        if (!event.data || event.data.source !== EXTENSION_SOURCE) {
+      const handler = (
+        event: MessageEvent<ExtensionDevtoolsMessages.Message>,
+      ) => {
+        if (!event.data || event.data.source !== EXTENSION_DEVTOOLS_SOURCE) {
           return;
         }
 
@@ -148,7 +152,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
     promises.push(promise);
 
     function handleInterceptors(
-      interceptors: ExtensionMessages.InitMessage["payload"]["interceptors"],
+      interceptors: ExtensionDevtoolsMessages.InitMessage["payload"]["interceptors"],
     ) {
       const listeners = _instance.getListeners();
 
@@ -188,7 +192,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
     }
 
     function handleAddedInterceptors(
-      interceptors: ExtensionMessages.AddInterceptorsMessage["payload"]["data"],
+      interceptors: ExtensionDevtoolsMessages.AddInterceptorsMessage["payload"]["data"],
     ) {
       for (const listener of interceptors) {
         if (listener.owner !== EXTENSION_OWNER) {
@@ -219,7 +223,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
     }
 
     function handleUpdatedInterceptors(
-      interceptors: ExtensionMessages.UpdateInterceptorsMessage["payload"]["data"],
+      interceptors: ExtensionDevtoolsMessages.UpdateInterceptorsMessage["payload"]["data"],
     ) {
       for (const listener of interceptors) {
         const found = _instance.getListener(listener.id);
@@ -249,7 +253,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
     }
 
     function handleRemovedInterceptors(
-      interceptors: ExtensionMessages.RemoveInterceptorsMessage["payload"]["data"],
+      interceptors: ExtensionDevtoolsMessages.RemoveInterceptorsMessage["payload"]["data"],
     ) {
       for (const listener of interceptors) {
         _instance.removeListener(listener.id);
@@ -259,8 +263,8 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
 
     globalThis.addEventListener(
       "message",
-      (event: MessageEvent<ExtensionMessages.Message>) => {
-        if (event.data && event.data.source === EXTENSION_SOURCE) {
+      (event: MessageEvent<ExtensionDevtoolsMessages.Message>) => {
+        if (event.data && event.data.source === EXTENSION_DEVTOOLS_SOURCE) {
           // debugger;
           console.log(event.data.payload);
           switch (event.data.type) {

@@ -1,6 +1,6 @@
 import { Table } from "@devtools-ds/table";
 import { HTMLAttributes, memo, MutableRefObject } from "react";
-import { PluginMessages } from "@tweaker/extension-plugin";
+import { ExtensionPluginMessages } from "@tweaker/extension-plugin";
 import { MessageRow } from "./MessageRow";
 import { Box, Text } from "@radix-ui/themes";
 import { css } from "@emotion/css";
@@ -9,9 +9,9 @@ import type { InterceptorId } from "@tweaker/core";
 const emptyFn = () => {};
 
 export interface MessagesTableProps extends HTMLAttributes<HTMLElement> {
-  messages: PluginMessages.ValueMessage["payload"][];
+  messages: ExtensionPluginMessages.ValueMessage["payload"][];
   ref?: MutableRefObject<any>;
-  onTweak?: (payload: PluginMessages.ValueMessage["payload"]) => void;
+  onTweak?: (payload: ExtensionPluginMessages.ValueMessage["payload"]) => void;
   onGoToInterceptorClick?: (interceptorId: InterceptorId) => void;
 }
 

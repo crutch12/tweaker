@@ -1,4 +1,7 @@
-import { ExtensionMessages, EXTENSION_SOURCE } from "@tweaker/extension-plugin";
+import {
+  ExtensionDevtoolsMessages,
+  EXTENSION_DEVTOOLS_SOURCE,
+} from "@tweaker/extension-plugin";
 import { version, name } from "../../package.json";
 
 /**
@@ -7,18 +10,18 @@ import { version, name } from "../../package.json";
  * @param payload
  */
 export function sendMessageToPlugin<
-  T extends ExtensionMessages.Message["type"],
+  T extends ExtensionDevtoolsMessages.Message["type"],
 >(
   type: T,
-  payload: Extract<ExtensionMessages.Message, { type: T }>["payload"],
+  payload: Extract<ExtensionDevtoolsMessages.Message, { type: T }>["payload"],
 ) {
   const currentTabId = chrome.devtools.inspectedWindow.tabId;
   const message = {
-    source: EXTENSION_SOURCE,
+    source: EXTENSION_DEVTOOLS_SOURCE,
     version,
     type,
     payload,
-  } as ExtensionMessages.Message;
+  } as ExtensionDevtoolsMessages.Message;
   chrome.runtime.sendMessage({
     tabId: currentTabId,
     ...message,

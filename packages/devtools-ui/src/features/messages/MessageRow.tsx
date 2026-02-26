@@ -2,7 +2,7 @@ import { Table } from "@devtools-ds/table";
 import { ObjectInspector } from "@devtools-ds/object-inspector";
 import safeStringify from "fast-safe-stringify";
 import { css, keyframes } from "@emotion/css";
-import { PluginMessages } from "@tweaker/extension-plugin";
+import { ExtensionPluginMessages } from "@tweaker/extension-plugin";
 import { getTextColor } from "../../utils/colors";
 import { deserializeError, isErrorLike } from "serialize-error";
 import { useEffectEvent, useMemo, useRef } from "react";
@@ -15,8 +15,8 @@ import { MessageTweakedInfoPopover } from "./MessageTweakedInfoPopover";
 import type { InterceptorId } from "@tweaker/core";
 
 export interface MessageRowProps {
-  message: PluginMessages.ValueMessage["payload"];
-  onTweak?: (payload: PluginMessages.ValueMessage["payload"]) => void;
+  message: ExtensionPluginMessages.ValueMessage["payload"];
+  onTweak?: (payload: ExtensionPluginMessages.ValueMessage["payload"]) => void;
   onGoToInterceptorClick?: (interceptorId: InterceptorId) => void;
 }
 

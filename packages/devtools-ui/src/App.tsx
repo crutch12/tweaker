@@ -7,10 +7,8 @@ import {
   useState,
 } from "react";
 import {
-  ExtensionMessages,
-  PluginMessages,
+  ExtensionPluginMessages,
   EXTENSION_OWNER,
-  EXTENSION_SOURCE,
   EXTENSION_PLUGIN_SOURCE,
 } from "@tweaker/extension-plugin";
 import { generateNumberId } from "@tweaker/core/utils";
@@ -71,7 +69,7 @@ export function App() {
   const date = useMemo(() => new Date(), []);
 
   const [messages, setMessages] = useState<
-    PluginMessages.ValueMessage["payload"][]
+    ExtensionPluginMessages.ValueMessage["payload"][]
   >([]);
 
   const interceptors = useInterceptorsStore((state) => state.interceptors);
@@ -111,7 +109,9 @@ export function App() {
 
   useEffect(() => {
     chrome.storage.session
-      .get<{ messages: PluginMessages.ValueMessage[] }>({ messages: [] })
+      .get<{
+        messages: ExtensionPluginMessages.ValueMessage[];
+      }>({ messages: [] })
       .then((result) => {
         setMessages((v) => [...v, ...result.messages.map((x) => x.payload)]);
       });
@@ -165,7 +165,7 @@ export function App() {
   }, []);
 
   const createInterceptorByMessage = useCallback(
-    (message: PluginMessages.ValueMessage["payload"]) => {
+    (message: ExtensionPluginMessages.ValueMessage["payload"]) => {
       const id = generateNumberId();
       const interceptor: ExtensionInterceptor = {
         id,

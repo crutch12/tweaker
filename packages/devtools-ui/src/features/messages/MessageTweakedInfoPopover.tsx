@@ -2,7 +2,7 @@ import { HoverCard, DataList, Badge, Text } from "@radix-ui/themes";
 import { ButtonIcon } from "../../components/ButtonIcon";
 import { MoreInfoIcon } from "@devtools-ds/icon";
 import styled from "@emotion/styled";
-import { PluginMessages } from "@tweaker/extension-plugin";
+import { ExtensionPluginMessages } from "@tweaker/extension-plugin";
 import { HoverCardContent } from "../../components/base/HoverCardContent";
 import type { InterceptorId } from "@tweaker/core";
 
@@ -58,7 +58,7 @@ function MessageTweakedInfo({
 export function MessageTweakedInfoPopover({
   message,
 }: {
-  message: PluginMessages.ValueMessage["payload"];
+  message: ExtensionPluginMessages.ValueMessage["payload"];
 }) {
   return (
     <HoverCard.Root>

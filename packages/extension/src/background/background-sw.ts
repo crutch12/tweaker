@@ -1,12 +1,12 @@
 import "../extension-polyfill";
 
 import {
-  ExtensionMessages,
-  PluginMessages,
+  ExtensionDevtoolsMessages,
+  ExtensionPluginMessages,
   EXTENSION_PLUGIN_SOURCE,
-  EXTENSION_SOURCE,
-  EXTENSION_TO_SW_SOURCE,
-  ExtensionServiceWorkerMessages,
+  EXTENSION_DEVTOOLS_SOURCE,
+  EXTENSION_BACKGROUND_SOURCE,
+  ExtensionBackgroundMessages,
 } from "@tweaker/extension-plugin";
 import { version } from "../../package.json";
 
@@ -21,10 +21,8 @@ const tweakedCounter: Record<number, number> = {};
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name !== "tweaker-devtools-relay") return;
 
-  const extensionListener = (
-    message: ExtensionServiceWorkerMessages.Message,
-  ) => {
-    if (message.source !== EXTENSION_TO_SW_SOURCE) return;
+  const extensionListener = (message: ExtensionBackgroundMessages.Message) => {
+    if (message.source !== EXTENSION_BACKGROUND_SOURCE) return;
     if (message.type === "init-connection") {
       connections[message.tabId] = port;
       return;
@@ -58,7 +56,10 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-function sendMessageToDevTools(tabId: number, data: PluginMessages.Message) {
+function sendMessageToDevTools(
+  tabId: number,
+  data: ExtensionPluginMessages.Message,
+) {
   if (connections[tabId]) {
     connections[tabId].postMessage(data);
   }
@@ -66,14 +67,15 @@ function sendMessageToDevTools(tabId: number, data: PluginMessages.Message) {
 
 // plugin <-> background -> devtools
 chrome.runtime.onMessage.addListener(
-  (message: PluginMessages.Message, sender) => {
+  (message: ExtensionPluginMessages.Message, sender) => {
     const tabId = sender.tab?.id;
     if (!tabId) return false;
     if (message.source === EXTENSION_PLUGIN_SOURCE) {
+      chrome.runtime.sendMessage(message);
       switch (message.type) {
         case "ping": {
-          const _message: ExtensionMessages.PongMessage = {
-            source: EXTENSION_SOURCE,
+          const _message: ExtensionDevtoolsMessages.PongMessage = {
+            source: EXTENSION_DEVTOOLS_SOURCE,
             version,
             type: "pong",
             payload: {
@@ -88,8 +90,8 @@ chrome.runtime.onMessage.addListener(
           setExtensionIconAndPopup("enabled", tabId);
           handleInterceptors(message.payload.interceptors).then(
             (interceptors) => {
-              const _message: ExtensionMessages.InitMessage = {
-                source: EXTENSION_SOURCE,
+              const _message: ExtensionDevtoolsMessages.InitMessage = {
+                source: EXTENSION_DEVTOOLS_SOURCE,
                 version,
                 type: "init",
                 payload: {
@@ -133,8 +135,8 @@ chrome.runtime.onMessage.addListener(
 
 // devtools -> background -> plugin
 chrome.runtime.onMessage.addListener(
-  (message: ExtensionMessages.Message & { tabId?: number }, sender) => {
-    if (message.source === EXTENSION_SOURCE) {
+  (message: ExtensionDevtoolsMessages.Message & { tabId?: number }, sender) => {
+    if (message.source === EXTENSION_DEVTOOLS_SOURCE) {
       if (message.tabId) {
         chrome.tabs.sendMessage(message.tabId, message);
       }
@@ -144,7 +146,7 @@ chrome.runtime.onMessage.addListener(
 );
 
 async function handleInterceptors(
-  interceptors: ExtensionMessages.InitMessage["payload"]["interceptors"],
+  interceptors: ExtensionDevtoolsMessages.InitMessage["payload"]["interceptors"],
 ) {
   return getInterceptors().then(async (_savedInterceptors) => {
     const savedInterceptors = new Map(_savedInterceptors.map((i) => [i.id, i]));
@@ -176,10 +178,10 @@ async function handleInterceptors(
 // prevent race conditions and add new messages in order
 const messagesStoreQueue = new PQueue({ concurrency: 1 });
 
-async function saveValueMessage(message: PluginMessages.ValueMessage) {
+async function saveValueMessage(message: ExtensionPluginMessages.ValueMessage) {
   return messagesStoreQueue.add(async () => {
     const { messages } = await chrome.storage.session.get<{
-      messages: PluginMessages.ValueMessage[];
+      messages: ExtensionPluginMessages.ValueMessage[];
     }>({ messages: [] });
 
     messages.push(message);
@@ -201,7 +203,7 @@ async function clearMessages() {
 async function getMessages() {
   return messagesStoreQueue.add(async () => {
     const { messages = [] } = await chrome.storage.session.get<{
-      messages: PluginMessages.ValueMessage[];
+      messages: ExtensionPluginMessages.ValueMessage[];
     }>({ messages: [] });
 
     return messages;
@@ -212,11 +214,11 @@ async function getMessages() {
 const interceptorsStoreQueue = new PQueue({ concurrency: 1 });
 
 async function saveInterceptors(
-  newInterceptors: PluginMessages.InitMessage["payload"]["interceptors"],
+  newInterceptors: ExtensionPluginMessages.InitMessage["payload"]["interceptors"],
 ) {
   return interceptorsStoreQueue.add(async () => {
     let { interceptors } = await chrome.storage.session.get<{
-      interceptors: PluginMessages.InitMessage["payload"]["interceptors"];
+      interceptors: ExtensionPluginMessages.InitMessage["payload"]["interceptors"];
     }>({ interceptors: [] });
 
     interceptors = Array.from(
@@ -246,7 +248,7 @@ async function clearInterceptors() {
 async function getInterceptors() {
   return interceptorsStoreQueue.add(async () => {
     const { interceptors } = await chrome.storage.session.get<{
-      interceptors: PluginMessages.InitMessage["payload"]["interceptors"];
+      interceptors: ExtensionPluginMessages.InitMessage["payload"]["interceptors"];
     }>({ interceptors: [] });
 
     return interceptors;
