@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "vite build",
+    "build": "concurrently 'vite build' 'tsc'",
     "build:dev": "vite build -w",
     "mozilla:publish": "dotenvx run -- web-ext sign"
   },
