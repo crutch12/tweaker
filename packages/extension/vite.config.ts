@@ -73,6 +73,11 @@ export default defineConfig(({}) => {
           // @ts-expect-error // firefox
           scripts: ["background-sw.js"],
         },
+        browser_specific_settings: {
+          gecko: {
+            id: "@tweaker-devtools",
+          },
+        },
       }),
     ],
 

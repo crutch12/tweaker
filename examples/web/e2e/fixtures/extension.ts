@@ -1,14 +1,32 @@
-import { test as base, chromium, type BrowserContext } from "@playwright/test";
+import {
+  test as base,
+  chromium,
+  type BrowserContext,
+  firefox,
+} from "@playwright/test";
 import { fileURLToPath } from "url";
+import fs from "node:fs/promises";
+import { withExtension } from "playwright-webextext";
 
 export const test = base.extend<{
   context: BrowserContext;
-  extensionId: string;
+  extensionId: string | undefined;
 }>({
-  context: async ({ browserName, context }, use, testInfo) => {
+  context: async ({ browserName, context }, use) => {
     const pathToExtension = fileURLToPath(
       import.meta.resolve("../../../../packages/extension/dist"),
     );
+
+    if (browserName !== "webkit") {
+      await fs.access(pathToExtension).catch((err) => {
+        console.error(
+          `Cannot test extension: couldn't find build: ${pathToExtension}`,
+        );
+        console.error(`Run "pnpm build" to build extension.`);
+        console.error(err);
+        throw err;
+      });
+    }
 
     switch (browserName) {
       case "chromium": {
@@ -24,13 +42,12 @@ export const test = base.extend<{
         break;
       }
       case "firefox": {
-        // TODO: firefox
-        // https://github.com/microsoft/playwright/pull/35926/files#diff-bf947a692b765fa0919a54b1c9deaf2e288feaf4c9516632e22c84183460c26fR59
-        // const policiesPath = testInfo.outputPath('policies.json');
-        // await fs.promises.writeFile(policiesPath, JSON.stringify(policies));
-        console.warn(
-          `${browserName} can't install extensions (TODO: https://github.com/microsoft/playwright/issues/7297)`,
+        const browserTypeWithExtension = withExtension(
+          firefox, // base browser type
+          pathToExtension, // local directory containing manifest.json
         );
+        const browser = await browserTypeWithExtension.launch({});
+        const context = await browser.newContext();
         await use(context);
         await context.close();
         break;
@@ -43,7 +60,12 @@ export const test = base.extend<{
       }
     }
   },
-  extensionId: async ({ context }, use) => {
+  extensionId: async ({ browserName, context }, use) => {
+    if (browserName === "webkit") {
+      await use(undefined);
+      return;
+    }
+
     let [serviceWorker] = context.serviceWorkers();
     if (!serviceWorker)
       serviceWorker = await context.waitForEvent("serviceworker");

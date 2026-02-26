@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "build": "vite build",
-    "build:dev": "vite build -w"
+    "build:dev": "vite build -w",
+    "mozilla:publish": "dotenvx run -- web-ext sign"
   },
   "dependencies": {
     "@tweaker/core": "workspace:*",

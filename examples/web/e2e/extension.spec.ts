@@ -4,7 +4,7 @@ test.describe("extension", () => {
   test("loaded", async ({ page, browserName }) => {
     await page.goto("/");
 
-    const shouldBeLoaded = browserName === "chromium";
+    const shouldBeLoaded = browserName !== "webkit";
 
     await expect(
       page.getByText(`Extension loaded: ${shouldBeLoaded}`),
