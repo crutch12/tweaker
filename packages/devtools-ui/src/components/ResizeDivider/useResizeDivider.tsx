@@ -49,6 +49,7 @@ export function useResizeDivider({
         },
         onDragStart: ({ source }) => {
           source.element.style.setProperty("pointer-events", "none");
+          source.element.classList.add("dragging");
         },
         onDrag: ({ location }) => {
           const container = containerRef.current;
@@ -81,6 +82,7 @@ export function useResizeDivider({
         onDrop({ source }) {
           preventUnhandled.stop();
           source.element.style.removeProperty("pointer-events");
+          source.element.classList.remove("dragging");
         },
       });
     })();

@@ -33,6 +33,11 @@ export function ResizeDivider({ ref, onReset, ...props }: ResizeDividerProps) {
             cursor: e-resize;
           }
         }
+
+        &.dragging {
+          background: rgb(26, 115, 232);
+          box-shadow: none;
+        }
       `}
       title={title}
       {...props}
