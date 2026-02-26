@@ -166,7 +166,9 @@ function _Example() {
     });
   }, []);
 
-  const [extensionIsLoaded, setExtensionsIsLoaded] = useState(false);
+  const [extensionIsLoaded, setExtensionsIsLoaded] = useState<
+    boolean | undefined
+  >(undefined);
 
   useEffect(() => {
     tweaker.ready().then((success) => {
