@@ -467,6 +467,11 @@ export function App() {
             onDuplicate={onInterceptorDuplicate}
             onHightLightInterceptor={setHighlightedInterceptorMessages}
             filter={deferredInterceptorsFilter}
+            className={css`
+              opacity: ${deferredInterceptorsFilter === interceptorsFilter
+                ? undefined
+                : 0.5};
+            `}
           />
         </Flex>
       </Grid>

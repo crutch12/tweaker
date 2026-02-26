@@ -40,6 +40,16 @@ function _InterceptorsListContainer({
     );
   }
 
+  if (filteredInterceptors.length === 0) {
+    return (
+      <Flex justify="center" align="center" flexGrow="1" px="2">
+        <Text size="3" align="center">
+          No interceptors found
+        </Text>
+      </Flex>
+    );
+  }
+
   return (
     <Box ref={scrollRef} overflow="auto">
       <InterceptorsList

@@ -1,5 +1,5 @@
 import { Table } from "@devtools-ds/table";
-import { HTMLAttributes, memo, MutableRefObject } from "react";
+import { HTMLAttributes, memo, RefObject } from "react";
 import { ExtensionPluginMessages } from "@tweaker/extension-plugin";
 import { MessageRow } from "./MessageRow";
 import { Box, Text } from "@radix-ui/themes";
@@ -10,7 +10,7 @@ const emptyFn = () => {};
 
 export interface MessagesTableProps extends HTMLAttributes<HTMLElement> {
   messages: ExtensionPluginMessages.ValueMessage["payload"][];
-  ref?: MutableRefObject<any>;
+  ref?: RefObject<any>;
   onTweak?: (payload: ExtensionPluginMessages.ValueMessage["payload"]) => void;
   onGoToInterceptorClick?: (interceptorId: InterceptorId) => void;
 }
@@ -24,12 +24,7 @@ function _MessagesTable({
 }: MessagesTableProps) {
   return (
     <Box ref={ref} {...props}>
-      <Table
-        className={css`
-          min-height: 72px;
-        `}
-        onSelected={emptyFn}
-      >
+      <Table onSelected={emptyFn}>
         <Table.Head>
           <Table.Row>
             <Table.HeadCell style={{ width: "5%" }}>
@@ -49,14 +44,37 @@ function _MessagesTable({
           </Table.Row>
         </Table.Head>
         <Table.Body>
-          {messages.map((message) => (
-            <MessageRow
-              key={message.name + message.key + message.timestamp}
-              message={message}
-              onTweak={onTweak}
-              onGoToInterceptorClick={onGoToInterceptorClick}
-            />
-          ))}
+          {messages.length > 0 ? (
+            messages.map((message) => (
+              <MessageRow
+                key={
+                  message.name + message.key + message.timestamp + message.id
+                }
+                message={message}
+                onTweak={onTweak}
+                onGoToInterceptorClick={onGoToInterceptorClick}
+              />
+            ))
+          ) : (
+            <Table.Row
+              className={css`
+                height: 36px;
+                min-height: 36px;
+              `}
+            >
+              <Table.Cell colSpan={6}>
+                <Text
+                  size="2"
+                  align="center"
+                  className={css`
+                    display: block;
+                  `}
+                >
+                  No messages found
+                </Text>
+              </Table.Cell>
+            </Table.Row>
+          )}
         </Table.Body>
       </Table>
     </Box>

@@ -1,9 +1,9 @@
 import { css } from "@emotion/css";
-import { MutableRefObject } from "react";
+import { HTMLAttributes, RefObject } from "react";
 import { ExtensionInterceptor, InterceptorItem } from "./InterceptorItem";
-import { Flex } from "@radix-ui/themes";
+import { Flex, Text } from "@radix-ui/themes";
 
-export interface InterceptorsListProps {
+export interface InterceptorsListProps extends HTMLAttributes<HTMLElement> {
   interceptors: ExtensionInterceptor[];
   onInterceptorChange?: (interceptor: ExtensionInterceptor) => void;
   onInterceptorRemove?: (interceptor: ExtensionInterceptor) => void;
@@ -12,7 +12,7 @@ export interface InterceptorsListProps {
   onHightLightInterceptor?: (
     interceptor: ExtensionInterceptor | undefined,
   ) => void;
-  ref?: MutableRefObject<any>;
+  ref?: RefObject<any>;
 }
 
 export function InterceptorsList({
@@ -23,9 +23,10 @@ export function InterceptorsList({
   onDuplicate,
   onHightLightInterceptor,
   ref,
+  ...props
 }: InterceptorsListProps) {
   return (
-    <Flex ref={ref} direction="column" gap="2">
+    <Flex ref={ref} direction="column" gap="2" {...props}>
       {interceptors.map((interceptor) => (
         <InterceptorItem
           key={interceptor.name + interceptor.id}
