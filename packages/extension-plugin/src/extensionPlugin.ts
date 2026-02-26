@@ -33,52 +33,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
 
   let expressions = new Map<InterceptorId, string>();
 
-  function subscribe(instance: Tweaker) {
-    instance.subscribe(
-      "*",
-      ({
-        key,
-        tweaked,
-        originalValue,
-        result,
-        error,
-        interceptorId,
-        stack,
-      }) => {
-        sendMessageToExtension("value", {
-          id: generateStringId(),
-          name: instance.name,
-          key,
-          originalValue: isErrorLike(originalValue)
-            ? serializeError(originalValue)
-            : klona(originalValue),
-          result: isErrorLike(result) ? serializeError(result) : klona(result),
-          timestamp: Date.now(),
-          tweaked,
-          error: error ?? false,
-          interceptorId,
-          stack,
-        });
-      },
-      { mode: "all" },
-    );
-
-    _instance.on("intercept.new", (listener) => {
-      if (listener.owner === TWEAKER_OWNER) {
-        notifyExtensionNewIntercept(_instance, listener);
-      }
-    });
-
-    _instance.on("intercept.remove", (listener) => {
-      if (listener.owner === TWEAKER_OWNER) {
-        notifyExtensionRemoveIntercept(_instance, listener);
-      }
-    });
-  }
-
   function start() {
-    if (!("addEventListener" in globalThis)) return;
-
     function notify(type: "ping" | "pong") {
       sendMessageToExtension(type, {
         name: _instance.name,
@@ -109,26 +64,6 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
       console.log("tweaker extension plugin is ready");
       // notifyExtensionInit(_instance, getListeners());
     }
-
-    const promise = new Promise<void>((resolve) => {
-      notify("ping");
-      const handler = (event: MessageEvent) => {
-        if (!isForPluginMessage(event.data)) return;
-
-        if (event.data.type === "ping" || event.data.type === "pong") {
-          notifyExtensionInit(_instance, getListeners());
-        }
-
-        if (event.data.type === "init") {
-          handleInterceptors(event.data.payload.interceptors);
-          globalThis.removeEventListener("message", handler);
-          resolve();
-        }
-      };
-      globalThis.addEventListener("message", handler);
-    }).then(() => ready());
-
-    promises.push(promise);
 
     function handleInterceptors(
       interceptors: ExtensionDevtoolsMessages.InitMessage["payload"]["interceptors"],
@@ -240,32 +175,112 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
       }
     }
 
-    globalThis.addEventListener("message", (event: MessageEvent) => {
-      if (!isForPluginMessage(event.data)) return;
-      switch (event.data.type) {
-        case "interceptors": {
-          handleInterceptors(event.data.payload.data);
-          break;
+    function subscribeForExtensionMessages() {
+      if (!("addEventListener" in globalThis)) return;
+
+      globalThis.addEventListener("message", (event: MessageEvent) => {
+        if (!isForPluginMessage(event.data)) return;
+
+        readyPromise.finally(() => {
+          switch (event.data.type) {
+            case "interceptors": {
+              handleInterceptors(event.data.payload.data);
+              break;
+            }
+            case "interceptors:add": {
+              handleAddedInterceptors(event.data.payload.data);
+              break;
+            }
+            case "interceptors:update": {
+              handleUpdatedInterceptors(event.data.payload.data);
+              break;
+            }
+            case "interceptors:remove": {
+              handleRemovedInterceptors(event.data.payload.data);
+              break;
+            }
+            case "ping":
+            case "pong": {
+              notifyExtensionInterceptors(getListeners());
+              break;
+            }
+          }
+        });
+      });
+    }
+
+    function subscribeForInstanceMessages() {
+      _instance.subscribe(
+        "*",
+        ({
+          key,
+          tweaked,
+          originalValue,
+          result,
+          error,
+          interceptorId,
+          stack,
+        }) => {
+          readyPromise.finally(() => {
+            sendMessageToExtension("value", {
+              id: generateStringId(),
+              name: _instance.name,
+              key,
+              originalValue: isErrorLike(originalValue)
+                ? serializeError(originalValue)
+                : klona(originalValue),
+              result: isErrorLike(result)
+                ? serializeError(result)
+                : klona(result),
+              timestamp: Date.now(),
+              tweaked,
+              error: error ?? false,
+              interceptorId,
+              stack,
+            });
+          });
+        },
+        { mode: "all" },
+      );
+
+      _instance.on("intercept.new", (listener) => {
+        if (listener.owner !== TWEAKER_OWNER) return;
+        readyPromise.finally(() => {
+          notifyExtensionNewIntercept(_instance, listener);
+        });
+      });
+
+      _instance.on("intercept.remove", (listener) => {
+        if (listener.owner !== TWEAKER_OWNER) return;
+        readyPromise.finally(() => {
+          notifyExtensionRemoveIntercept(_instance, listener);
+        });
+      });
+    }
+
+    const readyPromise = new Promise<void>((resolve) => {
+      if (!("addEventListener" in globalThis)) return resolve();
+      notify("ping");
+      const handler = (event: MessageEvent) => {
+        if (!isForPluginMessage(event.data)) return;
+
+        if (event.data.type === "ping" || event.data.type === "pong") {
+          notifyExtensionInit(_instance, getListeners());
         }
-        case "interceptors:add": {
-          handleAddedInterceptors(event.data.payload.data);
-          break;
+
+        if (event.data.type === "init") {
+          handleInterceptors(event.data.payload.interceptors);
+          globalThis.removeEventListener("message", handler);
+          resolve();
         }
-        case "interceptors:update": {
-          handleUpdatedInterceptors(event.data.payload.data);
-          break;
-        }
-        case "interceptors:remove": {
-          handleRemovedInterceptors(event.data.payload.data);
-          break;
-        }
-        case "ping":
-        case "pong": {
-          notifyExtensionInterceptors(getListeners());
-          break;
-        }
-      }
-    });
+      };
+      globalThis.addEventListener("message", handler);
+    }).then(() => ready());
+
+    promises.push(readyPromise);
+
+    subscribeForExtensionMessages();
+    subscribeForInstanceMessages();
   }
 
   return {
@@ -274,7 +289,6 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
     setup: (instance) => {
       _instance = instance;
       registerInstance(instance);
-      subscribe(instance);
       start();
     },
     ready: () => {
