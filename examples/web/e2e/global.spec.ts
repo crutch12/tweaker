@@ -7,7 +7,7 @@ test.describe("registry", () => {
       path: fileURLToPath(import.meta.resolve("@tweaker/core/iife/global")),
     });
 
-    await page.goto("https://example.com");
+    await page.goto("about:blank");
 
     const result = await page.evaluate(
       () => typeof window.__TWEAKER_REGISTRY__ === "object",
@@ -23,9 +23,16 @@ test.describe("withInstance", () => {
       path: fileURLToPath(import.meta.resolve("@tweaker/core/iife/global")),
     });
 
+    let exposeFunctionPromise = Promise.resolve();
+
     const tweakerCreatedPromise = new Promise<string>((resolve) => {
-      page.exposeFunction("tweakerCreated", (name: string) => resolve(name));
+      exposeFunctionPromise = page.exposeFunction(
+        "tweakerCreated",
+        (name: string) => resolve(name),
+      );
     });
+
+    await exposeFunctionPromise;
 
     await page.addInitScript(() => {
       window.__TWEAKER_REGISTRY__?.withInstance("web", (instance) => {

@@ -61,18 +61,17 @@ export const test = base.extend<{
     }
   },
   extensionId: async ({ browserName, context }, use) => {
-    if (browserName === "webkit") {
-      await use(undefined);
-      return;
+    switch (browserName) {
+      case "chromium":
+        let [serviceWorker] = context.serviceWorkers();
+        if (!serviceWorker)
+          serviceWorker = await context.waitForEvent("serviceworker");
+        const extensionId = serviceWorker.url().split("/")[2];
+        await use(extensionId);
+        break;
+      default:
+        await use(undefined);
     }
-
-    let [serviceWorker] = context.serviceWorkers();
-    if (!serviceWorker)
-      serviceWorker = await context.waitForEvent("serviceworker");
-
-    const extensionId = serviceWorker.url().split("/")[2];
-
-    await use(extensionId);
   },
 });
 
