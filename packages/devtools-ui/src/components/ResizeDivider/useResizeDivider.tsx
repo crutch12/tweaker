@@ -47,6 +47,9 @@ export function useResizeDivider({
           disableNativeDragPreview({ nativeSetDragImage });
           preventUnhandled.start();
         },
+        onDragStart: ({ source }) => {
+          source.element.style.setProperty("pointer-events", "none");
+        },
         onDrag: ({ location }) => {
           const container = containerRef.current;
           if (!container) return;
@@ -75,8 +78,9 @@ export function useResizeDivider({
             );
           }
         },
-        onDrop() {
+        onDrop({ source }) {
           preventUnhandled.stop();
+          source.element.style.removeProperty("pointer-events");
         },
       });
     })();
