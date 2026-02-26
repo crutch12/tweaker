@@ -1,6 +1,6 @@
 import type {
   ExtensionPluginMessages,
-  ExtensionDevtoolsMessages,
+  ExtensionBackgroundMessages,
 } from "@tweaker/extension-plugin";
 
 if (!globalThis["chrome"]) {
@@ -23,8 +23,16 @@ window.addEventListener(
 
 // background -> plugin
 chrome.runtime.onMessage.addListener(
-  (message: ExtensionDevtoolsMessages.Message, sender, sendResponse) => {
-    if (message.source === "tweaker-extension-devtools") {
+  (
+    message: ExtensionBackgroundMessages.DevtoolsMessages,
+    sender,
+    sendResponse,
+  ): boolean => {
+    if (
+      message &&
+      message.source === "tweaker-extension-devtools" &&
+      message.target === "tweaker-extension-plugin"
+    ) {
       window.postMessage(message, "*");
     }
     return false;
@@ -32,19 +40,17 @@ chrome.runtime.onMessage.addListener(
 );
 
 function init() {
-  const message: ExtensionDevtoolsMessages.PingMessage = {
+  const message: ExtensionBackgroundMessages.DevtoolsMessages = {
     type: "ping",
     payload: {
       timestamp: Date.now(),
     },
     source: "tweaker-extension-devtools",
+    target: "tweaker-extension-plugin",
     version,
+    tabId: -1,
   };
   window.postMessage(message, "*");
 }
-
-// document.addEventListener("DOMContentLoaded", () => {
-//   debugger;
-// });
 
 init();

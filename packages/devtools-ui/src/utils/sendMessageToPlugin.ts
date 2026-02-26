@@ -23,7 +23,7 @@ export function sendMessageToPlugin<
     payload,
   } as ExtensionDevtoolsMessages.Message;
   chrome.runtime.sendMessage({
-    tabId: currentTabId,
     ...message,
+    tabId: currentTabId,
   });
 }

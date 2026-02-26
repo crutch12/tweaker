@@ -6,6 +6,7 @@ interface DevtoolsAnyMessage<T, P> {
   version: string;
   type: T;
   payload: P;
+  tabId: number;
 }
 
 export namespace ExtensionDevtoolsMessages {
@@ -68,6 +69,26 @@ export namespace ExtensionDevtoolsMessages {
       data: Pick<InterceptorPayload<unknown>, "id">[];
     }
   >;
+  export type InitConnectionMessage = DevtoolsAnyMessage<
+    "init-connection",
+    {
+      timestamp: number;
+    }
+  >;
+
+  export type ClearMessagesMessage = DevtoolsAnyMessage<
+    "clear-messages",
+    {
+      timestamp: number;
+    }
+  >;
+
+  export type ClearInterceptorsMessage = DevtoolsAnyMessage<
+    "clear-interceptors",
+    {
+      timestamp: number;
+    }
+  >;
 
   export type Message =
     | PingMessage
@@ -76,5 +97,8 @@ export namespace ExtensionDevtoolsMessages {
     | InterceptorsMessage
     | AddInterceptorsMessage
     | UpdateInterceptorsMessage
-    | RemoveInterceptorsMessage;
+    | RemoveInterceptorsMessage
+    | InitConnectionMessage
+    | ClearMessagesMessage
+    | ClearInterceptorsMessage;
 }

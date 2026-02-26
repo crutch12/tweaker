@@ -21,6 +21,8 @@ import {
   EXTENSION_DEVTOOLS_SOURCE,
 } from "./const";
 import type { InterceptorPayload } from "./types";
+import { sendMessageToExtension } from "./sendMessageToExtension";
+import { isForPluginMessage } from "./messages";
 
 export interface ExtensionPluginOptions {}
 
@@ -32,8 +34,6 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
   let expressions = new Map<InterceptorId, string>();
 
   function subscribe(instance: Tweaker) {
-    if (!("postMessage" in globalThis)) return;
-
     instance.subscribe(
       "*",
       ({
@@ -45,28 +45,20 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
         interceptorId,
         stack,
       }) => {
-        const message: ExtensionPluginMessages.ValueMessage = {
-          source: EXTENSION_PLUGIN_SOURCE,
-          version,
-          type: "value",
-          payload: {
-            id: generateStringId(),
-            name: instance.name,
-            key,
-            originalValue: isErrorLike(originalValue)
-              ? serializeError(originalValue)
-              : klona(originalValue),
-            result: isErrorLike(result)
-              ? serializeError(result)
-              : klona(result),
-            timestamp: Date.now(),
-            tweaked,
-            error: error ?? false,
-            interceptorId,
-            stack,
-          },
-        };
-        globalThis.postMessage(message, "*");
+        sendMessageToExtension("value", {
+          id: generateStringId(),
+          name: instance.name,
+          key,
+          originalValue: isErrorLike(originalValue)
+            ? serializeError(originalValue)
+            : klona(originalValue),
+          result: isErrorLike(result) ? serializeError(result) : klona(result),
+          timestamp: Date.now(),
+          tweaked,
+          error: error ?? false,
+          interceptorId,
+          stack,
+        });
       },
       { mode: "all" },
     );
@@ -86,21 +78,12 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
 
   function start() {
     if (!("addEventListener" in globalThis)) return;
-    if (!("postMessage" in globalThis)) return;
 
     function notify(type: "ping" | "pong") {
-      const message:
-        | ExtensionPluginMessages.PingMessage
-        | ExtensionPluginMessages.PongMessage = {
-        source: EXTENSION_PLUGIN_SOURCE,
-        version,
-        type,
-        payload: {
-          name: _instance.name,
-          timestamp: Date.now(),
-        },
-      };
-      globalThis.postMessage(message, "*");
+      sendMessageToExtension(type, {
+        name: _instance.name,
+        timestamp: Date.now(),
+      });
     }
 
     function getListeners(): InterceptorPayload<unknown>[] {
@@ -129,12 +112,8 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
 
     const promise = new Promise<void>((resolve) => {
       notify("ping");
-      const handler = (
-        event: MessageEvent<ExtensionDevtoolsMessages.Message>,
-      ) => {
-        if (!event.data || event.data.source !== EXTENSION_DEVTOOLS_SOURCE) {
-          return;
-        }
+      const handler = (event: MessageEvent) => {
+        if (!isForPluginMessage(event.data)) return;
 
         if (event.data.type === "ping" || event.data.type === "pong") {
           notifyExtensionInit(_instance, getListeners());
@@ -261,38 +240,32 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
       }
     }
 
-    globalThis.addEventListener(
-      "message",
-      (event: MessageEvent<ExtensionDevtoolsMessages.Message>) => {
-        if (event.data && event.data.source === EXTENSION_DEVTOOLS_SOURCE) {
-          // debugger;
-          console.log(event.data.payload);
-          switch (event.data.type) {
-            case "interceptors": {
-              handleInterceptors(event.data.payload.data);
-              break;
-            }
-            case "interceptors:add": {
-              handleAddedInterceptors(event.data.payload.data);
-              break;
-            }
-            case "interceptors:update": {
-              handleUpdatedInterceptors(event.data.payload.data);
-              break;
-            }
-            case "interceptors:remove": {
-              handleRemovedInterceptors(event.data.payload.data);
-              break;
-            }
-            case "ping":
-            case "pong": {
-              notifyExtensionInterceptors(getListeners());
-              break;
-            }
-          }
+    globalThis.addEventListener("message", (event: MessageEvent) => {
+      if (!isForPluginMessage(event.data)) return;
+      switch (event.data.type) {
+        case "interceptors": {
+          handleInterceptors(event.data.payload.data);
+          break;
         }
-      },
-    );
+        case "interceptors:add": {
+          handleAddedInterceptors(event.data.payload.data);
+          break;
+        }
+        case "interceptors:update": {
+          handleUpdatedInterceptors(event.data.payload.data);
+          break;
+        }
+        case "interceptors:remove": {
+          handleRemovedInterceptors(event.data.payload.data);
+          break;
+        }
+        case "ping":
+        case "pong": {
+          notifyExtensionInterceptors(getListeners());
+          break;
+        }
+      }
+    });
   }
 
   return {

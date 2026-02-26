@@ -1,37 +1,20 @@
-import type { EXTENSION_BACKGROUND_SOURCE } from "../../const";
+import type {
+  EXTENSION_DEVTOOLS_SOURCE,
+  EXTENSION_PLUGIN_SOURCE,
+} from "../../const";
 
-type BackgroundAnyMessage<T, P> = {
-  source: typeof EXTENSION_BACKGROUND_SOURCE;
-  version: string;
-  type: T;
-  payload: P;
-  tabId: number;
-};
+import type { ExtensionDevtoolsMessages } from "./ExtensionDevtoolsMessages";
+import type { ExtensionPluginMessages } from "./ExtensionPluginMessages";
 
 export namespace ExtensionBackgroundMessages {
-  export type InitConnectionMessage = BackgroundAnyMessage<
-    "init-connection",
-    {
-      timestamp: number;
-    }
-  >;
+  export type PluginMessages = ExtensionPluginMessages.Message & {
+    target: typeof EXTENSION_DEVTOOLS_SOURCE;
+    tabId: number;
+  };
+  export type DevtoolsMessages = ExtensionDevtoolsMessages.Message & {
+    target: typeof EXTENSION_PLUGIN_SOURCE;
+    tabId: number;
+  };
 
-  export type ClearMessagesMessage = BackgroundAnyMessage<
-    "clear-messages",
-    {
-      timestamp: number;
-    }
-  >;
-
-  export type ClearInterceptorsMessage = BackgroundAnyMessage<
-    "clear-interceptors",
-    {
-      timestamp: number;
-    }
-  >;
-
-  export type Message =
-    | InitConnectionMessage
-    | ClearMessagesMessage
-    | ClearInterceptorsMessage;
+  export type Message = PluginMessages | DevtoolsMessages;
 }

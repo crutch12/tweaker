@@ -5,8 +5,9 @@ import {
   ExtensionPluginMessages,
   EXTENSION_PLUGIN_SOURCE,
   EXTENSION_DEVTOOLS_SOURCE,
-  EXTENSION_BACKGROUND_SOURCE,
   ExtensionBackgroundMessages,
+  isPluginMessage,
+  isDevtoolsMessage,
 } from "@tweaker/extension-plugin";
 import { version } from "../../package.json";
 
@@ -14,41 +15,7 @@ import PQueue from "p-queue";
 import { setExtensionIconAndPopup } from "./setExtensionIconAndPopup";
 import { setExtensionCounter } from "./setExtensionCounter";
 
-const connections: Record<number, chrome.runtime.Port> = {};
-
 const tweakedCounter: Record<number, number> = {};
-
-chrome.runtime.onConnect.addListener((port) => {
-  if (port.name !== "tweaker-devtools-relay") return;
-
-  const extensionListener = (message: ExtensionBackgroundMessages.Message) => {
-    if (message.source !== EXTENSION_BACKGROUND_SOURCE) return;
-    if (message.type === "init-connection") {
-      connections[message.tabId] = port;
-      return;
-    }
-    if (message.type === "clear-messages") {
-      clearMessages();
-      return;
-    }
-    if (message.type === "clear-interceptors") {
-      clearInterceptors();
-      return;
-    }
-  };
-
-  port.onMessage.addListener(extensionListener);
-
-  port.onDisconnect.addListener(() => {
-    port.onMessage.removeListener(extensionListener);
-    for (const tabId in connections) {
-      if (connections[tabId] === port) {
-        delete connections[tabId];
-        break;
-      }
-    }
-  });
-});
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.session.setAccessLevel?.({
@@ -56,94 +23,122 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
+function sendMessageToPlugin(
+  tabId: number,
+  data: ExtensionDevtoolsMessages.Message,
+) {
+  const message: ExtensionBackgroundMessages.DevtoolsMessages = {
+    ...data,
+    target: EXTENSION_PLUGIN_SOURCE,
+    tabId,
+  };
+  chrome.tabs.sendMessage(tabId, message);
+}
+
 function sendMessageToDevTools(
   tabId: number,
   data: ExtensionPluginMessages.Message,
 ) {
-  if (connections[tabId]) {
-    connections[tabId].postMessage(data);
-  }
+  const message: ExtensionBackgroundMessages.PluginMessages = {
+    ...data,
+    target: EXTENSION_DEVTOOLS_SOURCE,
+    tabId,
+  };
+  chrome.runtime.sendMessage(message);
 }
 
 // plugin <-> background -> devtools
-chrome.runtime.onMessage.addListener(
-  (message: ExtensionPluginMessages.Message, sender) => {
-    const tabId = sender.tab?.id;
-    if (!tabId) return false;
-    if (message.source === EXTENSION_PLUGIN_SOURCE) {
-      chrome.runtime.sendMessage(message);
-      switch (message.type) {
-        case "ping": {
-          const _message: ExtensionDevtoolsMessages.PongMessage = {
-            source: EXTENSION_DEVTOOLS_SOURCE,
-            version,
-            type: "pong",
-            payload: {
-              name: message.payload.name,
-              timestamp: Date.now(),
-            },
-          };
-          chrome.tabs.sendMessage(tabId, _message);
-          break;
-        }
-        case "init": {
-          setExtensionIconAndPopup("enabled", tabId);
-          handleInterceptors(message.payload.interceptors).then(
-            (interceptors) => {
-              const _message: ExtensionDevtoolsMessages.InitMessage = {
-                source: EXTENSION_DEVTOOLS_SOURCE,
-                version,
-                type: "init",
-                payload: {
-                  enabled: message.payload.enabled, // TODO: read enabled state from storage
-                  interceptors: interceptors, // TODO: read interceptors from storage
-                  timestamp: Date.now(),
-                },
-              };
-              chrome.tabs.sendMessage(tabId, _message);
-              sendMessageToDevTools(tabId, message);
-            },
-          );
-          break;
-        }
-        case "interceptors": {
-          // handleInterceptors(message.payload).then((interceptors) => {
-          //   sendMessageToDevTools(tabId, { ...message, payload: interceptors });
-          // });
-          sendMessageToDevTools(tabId, message);
-          break;
-        }
-        case "value": {
-          if (message.payload.tweaked) {
-            tweakedCounter[tabId] = tweakedCounter[tabId]
-              ? tweakedCounter[tabId] + 1
-              : 1;
-            setExtensionCounter(tweakedCounter[tabId], tabId);
-          }
-          saveValueMessage(message);
-          sendMessageToDevTools(tabId, message);
-          break;
-        }
-        default: {
-          sendMessageToDevTools(tabId, message);
-        }
-      }
+chrome.runtime.onMessage.addListener((message: unknown, sender): boolean => {
+  if (!isPluginMessage(message)) return false;
+
+  const tabId = sender.tab?.id;
+  if (!tabId) return false;
+
+  switch (message.type) {
+    case "ping": {
+      const _message: ExtensionBackgroundMessages.DevtoolsMessages = {
+        source: EXTENSION_DEVTOOLS_SOURCE,
+        target: EXTENSION_PLUGIN_SOURCE,
+        version,
+        type: "pong",
+        payload: {
+          name: message.payload.name,
+          timestamp: Date.now(),
+        },
+        tabId,
+      };
+      sendMessageToPlugin(tabId, _message);
+      break;
     }
-    return false;
-  },
-);
+    case "init": {
+      setExtensionIconAndPopup("enabled", tabId);
+      handleInterceptors(message.payload.interceptors).then((interceptors) => {
+        const _message: ExtensionBackgroundMessages.DevtoolsMessages = {
+          source: EXTENSION_DEVTOOLS_SOURCE,
+          target: EXTENSION_PLUGIN_SOURCE,
+          version,
+          type: "init",
+          payload: {
+            enabled: message.payload.enabled, // TODO: read enabled state from storage
+            interceptors: interceptors, // TODO: read interceptors from storage
+            timestamp: Date.now(),
+          },
+          tabId,
+        };
+        sendMessageToPlugin(tabId, _message);
+        sendMessageToDevTools(tabId, message);
+      });
+      break;
+    }
+    case "interceptors": {
+      // handleInterceptors(message.payload).then((interceptors) => {
+      //   sendMessageToDevTools(tabId, { ...message, payload: interceptors });
+      // });
+      sendMessageToDevTools(tabId, message);
+      break;
+    }
+    case "value": {
+      if (message.payload.tweaked) {
+        tweakedCounter[tabId] = tweakedCounter[tabId]
+          ? tweakedCounter[tabId] + 1
+          : 1;
+        setExtensionCounter(tweakedCounter[tabId], tabId);
+      }
+      saveValueMessage(message);
+      sendMessageToDevTools(tabId, message);
+      break;
+    }
+    default: {
+      sendMessageToDevTools(tabId, message);
+    }
+  }
+  return false;
+});
 
 // devtools -> background -> plugin
-chrome.runtime.onMessage.addListener(
-  (message: ExtensionDevtoolsMessages.Message & { tabId?: number }, sender) => {
-    if (message.source === EXTENSION_DEVTOOLS_SOURCE) {
-      if (message.tabId) {
-        chrome.tabs.sendMessage(message.tabId, message);
-      }
-    }
-    return false;
-  },
-);
+chrome.runtime.onMessage.addListener((message: unknown, sender): boolean => {
+  if (!isDevtoolsMessage(message)) return false;
+
+  const _message: ExtensionBackgroundMessages.DevtoolsMessages = {
+    ...message,
+    target: EXTENSION_PLUGIN_SOURCE,
+  };
+
+  switch (message.type) {
+    case "init-connection":
+      break;
+    case "clear-interceptors":
+      clearInterceptors();
+      break;
+    case "clear-messages":
+      clearMessages();
+      break;
+    default:
+      sendMessageToPlugin(message.tabId, _message);
+  }
+
+  return false;
+});
 
 async function handleInterceptors(
   interceptors: ExtensionDevtoolsMessages.InitMessage["payload"]["interceptors"],

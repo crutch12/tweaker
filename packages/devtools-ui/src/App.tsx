@@ -10,6 +10,7 @@ import {
   ExtensionPluginMessages,
   EXTENSION_OWNER,
   EXTENSION_PLUGIN_SOURCE,
+  isForDevtoolsMessage,
 } from "@tweaker/extension-plugin";
 import { generateNumberId } from "@tweaker/core/utils";
 import type { InterceptorId } from "@tweaker/core";
@@ -17,7 +18,6 @@ import { version, name } from "../package.json";
 import { useInterceptorsStore } from "./features/interceptors/useInterceptorsStore";
 import { css } from "@emotion/css";
 import { sendMessageToPlugin } from "./utils/sendMessageToPlugin";
-import { useDevtoolsConnection } from "./hooks/useDevtoolsConnection";
 import {
   HighlightRow,
   MessagesTableContainer,
@@ -123,45 +123,53 @@ export function App() {
     });
   }, []);
 
-  const { subscribe, sendMessage } = useDevtoolsConnection();
-
   useEffect(() => {
-    return subscribe((message) => {
-      if (message.source === EXTENSION_PLUGIN_SOURCE) {
-        switch (message.type) {
-          case "value": {
-            setMessages((v) => [...v, message.payload]);
-            break;
-          }
-          case "new-intercept": {
-            addInterceptors([
-              {
-                ...message.payload,
-                expression: undefined,
-                // fromKey: undefined,
-                // sampleId: undefined,
-                // sampleIds: undefined,
-              },
-            ]);
-            break;
-          }
-          case "remove-intercept": {
-            removeInterceptors([{ id: message.payload.id }]);
-            break;
-          }
-          case "interceptors": {
-            // message.payload
-            setInterceptors(
-              message.payload.map((interceptor) => ({
-                ...interceptor,
-                expression: interceptor.expression,
-              })),
-            );
-            break;
-          }
+    const handler = (message: unknown): boolean => {
+      if (!isForDevtoolsMessage(message)) return false;
+
+      const currentTabId = chrome.devtools.inspectedWindow.tabId;
+      if (message.tabId !== currentTabId) return false;
+
+      switch (message.type) {
+        case "value": {
+          setMessages((v) => [...v, message.payload]);
+          break;
+        }
+        case "new-intercept": {
+          addInterceptors([
+            {
+              ...message.payload,
+              expression: undefined,
+              // fromKey: undefined,
+              // sampleId: undefined,
+              // sampleIds: undefined,
+            },
+          ]);
+          break;
+        }
+        case "remove-intercept": {
+          removeInterceptors([{ id: message.payload.id }]);
+          break;
+        }
+        case "interceptors": {
+          // message.payload
+          setInterceptors(
+            message.payload.map((interceptor) => ({
+              ...interceptor,
+              expression: interceptor.expression,
+            })),
+          );
+          break;
         }
       }
-    });
+      return false;
+    };
+
+    chrome.runtime.onMessage.addListener(handler);
+
+    return () => {
+      chrome.runtime.onMessage.removeListener(handler);
+    };
   }, []);
 
   const createInterceptorByMessage = useCallback(
@@ -291,12 +299,14 @@ export function App() {
   // }, [interceptors]);
 
   const clearMessages = () => {
-    sendMessage("clear-messages", { timestamp: Date.now() });
+    sendMessageToPlugin("clear-messages", { timestamp: Date.now() });
+    // sendMessage("clear-messages", { timestamp: Date.now() });
     setMessages([]);
   };
 
   const clearInterceptors = () => {
-    sendMessage("clear-interceptors", { timestamp: Date.now() });
+    sendMessageToPlugin("clear-interceptors", { timestamp: Date.now() });
+    // sendMessage("clear-interceptors", { timestamp: Date.now() });
     setInterceptors([]);
   };
 
