@@ -28,3 +28,14 @@ export function generateNumberId(length = 9) {
 export function generateStringId(length = 9) {
   return globalThis.crypto.randomUUID().replace("-", "").slice(-length);
 }
+
+export function getBrowserType(
+  userAgent: string,
+): "chrome" | "edge" | "safari" | "firefox" | undefined {
+  const ua = userAgent.toLocaleLowerCase();
+  if (ua.includes("edg/")) return "edge";
+  if (ua.includes("firefox")) return "firefox";
+  if (ua.includes("safari") && !ua.includes("chrome")) return "safari";
+  if (ua.includes("chrome")) return "chrome";
+  return undefined;
+}

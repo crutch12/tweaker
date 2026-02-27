@@ -1,5 +1,6 @@
 import "../extension-polyfill";
 import debounce from "../utils/debounce";
+import { getBrowserType } from "@tweaker/core/utils";
 
 const evalScripts = {
   checkIfTweakerPresentInInspectedWindow: () =>
@@ -19,8 +20,9 @@ function mountTweakerDevTools(reload = false) {
     }
     return;
   }
+  const browserType = getBrowserType(navigator.userAgent);
   chrome.devtools.panels.create(
-    "Tweaker",
+    ["chrome", "edge"].includes(browserType!) ? "Tweaker 🐛" : "Tweaker",
     "",
     "/src/app/index.html",
     (createdPanel) => {
