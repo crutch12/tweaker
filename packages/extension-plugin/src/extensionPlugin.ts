@@ -222,6 +222,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
           interceptorId,
           stack,
         }) => {
+          const timestamp = Date.now();
           await readyPromise.finally();
           sendMessageToExtension("value", {
             id: generateStringId(),
@@ -233,7 +234,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
             result: isErrorLike(result)
               ? serializeError(result)
               : klona(result),
-            timestamp: Date.now(),
+            timestamp,
             tweaked,
             error: error ?? false,
             interceptorId,
