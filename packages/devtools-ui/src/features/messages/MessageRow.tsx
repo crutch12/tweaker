@@ -105,7 +105,7 @@ export function MessageRow({
           <ObjectInspector
             sortKeys={false}
             expandLevel={0}
-            includePrototypes={true}
+            includePrototypes={false}
             data={originalValueData}
           />
         </Table.Cell>
