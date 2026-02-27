@@ -70,6 +70,7 @@ export const test = base.extend<{
         await use(extensionId);
         break;
       default:
+        console.warn(`${browserName} can't retrieve extension id`);
         await use(undefined);
     }
   },
