@@ -43,6 +43,7 @@ import { Runtime } from "./utils/styles";
 import { useResizeDivider } from "./components/ResizeDivider/useResizeDivider";
 import { getDefaultExpression } from "./utils/expressions";
 import { ResizeDivider } from "./components/ResizeDivider/ResizeDivider";
+import { useColorScheme } from "./components/theme/ColorSchemeProvider";
 
 export function App() {
   const reloadPage = () => {
@@ -64,6 +65,12 @@ export function App() {
         alert(result);
       },
     );
+  };
+
+  const { colorScheme, setColorScheme } = useColorScheme();
+
+  const toggleColorScheme = () => {
+    setColorScheme(colorScheme === "dark" ? "light" : "dark");
   };
 
   const date = useMemo(() => new Date(), []);
@@ -330,6 +337,9 @@ export function App() {
           <BlueButton onClick={reloadPanel}>Reload DevTools Panel</BlueButton>
           <BlueButton onClick={reloadPage}>Reload Current Page</BlueButton>
           <BlueButton onClick={evalTweaker}>Eval Tweaker</BlueButton>
+          <BlueButton onClick={toggleColorScheme}>
+            Toggle Color Scheme
+          </BlueButton>
           <BlueButton
             onClick={() =>
               sendMessageToPlugin("init", {
