@@ -29,6 +29,7 @@ import {
   Checkbox,
   Badge as RadixBadge,
   Kbd,
+  Separator,
 } from "@radix-ui/themes";
 import { BlueButton } from "../../components/BlueButton";
 import { SourceCodePopover } from "../../components/SourceCodePopover";
@@ -45,6 +46,15 @@ const ExpressionCodeBlockContainer = lazy(() =>
     default: r.ExpressionCodeBlockContainer,
   })),
 );
+
+const ExpressionTypeDefinition = `type ExpressionCallback<T extends any> = (
+  key: string,
+  value: T,
+  ctx: {
+    params: Record<string, any>;
+    bypass: symbol;
+  },
+) => T | symbol`;
 
 export type ExtensionInterceptor = InterceptorPayload<unknown> & {
   // sampleIds?: string[];
@@ -328,6 +338,9 @@ export function InterceptorItem({
                     });
                   onHightLight(undefined);
                 }}
+                className={css`
+                  width: 150px;
+                `}
               />
             </Flex>
             <Flex align="center" gap="2">
@@ -372,6 +385,7 @@ export function InterceptorItem({
                     Expression
                   </Text>
                   <Tooltip
+                    minWidth="400px"
                     content={
                       <Flex direction="column" gap="1">
                         <Text size="2">
@@ -389,8 +403,35 @@ export function InterceptorItem({
                           are available
                         </Text>
                         <Text size="2">
+                          Return{" "}
+                          <Code variant="solid" color="yellow">
+                            ctx.bypass
+                          </Code>{" "}
+                          to skip current interceptor
+                        </Text>
+                        <Text size="2">
                           Press <Kbd size="1">Ctrl + S</Kbd> to save changes
                         </Text>
+                        <Separator
+                          size="4"
+                          orientation="horizontal"
+                          color="yellow"
+                        />
+                        <Text size="2">Types Definition:</Text>
+
+                        <Suspense
+                          fallback={
+                            <Flex direction="column" gap="1">
+                              <Skeleton height="18px" />
+                            </Flex>
+                          }
+                        >
+                          <ExpressionCodeBlock
+                            code={ExpressionTypeDefinition}
+                            readOnly
+                            language="ts"
+                          />
+                        </Suspense>
                       </Flex>
                     }
                   >
@@ -420,7 +461,7 @@ export function InterceptorItem({
                 }
               >
                 <ExpressionCodeBlockContainer
-                  codeBefore="(key: string, value: any) => {"
+                  codeBefore="(key: string, value: T, ctx: Context) => {"
                   codeAfter="}"
                   language="ts"
                 >
