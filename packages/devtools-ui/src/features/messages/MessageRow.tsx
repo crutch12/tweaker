@@ -13,6 +13,7 @@ import { SelectIcon, ExportIcon } from "@devtools-ds/icon";
 import { Flex, Text, Box } from "@radix-ui/themes";
 import { MessageTweakedInfoPopover } from "./MessageTweakedInfoPopover";
 import type { InterceptorId } from "@tweaker/core";
+import cn from "classnames";
 
 export interface MessageRowProps {
   message: ExtensionPluginMessages.ValueMessage["payload"];
@@ -82,27 +83,24 @@ export function MessageRow({
         data-row-key={message.key}
         data-row-interceptor-id={message.interceptorId}
         ref={nodeRef}
-        className={css`
-          &.bounce-appear-active {
-            animation: ${bounceIn} 1s ease;
-          }
-        `}
+        className={styles.TableRow}
       >
         <Table.Cell
-          className={css`
+          className={cn(css`
             color: ${appColor};
-          `}
+          `)}
           title={message.name}
         >
-          <Text size="2" weight="bold">
+          <Text size="1" weight="bold">
             {message.name}
           </Text>
         </Table.Cell>
         <Table.Cell title={message.key}>
-          <Text size="2">{message.key}</Text>
+          <Text size="1">{message.key}</Text>
         </Table.Cell>
         <Table.Cell title={stringifiedValue}>
           <ObjectInspector
+            className={styles.ObjectInspector}
             sortKeys={false}
             expandLevel={0}
             includePrototypes={false}
@@ -115,7 +113,7 @@ export function MessageRow({
               {message.error && (
                 <Text
                   color="gray"
-                  size="2"
+                  size="1"
                   className={css`
                     cursor: default;
                   `}
@@ -125,6 +123,7 @@ export function MessageRow({
               )}
               <Box title={stringifiedResult} overflow="hidden">
                 <ObjectInspector
+                  className={styles.ObjectInspector}
                   sortKeys={false}
                   expandLevel={0}
                   includePrototypes={false}
@@ -139,24 +138,26 @@ export function MessageRow({
         ) : (
           <Table.Cell>
             <Text
-              size="2"
+              size="1"
               color="gray"
-              className={css`
+              className={cn(css`
                 cursor: default;
-              `}
+              `)}
             >
               empty
             </Text>
           </Table.Cell>
         )}
-        <Table.Cell title={timestampTitle}>{message.timestamp}</Table.Cell>
+        <Table.Cell title={timestampTitle}>
+          <Text size="1">{message.timestamp}</Text>
+        </Table.Cell>
         <Table.Cell>
           <Flex gap="2" align="center">
             <ButtonIcon
               title={`Create interceptor for ${message.key} (${message.name})`}
               onClick={onTweakClick}
             >
-              <ExportIcon size="medium" />
+              <ExportIcon size="small" />
             </ButtonIcon>
             {message.stack && (
               <SourceCodePopover
@@ -170,7 +171,7 @@ export function MessageRow({
                 title={`Go to ${message.interceptorId}`}
                 onClick={onGoToClick}
               >
-                <SelectIcon size="medium" />
+                <SelectIcon size="small" />
               </ButtonIcon>
             )}
           </Flex>
@@ -184,3 +185,18 @@ const bounceIn = keyframes`
   from { background-color: rgba(255, 204, 102, 1); }
   to { background-color: rgba(255, 204, 102, 0); }
 `;
+
+const styles = {
+  TableRow: css`
+    &.bounce-appear-active {
+      animation: ${bounceIn} 1s ease;
+    }
+
+    td {
+      padding: 0 var(--space-1);
+    }
+  `,
+  ObjectInspector: css`
+    font-size: var(--font-size-1);
+  `,
+};

@@ -8,10 +8,6 @@ import type { InterceptorId } from "@tweaker/core";
 
 const emptyFn = () => {};
 
-const NoWrapClassName = css`
-  white-space: nowrap;
-`;
-
 export interface MessagesTableProps extends HTMLAttributes<HTMLElement> {
   messages: ExtensionPluginMessages.ValueMessage["payload"][];
   ref?: RefObject<any>;
@@ -30,40 +26,24 @@ function _MessagesTable({
     <Box ref={ref} {...props}>
       <Table onSelected={emptyFn}>
         <Table.Head>
-          <Table.Row>
-            <Table.HeadCell
-              title="Name"
-              style={{ width: "5%" }}
-              className={NoWrapClassName}
-            >
-              <Text size="2">Name</Text>
+          <Table.Row className={styles.HeadRow}>
+            <Table.HeadCell title="Name" style={{ width: "5%" }}>
+              <Text size="1">Name</Text>
             </Table.HeadCell>
-            <Table.HeadCell
-              title="Key"
-              style={{ width: "10%" }}
-              className={NoWrapClassName}
-            >
-              <Text size="2">Key</Text>
+            <Table.HeadCell title="Key" style={{ width: "10%" }}>
+              <Text size="1">Key</Text>
             </Table.HeadCell>
-            <Table.HeadCell title="Original Value" className={NoWrapClassName}>
-              Original Value
+            <Table.HeadCell title="Original Value">
+              <Text size="1">Original Value</Text>
             </Table.HeadCell>
-            <Table.HeadCell title="Tweaked Value" className={NoWrapClassName}>
-              Tweaked Value
+            <Table.HeadCell title="Tweaked Value">
+              <Text size="1">Tweaked Value</Text>
             </Table.HeadCell>
-            <Table.HeadCell
-              title="Timestamp"
-              style={{ width: "8%" }}
-              className={NoWrapClassName}
-            >
-              <Text size="2">Timestamp</Text>
+            <Table.HeadCell title="Timestamp" style={{ width: "8%" }}>
+              <Text size="1">Timestamp</Text>
             </Table.HeadCell>
-            <Table.HeadCell
-              title="Actions"
-              style={{ width: "12%" }}
-              className={NoWrapClassName}
-            >
-              <Text size="2">Actions</Text>
+            <Table.HeadCell title="Actions" style={{ width: "12%" }}>
+              <Text size="1">Actions</Text>
             </Table.HeadCell>
           </Table.Row>
         </Table.Head>
@@ -80,15 +60,10 @@ function _MessagesTable({
               />
             ))
           ) : (
-            <Table.Row
-              className={css`
-                height: 36px;
-                min-height: 36px;
-              `}
-            >
+            <Table.Row className={styles.TableRow}>
               <Table.Cell colSpan={6}>
                 <Text
-                  size="2"
+                  size="1"
                   align="center"
                   className={css`
                     display: block;
@@ -106,3 +81,19 @@ function _MessagesTable({
 }
 
 export const MessagesTable = memo(_MessagesTable);
+
+const styles = {
+  HeadRow: css`
+    th {
+      white-space: nowrap;
+      padding: 0 var(--space-1);
+    }
+  `,
+  TableRow: css`
+    td {
+      height: 24px;
+      min-height: 24px;
+      padding: 0;
+    }
+  `,
+};

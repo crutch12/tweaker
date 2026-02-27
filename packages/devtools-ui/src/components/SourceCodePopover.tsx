@@ -4,6 +4,7 @@ import { InspectorIcon } from "@devtools-ds/icon";
 import { ButtonIcon } from "./ButtonIcon";
 import { PopoverContent } from "./base/PopoverContent";
 import { css } from "@emotion/css";
+import { IconPropsSize } from "../icons/props";
 
 const ExpressionCodeBlock = lazy(() =>
   import("../features/interceptors/ExpressionCodeBlock").then((r) => ({
@@ -36,6 +37,7 @@ export interface SourceCodePopoverProps {
   stack?: string;
   stackLabel?: string;
   title?: string;
+  size?: IconPropsSize["size"];
 }
 
 export function SourceCodePopover({
@@ -43,12 +45,13 @@ export function SourceCodePopover({
   stack,
   stackLabel = "tweaker.intercept()",
   title,
+  size = "small",
 }: SourceCodePopoverProps) {
   return (
     <Popover.Root>
       <Popover.Trigger>
         <ButtonIcon title={title}>
-          <InspectorIcon size="medium" />
+          <InspectorIcon size={size} />
         </ButtonIcon>
       </Popover.Trigger>
       <PopoverContent

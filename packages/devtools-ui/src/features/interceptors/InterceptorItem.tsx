@@ -262,6 +262,7 @@ export function InterceptorItem({
               code={interceptor.sourceCode}
               stack={interceptor.stack}
               title="Show interceptor source code (formatted)"
+              size="medium"
             />
           )}
           <RadixBadge
