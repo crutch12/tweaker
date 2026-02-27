@@ -29,7 +29,6 @@ import {
   Checkbox,
   Badge as RadixBadge,
   Kbd,
-  Separator,
 } from "@radix-ui/themes";
 import { BlueButton } from "../../components/BlueButton";
 import { SourceCodePopover } from "../../components/SourceCodePopover";
@@ -283,20 +282,31 @@ export function InterceptorItem({
                 </Text>
                 <Tooltip
                   content={
-                    <Flex direction="column" gap="2">
-                      <Text size="2">
-                        Write any valid glob (e.g.{" "}
-                        <Code variant="solid" color="yellow">
-                          *.*
-                        </Code>
-                        )
-                      </Text>
-                      <Text size="2">
-                        Separate multiple globs using{" "}
-                        <Code variant="solid" color="yellow">
-                          ,
-                        </Code>
-                      </Text>
+                    <Flex asChild direction="column" gap="1">
+                      <ul
+                        className={css`
+                          padding-inline-start: var(--space-4);
+                          margin: 0;
+                        `}
+                      >
+                        <li>
+                          <Text size="2">
+                            Write any valid glob (e.g.{" "}
+                            <Code variant="solid" color="yellow">
+                              *.*
+                            </Code>
+                            )
+                          </Text>
+                        </li>
+                        <li>
+                          <Text size="2">
+                            Separate multiple globs using{" "}
+                            <Code variant="solid" color="yellow">
+                              ,
+                            </Code>
+                          </Text>
+                        </li>
+                      </ul>
                     </Flex>
                   }
                 >
@@ -388,50 +398,67 @@ export function InterceptorItem({
                     minWidth="400px"
                     content={
                       <Flex direction="column" gap="1">
-                        <Text size="2">
-                          Write any valid javascript code to return target value
-                        </Text>
-                        <Text size="2">
-                          Even{" "}
-                          <Code variant="solid" color="yellow">
-                            throw
-                          </Code>{" "}
-                          and{" "}
-                          <Code variant="solid" color="yellow">
-                            debugger
-                          </Code>{" "}
-                          are available
-                        </Text>
-                        <Text size="2">
-                          Return{" "}
-                          <Code variant="solid" color="yellow">
-                            ctx.bypass
-                          </Code>{" "}
-                          to skip current interceptor
-                        </Text>
-                        <Text size="2">
-                          Press <Kbd size="1">Ctrl + S</Kbd> to save changes
-                        </Text>
-                        <Separator
-                          size="4"
-                          orientation="horizontal"
-                          color="yellow"
-                        />
-                        <Text size="2">Types Definition:</Text>
-
-                        <Suspense
-                          fallback={
-                            <Flex direction="column" gap="1">
-                              <Skeleton height="18px" />
-                            </Flex>
-                          }
-                        >
-                          <ExpressionCodeBlock
-                            code={ExpressionTypeDefinition}
-                            readOnly
-                            language="ts"
-                          />
-                        </Suspense>
+                        <Flex asChild direction="column" gap="1">
+                          <ul
+                            className={css`
+                              padding-inline-start: var(--space-4);
+                              margin: 0;
+                            `}
+                          >
+                            <li>
+                              <Text size="2">
+                                Write any valid javascript code to return target
+                                value
+                              </Text>
+                            </li>
+                            <li>
+                              <Text size="2">
+                                Even{" "}
+                                <Code variant="solid" color="yellow">
+                                  throw
+                                </Code>{" "}
+                                and{" "}
+                                <Code variant="solid" color="yellow">
+                                  debugger
+                                </Code>{" "}
+                                are available
+                              </Text>
+                            </li>
+                            <li>
+                              <Text size="2">
+                                Return{" "}
+                                <Code variant="solid" color="yellow">
+                                  ctx.bypass
+                                </Code>{" "}
+                                to skip current interceptor
+                              </Text>
+                            </li>
+                            <li>
+                              <Text size="2">
+                                Press <Kbd size="1">Ctrl + S</Kbd> to save
+                                changes
+                              </Text>
+                            </li>
+                          </ul>
+                        </Flex>
+                        <Flex direction="column" gap="1" pb="1">
+                          <Text size="2" weight="bold">
+                            Types Definition
+                          </Text>
+                          <Suspense
+                            fallback={
+                              <Flex direction="column" gap="1">
+                                <Skeleton height="18px" />
+                              </Flex>
+                            }
+                          >
+                            <ExpressionCodeBlock
+                              code={ExpressionTypeDefinition}
+                              readOnly
+                              language="ts"
+                            />
+                          </Suspense>
+                        </Flex>
                       </Flex>
                     }
                   >
