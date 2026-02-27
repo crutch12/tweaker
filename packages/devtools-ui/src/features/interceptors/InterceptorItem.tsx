@@ -20,7 +20,6 @@ import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { parsePatterns, serializePatterns } from "../../utils/pattern";
 import { InfoIcon } from "@devtools-ds/icon";
 import {
-  Tooltip,
   Text,
   Code,
   Skeleton,
@@ -34,6 +33,7 @@ import {
 import { BlueButton } from "../../components/BlueButton";
 import { SourceCodePopover } from "../../components/SourceCodePopover";
 import { CSSTransition } from "react-transition-group";
+import { Tooltip } from "../../components/base/Tooltip";
 
 const ExpressionCodeBlock = lazy(() =>
   import("./ExpressionCodeBlock").then((r) => ({
