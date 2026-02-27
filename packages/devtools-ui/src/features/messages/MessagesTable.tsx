@@ -8,6 +8,10 @@ import type { InterceptorId } from "@tweaker/core";
 
 const emptyFn = () => {};
 
+const NoWrapClassName = css`
+  white-space: nowrap;
+`;
+
 export interface MessagesTableProps extends HTMLAttributes<HTMLElement> {
   messages: ExtensionPluginMessages.ValueMessage["payload"][];
   ref?: RefObject<any>;
@@ -27,18 +31,38 @@ function _MessagesTable({
       <Table onSelected={emptyFn}>
         <Table.Head>
           <Table.Row>
-            <Table.HeadCell style={{ width: "5%" }}>
+            <Table.HeadCell
+              title="Name"
+              style={{ width: "5%" }}
+              className={NoWrapClassName}
+            >
               <Text size="2">Name</Text>
             </Table.HeadCell>
-            <Table.HeadCell style={{ width: "10%" }}>
+            <Table.HeadCell
+              title="Key"
+              style={{ width: "10%" }}
+              className={NoWrapClassName}
+            >
               <Text size="2">Key</Text>
             </Table.HeadCell>
-            <Table.HeadCell>Original Value</Table.HeadCell>
-            <Table.HeadCell>Tweaked Value</Table.HeadCell>
-            <Table.HeadCell style={{ width: "8%" }}>
+            <Table.HeadCell title="Original Value" className={NoWrapClassName}>
+              Original Value
+            </Table.HeadCell>
+            <Table.HeadCell title="Tweaked Value" className={NoWrapClassName}>
+              Tweaked Value
+            </Table.HeadCell>
+            <Table.HeadCell
+              title="Timestamp"
+              style={{ width: "8%" }}
+              className={NoWrapClassName}
+            >
               <Text size="2">Timestamp</Text>
             </Table.HeadCell>
-            <Table.HeadCell style={{ width: "12%" }}>
+            <Table.HeadCell
+              title="Actions"
+              style={{ width: "12%" }}
+              className={NoWrapClassName}
+            >
               <Text size="2">Actions</Text>
             </Table.HeadCell>
           </Table.Row>
