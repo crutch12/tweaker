@@ -65,6 +65,6 @@ export function Badge({
 const BadgeContainer = styled.div`
   position: absolute;
   color: white;
-  font-weight: 700;
   padding: 5px 10px;
+  user-select: none;
 `;

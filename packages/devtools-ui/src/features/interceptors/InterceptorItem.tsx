@@ -515,11 +515,15 @@ export function InterceptorItem({
           position="bottom-right"
           appearance={canChangeExpression ? "primary" : "secondary"}
         >
-          {interceptor.owner}
+          <Text size="3" weight="bold">
+            {interceptor.owner}
+          </Text>
         </Badge>
         {hasChanges && (
           <Badge position="top-right" appearance="warn">
-            *
+            <Text size="3" weight="bold">
+              *
+            </Text>
           </Badge>
         )}
       </Flex>
