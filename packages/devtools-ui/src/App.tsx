@@ -296,19 +296,17 @@ export function App() {
   }, []);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const dividerRef = useRef<HTMLDivElement>(null);
 
   const getResizerMode = useCallback(() => {
     if (!containerRef.current) return "vertical";
     return Runtime.XlAndUp(containerRef.current) ? "horizontal" : "vertical";
   }, []);
 
-  useResizeDivider({
+  const resizeDividerProps = useResizeDivider({
     containerRef,
-    dividerRef,
     heightVariable: "--local-resizing-height",
     widthVariable: "--local-resizing-width",
-    getMode: getResizerMode,
+    getOrientation: getResizerMode,
   });
 
   const resetResizer = useCallback(() => {
@@ -355,13 +353,15 @@ export function App() {
         gap="2"
         rows={{
           // 5px for divider
-          initial: `calc(var(--local-resizing-height) - 5px) 5px 1fr`,
+          // -10px to prevent content jumping
+          initial: `calc(var(--local-resizing-height) - 10px) 5px 1fr`,
           xl: "1fr",
         }}
         columns={{
           initial: "1fr",
           // 5px for divider
-          xl: `calc(var(--local-resizing-width) - 5px) 5px 1fr`,
+          // -10px to prevent content jumping
+          xl: `calc(var(--local-resizing-width) - 10px) 5px 1fr`,
         }}
         className={css`
           --local-resizing-width: 50%;
@@ -419,7 +419,7 @@ export function App() {
             `}
           />
         </Flex>
-        <ResizeDivider ref={dividerRef} onReset={resetResizer} />
+        <ResizeDivider onReset={resetResizer} {...resizeDividerProps} />
         <Flex direction="column" overflow="auto" gap="2" pr="1">
           <Flex gap="2" align="center" wrap="wrap">
             <ButtonIcon title="Clear Interceptors" onClick={clearInterceptors}>

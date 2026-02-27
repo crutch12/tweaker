@@ -18,7 +18,6 @@
     "./styles.css": "./dist/index.css"
   },
   "dependencies": {
-    "@atlaskit/pragmatic-drag-and-drop": "^1.7.7",
     "@design-systems/utils": "^4.15.4",
     "@devtools-ds/icon": "^1.2.1",
     "@devtools-ds/object-inspector": "^1.2.1",
