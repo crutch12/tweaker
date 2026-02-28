@@ -29,8 +29,8 @@ export function ResizeDivider({
       onPointerMove={onResize}
       onPointerUp={onResizeEnd}
       onDoubleClick={onReset}
-      px={{ initial: "0", xl: "2px" }}
-      py={{ initial: "2px", xl: "0" }}
+      px={{ initial: "0", lg: "2px" }}
+      py={{ initial: "2px", lg: "0" }}
       className={css`
         border-radius: 4px;
         :hover {
@@ -39,7 +39,7 @@ export function ResizeDivider({
             inset 1px 1px 2px rgb(26, 115, 232),
             inset -1px -1px 2px rgb(26, 115, 232);
 
-          ${Container.XlAndUp()} {
+          ${Container.LgAndUp()} {
             cursor: e-resize;
           }
         }
@@ -54,7 +54,7 @@ export function ResizeDivider({
     >
       <Separator
         size="4"
-        orientation={{ initial: "horizontal", xl: "vertical" }}
+        orientation={{ initial: "horizontal", lg: "vertical" }}
       />
     </Box>
   );

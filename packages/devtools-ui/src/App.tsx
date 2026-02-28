@@ -306,7 +306,7 @@ export function App() {
 
   const getResizerMode = useCallback(() => {
     if (!containerRef.current) return "vertical";
-    return Runtime.XlAndUp(containerRef.current) ? "horizontal" : "vertical";
+    return Runtime.LgAndUp(containerRef.current) ? "horizontal" : "vertical";
   }, []);
 
   const resizeDividerProps = useResizeDivider({
@@ -365,13 +365,13 @@ export function App() {
           // 5px for divider
           // -10px to prevent content jumping
           initial: `calc(var(--local-resizing-height) - 10px) 5px 1fr`,
-          xl: "1fr",
+          lg: "1fr",
         }}
         columns={{
           initial: "1fr",
           // 5px for divider
           // -10px to prevent content jumping
-          xl: `calc(var(--local-resizing-width) - 10px) 5px 1fr`,
+          lg: `calc(var(--local-resizing-width) - 10px) 5px 1fr`,
         }}
         className={css`
           --local-resizing-width: 50%;

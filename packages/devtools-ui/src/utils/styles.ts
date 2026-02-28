@@ -21,15 +21,20 @@ export function getContainerQuery(query: string) {
 }
 
 export const Media = {
+  LgAndUp: (useMediaPrefix: boolean) =>
+    getMediaQuery(`(min-width: ${MEDIA_WIDTHS.lg}px)`, useMediaPrefix),
   XlAndUp: (useMediaPrefix: boolean) =>
     getMediaQuery(`(min-width: ${MEDIA_WIDTHS.xl}px)`, useMediaPrefix),
 };
 
 export const Container = {
+  LgAndUp: () => getContainerQuery(`(min-width: ${MEDIA_WIDTHS.lg}px)`),
   XlAndUp: () => getContainerQuery(`(min-width: ${MEDIA_WIDTHS.xl}px)`),
 };
 
 export const Runtime = {
+  LgAndUp: (el: HTMLElement) =>
+    el.getBoundingClientRect().width > MEDIA_WIDTHS.lg,
   XlAndUp: (el: HTMLElement) =>
     el.getBoundingClientRect().width > MEDIA_WIDTHS.xl,
 };
