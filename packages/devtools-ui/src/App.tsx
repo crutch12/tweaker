@@ -328,10 +328,10 @@ export function App() {
   }, []);
 
   return (
-    <Flex height="100cqh" direction="column" py="1" gap="2">
-      <Flex direction="column" gap="2" px="1">
-        <Flex gap="2" align="center" wrap="wrap">
-          <Heading size="3">
+    <Flex height="100cqh" direction="column">
+      <Flex direction="column">
+        <Flex gap="1" align="center" wrap="wrap" p="1">
+          <Heading size="2">
             Tweaker DevTools ({date.toLocaleTimeString()})
           </Heading>
           <BlueButton onClick={reloadPanel}>Reload DevTools Panel</BlueButton>
@@ -360,26 +360,25 @@ export function App() {
         minHeight="0"
         flexGrow="1"
         ref={containerRef}
-        gap="2"
         rows={{
           // 5px for divider
           // -10px to prevent content jumping
-          initial: `calc(var(--local-resizing-height) - 10px) 5px 1fr`,
+          initial: `calc(var(--local-resizing-height) - 6.5px) 5px 1fr`,
           lg: "1fr",
         }}
         columns={{
           initial: "1fr",
           // 5px for divider
           // -10px to prevent content jumping
-          lg: `calc(var(--local-resizing-width) - 10px) 5px 1fr`,
+          lg: `calc(var(--local-resizing-width) - 6.5px) 5px 1fr`,
         }}
         className={css`
           --local-resizing-width: 50%;
           --local-resizing-height: 50%;
         `}
       >
-        <Flex direction="column" overflow="auto" gap="2">
-          <Flex gap="2" align="center" wrap="wrap" pl="1">
+        <Flex direction="column" overflow="auto">
+          <Flex gap="1" align="center" wrap="wrap" p="1">
             <ButtonIcon title="Clear Messages" onClick={clearMessages}>
               <ClearIcon size="medium" />
             </ButtonIcon>
@@ -430,8 +429,16 @@ export function App() {
           />
         </Flex>
         <ResizeDivider onReset={resetResizer} {...resizeDividerProps} />
-        <Flex direction="column" overflow="auto" gap="2" pr="1">
-          <Flex gap="2" align="center" wrap="wrap">
+        <Flex direction="column" overflow="auto">
+          <Flex
+            gap="1"
+            p="1"
+            align="center"
+            wrap="wrap"
+            className={css`
+              border-bottom: 1px solid var(--gray-a6);
+            `}
+          >
             <ButtonIcon title="Clear Interceptors" onClick={clearInterceptors}>
               <ClearIcon size="medium" />
             </ButtonIcon>

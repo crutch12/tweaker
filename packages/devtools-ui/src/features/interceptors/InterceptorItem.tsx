@@ -196,6 +196,7 @@ export function InterceptorItem({
           border: 1.5px solid ${appColor};
           border-radius: 10px;
           opacity: ${interceptor.enabled ? undefined : 0.6};
+          background-color: var(--color-panel-solid);
 
           :hover {
             box-shadow:
@@ -534,5 +535,5 @@ export function InterceptorItem({
 
 const bounceIn = keyframes`
   from { background-color: rgba(255, 204, 102, 1); }
-  to { background-color: rgba(255, 204, 102, 0); }
+  to { background-color: var(--color-panel-solid); }
 `;
