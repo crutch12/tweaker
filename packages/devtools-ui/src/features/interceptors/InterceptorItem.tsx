@@ -10,7 +10,11 @@ import {
   useState,
 } from "react";
 import { EXTENSION_OWNER, InterceptorPayload } from "@tweaker/extension-plugin";
-import { getTextColor } from "../../utils/colors";
+import {
+  getActiveBackgroundColor,
+  getBackgroundColor,
+  getTextColor,
+} from "../../utils/colors";
 import equal from "fast-deep-equal";
 import { Badge } from "../../components/Badge";
 import { DeleteIcon, SelectIcon, ExportIcon } from "@devtools-ds/icon";
@@ -144,6 +148,7 @@ export function InterceptorItem({
   }, []);
 
   const appColor = getTextColor(interceptor.name);
+  const appBackgroundColor = getBackgroundColor(interceptor.name);
 
   const patternsError = useMemo(() => {
     return patterns.trim().length === 0;
@@ -192,17 +197,20 @@ export function InterceptorItem({
         p="3"
         gap="2"
         position="relative"
+        style={{
+          // @ts-expect-error
+          "--background-color": "var(--color-panel-solid)",
+          "--active-background-color": appBackgroundColor,
+        }}
         className={css`
           border: 1.5px solid ${appColor};
+          border-left-width: 6px;
           border-radius: 10px;
           opacity: ${interceptor.enabled ? undefined : 0.6};
-          background-color: var(--color-panel-solid);
+          background-color: var(--background-color);
 
           :hover {
-            box-shadow:
-              inset 1px 1px 2px ${appColor},
-              inset -1px -1px 2px ${appColor},
-              var(--shadow-2);
+            background-color: var(--active-background-color);
           }
           &.bounce-appear-active {
             animation: ${bounceIn} 1s ease;
@@ -517,13 +525,13 @@ export function InterceptorItem({
           position="bottom-right"
           appearance={canChangeExpression ? "primary" : "secondary"}
         >
-          <Text size="3" weight="bold">
+          <Text size="2" weight="bold">
             {interceptor.owner}
           </Text>
         </Badge>
         {hasChanges && (
           <Badge position="top-right" appearance="warn">
-            <Text size="3" weight="bold">
+            <Text size="2" weight="bold">
               *
             </Text>
           </Badge>
@@ -535,5 +543,5 @@ export function InterceptorItem({
 
 const bounceIn = keyframes`
   from { background-color: rgba(255, 204, 102, 1); }
-  to { background-color: var(--color-panel-solid); }
+  to { background-color: var(--background-color); }
 `;

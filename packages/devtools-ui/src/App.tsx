@@ -386,7 +386,7 @@ export function App() {
               radius="full"
               placeholder="Filter messages by key (glob, e.g. *.*)"
               className={css`
-                width: 260px;
+                width: 230px;
                 background-color: ${filterPatterns
                   ? "#FFFAC8" // FABEBE
                   : undefined};
@@ -458,7 +458,7 @@ export function App() {
               radius="full"
               placeholder="Filter interceptors by id/name/patterns"
               className={css`
-                width: 260px;
+                width: 230px;
                 background-color: ${interceptorsFilter
                   ? "#FFFAC8" // FABEBE
                   : undefined};

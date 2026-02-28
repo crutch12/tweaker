@@ -19,21 +19,25 @@ const POSITIONS = {
   "top-left": css`
     top: 0;
     left: 0;
+    border-top-left-radius: inherit;
     border-bottom-right-radius: 10px;
   `,
   "top-right": css`
     top: 0;
     right: 0;
+    border-top-right-radius: inherit;
     border-bottom-left-radius: 10px;
   `,
   "bottom-left": css`
     bottom: 0;
     left: 0;
+    border-bottom-left-radius: inherit;
     border-top-right-radius: 10px;
   `,
   "bottom-right": css`
     bottom: 0;
     right: 0;
+    border-bottom-right-radius: inherit;
     border-top-left-radius: 10px;
   `,
 };
@@ -65,6 +69,6 @@ export function Badge({
 const BadgeContainer = styled.div`
   position: absolute;
   color: white;
-  padding: 5px 10px;
+  padding: var(--space-1) var(--space-2);
   user-select: none;
 `;
