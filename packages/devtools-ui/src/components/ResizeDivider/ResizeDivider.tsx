@@ -2,6 +2,7 @@ import { HTMLAttributes, PointerEventHandler, RefObject, useMemo } from "react";
 import { Box, Separator } from "@radix-ui/themes";
 import { css } from "@emotion/css";
 import { Container } from "../../utils/styles";
+import cn from "classnames";
 
 export interface ResizeDividerProps extends HTMLAttributes<HTMLDivElement> {
   onResizeStart: PointerEventHandler;
@@ -15,6 +16,7 @@ export function ResizeDivider({
   onResizeStart,
   onResize,
   onResizeEnd,
+  className,
   ...props
 }: ResizeDividerProps) {
   const title = useMemo(() => {
@@ -29,33 +31,44 @@ export function ResizeDivider({
       onPointerMove={onResize}
       onPointerUp={onResizeEnd}
       onDoubleClick={onReset}
-      px={{ initial: "0", lg: "2px" }}
-      py={{ initial: "2px", lg: "0" }}
-      className={css`
-        border-radius: 4px;
-        :hover {
-          cursor: ns-resize;
-          box-shadow:
-            inset 1px 1px 2px rgb(26, 115, 232),
-            inset -1px -1px 2px rgb(26, 115, 232);
+      px={{ initial: "0", lg: "calc(var(--space-1) / 2)" }}
+      py={{ initial: "calc(var(--space-1) / 2)", lg: "0" }}
+      className={cn(
+        css`
+          position: absolute;
+
+          top: 0;
+          bottom: unset;
+          right: 0;
+          left: 0;
 
           ${Container.LgAndUp()} {
-            cursor: e-resize;
+            top: 0;
+            bottom: 0;
+            right: unset;
+            left: 0;
           }
-        }
 
-        &.resizing {
-          background: rgb(26, 115, 232);
-          box-shadow: none;
-        }
-      `}
+          :hover {
+            cursor: ns-resize;
+            box-shadow:
+              inset 1px 1px 2px rgb(26, 115, 232),
+              inset -1px -1px 2px rgb(26, 115, 232);
+
+            ${Container.LgAndUp()} {
+              cursor: e-resize;
+            }
+          }
+
+          &.resizing {
+            background: rgb(26, 115, 232);
+            box-shadow: none;
+          }
+        `,
+        className,
+      )}
       title={title}
       {...props}
-    >
-      <Separator
-        size="4"
-        orientation={{ initial: "horizontal", lg: "vertical" }}
-      />
-    </Box>
+    />
   );
 }

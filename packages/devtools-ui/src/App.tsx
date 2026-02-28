@@ -39,7 +39,7 @@ import { ConsoleErrorIcon } from "@devtools-ds/icon";
 import { BlueButton } from "./components/BlueButton";
 import { ExtensionInterceptor } from "./features/interceptors/InterceptorItem";
 import { CreateTweakerDropdown } from "./components/CreateTweakerDropdown";
-import { Runtime } from "./utils/styles";
+import { Container, Runtime } from "./utils/styles";
 import { useResizeDivider } from "./components/ResizeDivider/useResizeDivider";
 import { getDefaultExpression } from "./utils/expressions";
 import { ResizeDivider } from "./components/ResizeDivider/ResizeDivider";
@@ -329,48 +329,47 @@ export function App() {
 
   return (
     <Flex height="100cqh" direction="column">
-      <Flex direction="column">
-        <Flex gap="1" align="center" wrap="wrap" p="1">
-          <Heading size="2">
-            Tweaker DevTools ({date.toLocaleTimeString()})
-          </Heading>
-          <BlueButton onClick={reloadPanel}>Reload DevTools Panel</BlueButton>
-          <BlueButton onClick={reloadPage}>Reload Current Page</BlueButton>
-          <BlueButton onClick={evalTweaker}>Eval Tweaker</BlueButton>
-          <BlueButton onClick={toggleColorScheme}>
-            Toggle Color Scheme
-          </BlueButton>
-          <BlueButton
-            onClick={() =>
-              sendMessageToPlugin("init", {
-                // name: "test",
-                timestamp: Date.now(),
-                enabled: true,
-                interceptors: [], // TODO: remove
-                // data: ["Message from extension!"],
-              })
-            }
-          >
-            Send Message
-          </BlueButton>
-        </Flex>
-        <Separator size="4" orientation="horizontal" />
+      <Flex
+        gap="1"
+        align="center"
+        wrap="wrap"
+        p="1"
+        className={css`
+          border-bottom: 1px solid var(--gray-a6);
+        `}
+      >
+        <Heading size="2">
+          Tweaker DevTools ({date.toLocaleTimeString()})
+        </Heading>
+        <BlueButton onClick={reloadPanel}>Reload DevTools Panel</BlueButton>
+        <BlueButton onClick={reloadPage}>Reload Current Page</BlueButton>
+        <BlueButton onClick={evalTweaker}>Eval Tweaker</BlueButton>
+        <BlueButton onClick={toggleColorScheme}>Toggle Color Scheme</BlueButton>
+        <BlueButton
+          onClick={() =>
+            sendMessageToPlugin("init", {
+              // name: "test",
+              timestamp: Date.now(),
+              enabled: true,
+              interceptors: [], // TODO: remove
+              // data: ["Message from extension!"],
+            })
+          }
+        >
+          Send Message
+        </BlueButton>
       </Flex>
       <Grid
         minHeight="0"
         flexGrow="1"
         ref={containerRef}
         rows={{
-          // 5px for divider
-          // -10px to prevent content jumping
-          initial: `calc(var(--local-resizing-height) - 6.5px) 5px 1fr`,
+          initial: `var(--local-resizing-height) 1fr`,
           lg: "1fr",
         }}
         columns={{
           initial: "1fr",
-          // 5px for divider
-          // -10px to prevent content jumping
-          lg: `calc(var(--local-resizing-width) - 6.5px) 5px 1fr`,
+          lg: `var(--local-resizing-width) 1fr`,
         }}
         className={css`
           --local-resizing-width: 50%;
@@ -428,8 +427,20 @@ export function App() {
             `}
           />
         </Flex>
-        <ResizeDivider onReset={resetResizer} {...resizeDividerProps} />
-        <Flex direction="column" overflow="auto">
+        <Flex
+          direction="column"
+          overflow="auto"
+          position="relative"
+          className={css`
+            border-top: 1px solid var(--gray-a6);
+
+            ${Container.LgAndUp()} {
+              border-top: unset;
+              border-left: 1px solid var(--gray-a6);
+            }
+          `}
+        >
+          <ResizeDivider onReset={resetResizer} {...resizeDividerProps} />
           <Flex
             gap="1"
             p="1"
