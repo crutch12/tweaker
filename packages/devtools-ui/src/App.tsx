@@ -385,11 +385,10 @@ export function App() {
               size="1"
               radius="full"
               placeholder="Filter messages by key (glob, e.g. *.*)"
+              color={filterPatterns ? "blue" : undefined}
+              variant="soft"
               className={css`
                 width: 230px;
-                background-color: ${filterPatterns
-                  ? "#FFFAC8" // FABEBE
-                  : undefined};
               `}
               type="text"
               value={filterPatterns ?? ""}
@@ -457,11 +456,10 @@ export function App() {
               size="1"
               radius="full"
               placeholder="Filter interceptors by id/name/patterns"
+              color={interceptorsFilter ? "blue" : undefined}
+              variant="soft"
               className={css`
                 width: 230px;
-                background-color: ${interceptorsFilter
-                  ? "#FFFAC8" // FABEBE
-                  : undefined};
               `}
               type="text"
               value={interceptorsFilter ?? ""}

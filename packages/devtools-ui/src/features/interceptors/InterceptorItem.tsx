@@ -198,7 +198,6 @@ export function InterceptorItem({
         gap="2"
         position="relative"
         style={{
-          // @ts-expect-error
           "--background-color": "var(--color-panel-solid)",
           "--active-background-color": appBackgroundColor,
         }}
@@ -542,6 +541,6 @@ export function InterceptorItem({
 }
 
 const bounceIn = keyframes`
-  from { background-color: rgba(255, 204, 102, 1); }
+  from { background-color: var(--orange-4); }
   to { background-color: var(--background-color); }
 `;

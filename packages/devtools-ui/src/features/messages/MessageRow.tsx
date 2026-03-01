@@ -105,6 +105,7 @@ export function MessageRow({
             expandLevel={0}
             includePrototypes={false}
             data={originalValueData}
+            data-tweaker-devtools
           />
         </Table.Cell>
         {message.tweaked ? (
@@ -128,6 +129,7 @@ export function MessageRow({
                   expandLevel={0}
                   includePrototypes={false}
                   data={resultData}
+                  data-tweaker-devtools
                 />
               </Box>
               {message.interceptorId && (
@@ -182,12 +184,18 @@ export function MessageRow({
 }
 
 const bounceIn = keyframes`
-  from { background-color: rgba(255, 204, 102, 1); }
-  to { background-color: rgba(255, 204, 102, 0); }
+  from { background-color: var(--orange-4); }
+  to { background-color: var(--background-color); }
 `;
 
 const styles = {
   TableRow: css`
+    --background-color: var(--color-panel-solid);
+
+    &:nth-child(even) {
+      --background-color: var(--stripeColor);
+    }
+
     &.bounce-appear-active {
       animation: ${bounceIn} 1s ease;
     }
@@ -198,5 +206,28 @@ const styles = {
   `,
   ObjectInspector: css`
     font-size: var(--font-size-1);
+
+    &[data-tweaker-devtools] {
+      * {
+        --labelColor: var(--sand-11);
+        --textColor: var(--gray-10);
+        --keyColor: var(--plum-11);
+        --valueColor: var(--gray-10);
+        --stringColor: var(--red-10);
+        --regexColor: var(--red-10);
+        --errorColor: var(--red-11);
+        --booleanColor: var(--blue-10);
+        --numberColor: var(--indigo-10);
+        --undefinedColor: var(--olive-11);
+        --nullColor: var(--olive-11);
+        --prototypeColor: var(--cimson-9);
+        --functionColor: var(--blue-12);
+        --functionDecoratorColor: var(--blue-10);
+
+        --focusColor: var(--blue-a4);
+        --hoverColor: var(--gray-a4);
+        --arrowColor: var(--gray-9);
+      }
+    }
   `,
 };

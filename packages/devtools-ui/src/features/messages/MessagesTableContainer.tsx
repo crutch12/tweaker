@@ -79,10 +79,10 @@ function _MessagesTableContainer({
       overflow="auto"
       className={css`
         ${highlightedRowsByPatternSelector} {
-          background-color: rgb(203, 236, 209) !important;
+          background-color: var(--jade-5) !important;
         }
         ${highlightedRowsByInterceptorSelector} {
-          background-color: rgb(235, 203, 236) !important;
+          background-color: var(--purple-5) !important;
         }
       `}
     >

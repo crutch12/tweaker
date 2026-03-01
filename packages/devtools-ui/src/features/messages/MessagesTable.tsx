@@ -24,7 +24,11 @@ function _MessagesTable({
 }: MessagesTableProps) {
   return (
     <Box ref={ref} {...props}>
-      <Table onSelected={emptyFn}>
+      <Table
+        className={styles.Table}
+        onSelected={emptyFn}
+        data-tweaker-devtools
+      >
         <Table.Head>
           <Table.Row className={styles.HeadRow}>
             <Table.HeadCell title="Name" style={{ width: "5%" }}>
@@ -94,6 +98,16 @@ const styles = {
       height: 24px;
       min-height: 24px;
       padding: 0;
+    }
+  `,
+  Table: css`
+    &[data-tweaker-devtools] {
+      --textColor: var(--gray-12);
+      --stripeColor: var(--gray-4);
+      --borderColor: var(--gray-a6);
+      --headBackgroundColor: var(--gray-4);
+      --rowHoverColor: var(--blue-5);
+      --rowSelectedColor: var(--blue-7);
     }
   `,
 };

@@ -5,13 +5,13 @@ import cn from "classnames";
 
 const APPEARANCES = {
   primary: css`
-    background-color: rgb(26, 115, 232);
+    background-color: var(--blue-9);
   `,
   secondary: css`
-    background-color: rgb(88, 119, 160);
+    background-color: var(--slate-9);
   `,
   warn: css`
-    background-color: rgb(236, 143, 45);
+    background-color: var(--orange-9);
   `,
 };
 
