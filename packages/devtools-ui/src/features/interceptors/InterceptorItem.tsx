@@ -338,9 +338,6 @@ export function InterceptorItem({
                     ev.currentTarget.blur();
                   }
                 }}
-                onFocus={(ev) => {
-                  ev.target.setSelectionRange(0, Number.MAX_SAFE_INTEGER);
-                }}
                 onChange={(ev) => {
                   setPatterns(ev.target.value);
                   onHightLight({
