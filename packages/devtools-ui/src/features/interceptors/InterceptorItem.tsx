@@ -292,12 +292,7 @@ export function InterceptorItem({
                 <Tooltip
                   content={
                     <Flex asChild direction="column" gap="1">
-                      <ul
-                        className={css`
-                          padding-inline-start: var(--space-4);
-                          margin: 0;
-                        `}
-                      >
+                      <ul className={styles.TooltipContentList}>
                         <li>
                           <Text size="2">
                             Write any valid glob (e.g.{" "}
@@ -377,13 +372,24 @@ export function InterceptorItem({
                 </Text>
                 <Tooltip
                   content={
-                    <Text size="2">
-                      Stops code via{" "}
-                      <Code variant="solid" color="yellow">
-                        debugger
-                      </Code>{" "}
-                      before result return
-                    </Text>
+                    <Flex asChild direction="column" gap="1">
+                      <ul className={styles.TooltipContentList}>
+                        <li>
+                          <Text size="2">
+                            Stops code via{" "}
+                            <Code variant="solid" color="yellow">
+                              debugger
+                            </Code>{" "}
+                            before result return
+                          </Text>
+                        </li>
+                        <li>
+                          <Text size="2">
+                            Works only if Browser's DevTools panel is open
+                          </Text>
+                        </li>
+                      </ul>
+                    </Flex>
                   }
                 >
                   <ButtonIcon>
@@ -405,12 +411,7 @@ export function InterceptorItem({
                     content={
                       <Flex direction="column" gap="1">
                         <Flex asChild direction="column" gap="1">
-                          <ul
-                            className={css`
-                              padding-inline-start: var(--space-4);
-                              margin: 0;
-                            `}
-                          >
+                          <ul className={styles.TooltipContentList}>
                             <li>
                               <Text size="2">
                                 Write any valid javascript code to return target
@@ -541,3 +542,10 @@ const bounceIn = keyframes`
   from { background-color: var(--orange-4); }
   to { background-color: var(--background-color); }
 `;
+
+const styles = {
+  TooltipContentList: css`
+    padding-inline-start: var(--space-4);
+    margin: 0;
+  `,
+};
