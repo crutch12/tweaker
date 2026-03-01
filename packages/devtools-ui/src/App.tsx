@@ -9,7 +9,6 @@ import {
 import {
   ExtensionPluginMessages,
   EXTENSION_OWNER,
-  EXTENSION_PLUGIN_SOURCE,
   isForDevtoolsMessage,
 } from "@tweaker/extension-plugin";
 import { generateNumberId } from "@tweaker/core/utils";
@@ -18,10 +17,7 @@ import { version, name } from "../package.json";
 import { useInterceptorsStore } from "./features/interceptors/useInterceptorsStore";
 import { css } from "@emotion/css";
 import { sendMessageToPlugin } from "./utils/sendMessageToPlugin";
-import {
-  HighlightRow,
-  MessagesTableContainer,
-} from "./features/messages/MessagesTableContainer";
+import { MessagesTableContainer } from "./features/messages/MessagesTableContainer";
 import { InterceptorsListContainer } from "./features/interceptors/InterceptorsListContainer";
 import { parsePatterns, serializePatterns } from "./utils/pattern";
 import { ButtonIcon } from "./components/ButtonIcon";
@@ -31,9 +27,10 @@ import {
   TextField,
   IconButton,
   Flex,
-  Box,
   Grid,
   Heading,
+  Text,
+  Link,
 } from "@radix-ui/themes";
 import { ConsoleErrorIcon } from "@devtools-ds/icon";
 import { BlueButton } from "./components/BlueButton";
@@ -44,6 +41,13 @@ import { useResizeDivider } from "./components/ResizeDivider/useResizeDivider";
 import { getDefaultExpression } from "./utils/expressions";
 import { ResizeDivider } from "./components/ResizeDivider/ResizeDivider";
 import { useColorScheme } from "./components/theme/ColorSchemeProvider";
+import {
+  SunIcon,
+  MoonIcon,
+  ReloadIcon,
+  GitHubLogoIcon,
+} from "@radix-ui/react-icons";
+import { homepage } from "../../../package.json";
 
 export function App() {
   const reloadPage = () => {
@@ -332,32 +336,72 @@ export function App() {
       <Flex
         gap="1"
         align="center"
+        justify="between"
         wrap="wrap"
-        p="1"
+        py="1"
+        px="2"
         className={css`
           border-bottom: 1px solid var(--gray-a6);
         `}
       >
-        <Heading size="2">
-          Tweaker DevTools ({date.toLocaleTimeString()})
-        </Heading>
-        <BlueButton onClick={reloadPanel}>Reload DevTools Panel</BlueButton>
-        <BlueButton onClick={reloadPage}>Reload Current Page</BlueButton>
-        <BlueButton onClick={evalTweaker}>Eval Tweaker</BlueButton>
-        <BlueButton onClick={toggleColorScheme}>Toggle Color Scheme</BlueButton>
-        <BlueButton
-          onClick={() =>
-            sendMessageToPlugin("init", {
-              // name: "test",
-              timestamp: Date.now(),
-              enabled: true,
-              interceptors: [], // TODO: remove
-              // data: ["Message from extension!"],
-            })
-          }
-        >
-          Send Message
-        </BlueButton>
+        <Flex gap="2" align="center" wrap="wrap">
+          <Heading size="2">Tweaker DevTools</Heading>
+          <Separator orientation="vertical" size="1" />
+          <Text color="gray" size="1">
+            v{version} ({date.toLocaleTimeString()})
+          </Text>
+          {false && (
+            <BlueButton onClick={reloadPage}>Reload Current Page</BlueButton>
+          )}
+          {false && <BlueButton onClick={evalTweaker}>Eval Tweaker</BlueButton>}
+          {false && (
+            <BlueButton
+              onClick={() =>
+                sendMessageToPlugin("init", {
+                  // name: "test",
+                  timestamp: Date.now(),
+                  enabled: true,
+                  interceptors: [], // TODO: remove
+                  // data: ["Message from extension!"],
+                })
+              }
+            >
+              Send Message
+            </BlueButton>
+          )}
+        </Flex>
+        <Flex gap="4" align="center" wrap="wrap">
+          <IconButton
+            asChild
+            color="gray"
+            size="2"
+            variant="ghost"
+            title="View GitHub"
+            onClick={reloadPanel}
+          >
+            <Link color="gray" target="_blank" href={homepage}>
+              <GitHubLogoIcon />
+            </Link>
+          </IconButton>
+          <IconButton
+            color="gray"
+            size="2"
+            variant="ghost"
+            title="Reload DevTools Panel"
+            onClick={reloadPanel}
+          >
+            <ReloadIcon />
+          </IconButton>
+          <IconButton
+            color="gray"
+            size="2"
+            variant="ghost"
+            title="Toggle theme"
+            onClick={toggleColorScheme}
+          >
+            {colorScheme === "dark" ? <MoonIcon /> : <SunIcon />}
+          </IconButton>
+        </Flex>
       </Flex>
       <Grid
         minHeight="0"

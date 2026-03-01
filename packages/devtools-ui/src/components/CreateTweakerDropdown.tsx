@@ -18,7 +18,7 @@ export function CreateTweakerDropdown({
       <DropdownMenu.Trigger disabled={!names.length}>
         <BlueButton disabled={!names.length}>
           <Flex gap="1" align="center">
-            Create interceptor
+            New interceptor
             <DropdownMenu.TriggerIcon />
           </Flex>
         </BlueButton>

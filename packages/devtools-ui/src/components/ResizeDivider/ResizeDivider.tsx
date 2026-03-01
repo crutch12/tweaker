@@ -52,8 +52,8 @@ export function ResizeDivider({
           :hover {
             cursor: ns-resize;
             box-shadow:
-              inset 1px 1px 2px rgb(26, 115, 232),
-              inset -1px -1px 2px rgb(26, 115, 232);
+              inset 1px 1px 2px var(--blue-9),
+              inset -1px -1px 2px var(--blue-9);
 
             ${Container.LgAndUp()} {
               cursor: e-resize;
@@ -61,7 +61,7 @@ export function ResizeDivider({
           }
 
           &.resizing {
-            background: rgb(26, 115, 232);
+            background: var(--blue-9);
             box-shadow: none;
           }
         `,

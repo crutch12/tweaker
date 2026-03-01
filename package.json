@@ -13,6 +13,7 @@
     "e2e:ui": "pnpm --parallel --filter '*' run e2e:ui"
   },
   "author": "criitch@yandex.ru",
+  "homepage": "https://github.com/crutch12/tweaker#readme",
   "license": "ISC",
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.52.0",
