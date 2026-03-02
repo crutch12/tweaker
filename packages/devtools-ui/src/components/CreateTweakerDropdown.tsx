@@ -1,5 +1,4 @@
-import { DropdownMenu, Text, Flex } from "@radix-ui/themes";
-import { BlueButton } from "./BlueButton";
+import { DropdownMenu, Text, Flex, Button } from "@radix-ui/themes";
 import { getTextColor } from "../utils/colors";
 import { DropdownMenuContent } from "./base/DropdownMenuContent";
 import { css } from "@emotion/css";
@@ -16,12 +15,12 @@ export function CreateTweakerDropdown({
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger disabled={!names.length}>
-        <BlueButton disabled={!names.length}>
+        <Button size="1" radius="large" color="indigo" disabled={!names.length}>
           <Flex gap="1" align="center">
             New interceptor
             <DropdownMenu.TriggerIcon />
           </Flex>
-        </BlueButton>
+        </Button>
       </DropdownMenu.Trigger>
       <DropdownMenuContent variant="soft">
         {names.map((name) => (

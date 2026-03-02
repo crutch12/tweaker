@@ -28,16 +28,17 @@ import {
   Code,
   Skeleton,
   Flex,
-  Box,
   TextField,
   Checkbox,
   Badge as RadixBadge,
   Kbd,
+  Button,
 } from "@radix-ui/themes";
-import { BlueButton } from "../../components/BlueButton";
 import { SourceCodePopover } from "../../components/SourceCodePopover";
 import { CSSTransition } from "react-transition-group";
 import { Tooltip } from "../../components/base/Tooltip";
+import { BreakpointIcon } from "../../icons/BreakpointIcon";
+import { BreakpointCrossedIcon } from "../../icons/BreakpointCrossedIcon";
 
 const ExpressionCodeBlock = lazy(() =>
   import("./ExpressionCodeBlock").then((r) => ({
@@ -217,75 +218,125 @@ export function InterceptorItem({
           }
         `}
       >
-        <Flex gap="2" align="center" wrap="wrap">
-          <Checkbox
-            id={`${uniqueId}-enabled`}
-            checked={interceptor.enabled}
-            onCheckedChange={(checked) => {
-              onChange?.({
-                ...interceptor,
-                enabled: Boolean(checked),
-              });
-            }}
-          />
-          <Text
-            as="label"
-            htmlFor={`${uniqueId}-enabled`}
-            weight="bold"
-            size="3"
-            className={css`
-              color: ${appColor};
-            `}
-          >
-            {interceptor.name}
-          </Text>
-          <ButtonIcon
-            title="Remove interceptor"
-            onClick={() => onRemove?.(interceptor)}
-          >
-            <DeleteIcon size="medium" />
-          </ButtonIcon>
-          {onFilterMessages && (
-            <ButtonIcon
-              disabled={parsePatterns(patterns).length === 0}
-              title={
-                parsePatterns(patterns).length === 0
-                  ? undefined
-                  : `Filter messages by patterns "${patterns}"`
-              }
-              onClick={() => onFilterMessages(interceptor.patterns)}
-            >
-              <SelectIcon size="medium" />
-            </ButtonIcon>
-          )}
-          {onDuplicate && (
-            <ButtonIcon
-              title="Duplicate interceptor"
-              onClick={() => onDuplicate(interceptor)}
-            >
-              <ExportIcon size="medium" />
-            </ButtonIcon>
-          )}
-          {(interceptor.sourceCode || interceptor.stack) && (
-            <SourceCodePopover
-              code={interceptor.sourceCode}
-              stack={interceptor.stack}
-              title="Show interceptor source code (formatted)"
-              size="medium"
+        <Flex gap="1" align="center" wrap="wrap" justify="between">
+          <Flex gap="1" align="center" wrap="wrap">
+            <Checkbox
+              id={`${uniqueId}-enabled`}
+              checked={interceptor.enabled}
+              onCheckedChange={(checked) => {
+                onChange?.({
+                  ...interceptor,
+                  enabled: Boolean(checked),
+                });
+              }}
             />
-          )}
-          <RadixBadge
-            title={new Date(interceptor.timestamp).toLocaleString()}
-            color="cyan"
-          >
-            <Text size="1" weight="bold">
-              {interceptor.id}
+            <Text
+              as="label"
+              htmlFor={`${uniqueId}-enabled`}
+              weight="bold"
+              size="3"
+              className={css`
+                color: ${appColor};
+              `}
+            >
+              {interceptor.name}
             </Text>
-          </RadixBadge>
+            <ButtonIcon
+              title="Remove interceptor"
+              onClick={() => onRemove?.(interceptor)}
+            >
+              <DeleteIcon size="medium" />
+            </ButtonIcon>
+            {onFilterMessages && (
+              <ButtonIcon
+                disabled={parsePatterns(patterns).length === 0}
+                title={
+                  parsePatterns(patterns).length === 0
+                    ? undefined
+                    : `Filter messages by patterns "${patterns}"`
+                }
+                onClick={() => onFilterMessages(interceptor.patterns)}
+              >
+                <SelectIcon size="medium" />
+              </ButtonIcon>
+            )}
+            {onDuplicate && (
+              <ButtonIcon
+                title="Duplicate interceptor"
+                onClick={() => onDuplicate(interceptor)}
+              >
+                <ExportIcon size="medium" />
+              </ButtonIcon>
+            )}
+            {(interceptor.sourceCode || interceptor.stack) && (
+              <SourceCodePopover
+                code={interceptor.sourceCode}
+                stack={interceptor.stack}
+                title="Show interceptor source code (formatted)"
+                size="medium"
+              />
+            )}
+            <RadixBadge
+              title={new Date(interceptor.timestamp).toLocaleString()}
+              color="cyan"
+            >
+              <Text size="1" weight="bold">
+                {interceptor.id}
+              </Text>
+            </RadixBadge>
+          </Flex>
+          <Flex gap="1" align="center" wrap="wrap">
+            <Tooltip
+              content={
+                <Flex asChild direction="column" gap="1">
+                  <ul className={styles.TooltipContentList}>
+                    <li>
+                      <Text size="2">
+                        Stops code via{" "}
+                        <Code variant="solid" color="yellow">
+                          debugger
+                        </Code>{" "}
+                        before result return
+                      </Text>
+                    </li>
+                    <li>
+                      <Text size="2">
+                        Works only if Browser's DevTools panel is open
+                      </Text>
+                    </li>
+                  </ul>
+                </Flex>
+              }
+            >
+              <ButtonIcon
+                id={`${uniqueId}-interactive`}
+                disabled={!interceptor.enabled}
+                onClick={() => {
+                  onChange?.({
+                    ...interceptor,
+                    interactive: !interceptor.interactive,
+                  });
+                }}
+                className={css`
+                  margin: -2px;
+                `}
+              >
+                {interceptor.interactive ? (
+                  <BreakpointIcon
+                    width="20"
+                    height="20"
+                    color="var(--indigo-9)"
+                  />
+                ) : (
+                  <BreakpointCrossedIcon width="20" height="20" />
+                )}
+              </ButtonIcon>
+            </Tooltip>
+          </Flex>
         </Flex>
         <Flex gap="2" wrap="wrap">
           <Flex direction="column" gap="2">
-            <Flex direction="column">
+            <Flex direction="column" gap="1">
               <Flex align="center" gap="1">
                 <Text size="2" as="label" htmlFor={`${uniqueId}-patterns`}>
                   Patterns
@@ -355,53 +406,9 @@ export function InterceptorItem({
                 `}
               />
             </Flex>
-            <Flex align="center" gap="2">
-              <Checkbox
-                id={`${uniqueId}-interactive`}
-                checked={interceptor.interactive}
-                disabled={!interceptor.enabled}
-                onCheckedChange={(checked) => {
-                  onChange?.({
-                    ...interceptor,
-                    interactive: Boolean(checked),
-                  });
-                }}
-              />
-              <Flex gap="1" align="center">
-                <Text as="label" htmlFor={`${uniqueId}-interactive`} size="2">
-                  Interactive
-                </Text>
-                <Tooltip
-                  content={
-                    <Flex asChild direction="column" gap="1">
-                      <ul className={styles.TooltipContentList}>
-                        <li>
-                          <Text size="2">
-                            Stops code via{" "}
-                            <Code variant="solid" color="yellow">
-                              debugger
-                            </Code>{" "}
-                            before result return
-                          </Text>
-                        </li>
-                        <li>
-                          <Text size="2">
-                            Works only if Browser's DevTools panel is open
-                          </Text>
-                        </li>
-                      </ul>
-                    </Flex>
-                  }
-                >
-                  <ButtonIcon>
-                    <InfoIcon size="medium" />
-                  </ButtonIcon>
-                </Tooltip>
-              </Flex>
-            </Flex>
           </Flex>
           {canChangeExpression && (
-            <Box flexGrow="1" overflow="hidden">
+            <Flex flexGrow="1" overflow="hidden" gap="1" direction="column">
               <Flex align="center" gap="1">
                 <Flex align="center" gap="1">
                   <Text size="2" as="label">
@@ -476,14 +483,25 @@ export function InterceptorItem({
                   </Tooltip>
                 </Flex>
                 {hasChanges && (
-                  <BlueButton
+                  <Button
+                    size="1"
+                    radius="large"
+                    color="indigo"
                     onClick={() => onChange?.({ ...interceptor, expression })}
                   >
                     Save
-                  </BlueButton>
+                  </Button>
                 )}
                 {hasChanges && (
-                  <BlueButton onClick={discardChanges}>Discard</BlueButton>
+                  <Button
+                    size="1"
+                    radius="large"
+                    color="orange"
+                    variant="soft"
+                    onClick={discardChanges}
+                  >
+                    Discard
+                  </Button>
                 )}
               </Flex>
               <Suspense
@@ -516,24 +534,23 @@ export function InterceptorItem({
                   {expressionError}
                 </Text>
               )}
-            </Box>
+            </Flex>
           )}
         </Flex>
         <Badge
           position="bottom-right"
-          appearance={canChangeExpression ? "primary" : "secondary"}
+          appearance={
+            canChangeExpression
+              ? hasChanges
+                ? "warn"
+                : "primary"
+              : "secondary"
+          }
         >
           <Text size="2" weight="bold">
             {interceptor.owner}
           </Text>
         </Badge>
-        {hasChanges && (
-          <Badge position="top-right" appearance="warn">
-            <Text size="2" weight="bold">
-              *
-            </Text>
-          </Badge>
-        )}
       </Flex>
     </CSSTransition>
   );

@@ -5,7 +5,7 @@ import cn from "classnames";
 
 const APPEARANCES = {
   primary: css`
-    background-color: var(--blue-9);
+    background-color: var(--indigo-9);
   `,
   secondary: css`
     background-color: var(--slate-9);
