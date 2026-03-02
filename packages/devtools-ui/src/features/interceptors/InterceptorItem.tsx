@@ -29,10 +29,10 @@ import {
   Skeleton,
   Flex,
   TextField,
-  Checkbox,
   Badge as RadixBadge,
   Kbd,
   Button,
+  Switch,
 } from "@radix-ui/themes";
 import { SourceCodePopover } from "../../components/SourceCodePopover";
 import { CSSTransition } from "react-transition-group";
@@ -220,9 +220,10 @@ export function InterceptorItem({
       >
         <Flex gap="1" align="center" wrap="wrap" justify="between">
           <Flex gap="1" align="center" wrap="wrap">
-            <Checkbox
+            <Switch
               id={`${uniqueId}-enabled`}
               checked={interceptor.enabled}
+              size="1"
               onCheckedChange={(checked) => {
                 onChange?.({
                   ...interceptor,
