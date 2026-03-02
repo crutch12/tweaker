@@ -51,7 +51,6 @@ function stopTweakerPolling() {
 }
 
 function mountTweakerDevToolsWhenTweakerHasLoaded() {
-  chrome.devtools.inspectedWindow;
   chrome.devtools.inspectedWindow.eval(
     evalScripts.checkIfTweakerPresentInInspectedWindow(),
     (result, exceptionInfo) => {

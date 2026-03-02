@@ -14,8 +14,9 @@ export function sendMessageToPlugin<
 >(
   type: T,
   payload: Extract<ExtensionDevtoolsMessages.Message, { type: T }>["payload"],
+  tabId: number | undefined,
 ) {
-  const currentTabId = chrome.devtools.inspectedWindow.tabId;
+  if (!tabId) return;
   const message = {
     source: EXTENSION_DEVTOOLS_SOURCE,
     version,
@@ -24,6 +25,6 @@ export function sendMessageToPlugin<
   } as ExtensionDevtoolsMessages.Message;
   chrome.runtime.sendMessage({
     ...message,
-    tabId: currentTabId,
+    tabId,
   });
 }

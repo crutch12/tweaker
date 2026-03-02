@@ -48,6 +48,7 @@ import {
   GitHubLogoIcon,
 } from "@radix-ui/react-icons";
 import { homepage } from "../../../package.json";
+import { useDevtools } from "./features/devtools/DevtoolsProvider";
 
 export function App() {
   const reloadPage = () => {
@@ -128,17 +129,23 @@ export function App() {
       });
   }, []);
 
+  const { tabId } = useDevtools();
+
   useEffect(() => {
-    sendMessageToPlugin("ping", {
-      timestamp: Date.now(),
-    });
-  }, []);
+    sendMessageToPlugin(
+      "ping",
+      {
+        timestamp: Date.now(),
+      },
+      tabId,
+    );
+  }, [tabId]);
 
   useEffect(() => {
     const handler = (message: unknown): boolean => {
       if (!isForDevtoolsMessage(message)) return false;
 
-      const currentTabId = chrome.devtools.inspectedWindow.tabId;
+      const currentTabId = tabId;
       if (message.tabId !== currentTabId) return false;
 
       switch (message.type) {
@@ -181,7 +188,7 @@ export function App() {
     return () => {
       chrome.runtime.onMessage.removeListener(handler);
     };
-  }, []);
+  }, [tabId]);
 
   const createInterceptorByMessage = useCallback(
     (message: ExtensionPluginMessages.ValueMessage["payload"]) => {
@@ -202,13 +209,17 @@ export function App() {
         timestamp: Date.now(),
       };
       addInterceptors([interceptor]);
-      sendMessageToPlugin("interceptors:add", {
-        name: interceptor.name,
-        data: [interceptor],
-        timestamp: Date.now(),
-      });
+      sendMessageToPlugin(
+        "interceptors:add",
+        {
+          name: interceptor.name,
+          data: [interceptor],
+          timestamp: Date.now(),
+        },
+        tabId,
+      );
     },
-    [addInterceptors],
+    [addInterceptors, tabId],
   );
 
   const onInterceptorCreate = useCallback(
@@ -230,13 +241,17 @@ export function App() {
         timestamp: Date.now(),
       };
       addInterceptors([interceptor]);
-      sendMessageToPlugin("interceptors:add", {
-        name: interceptor.name,
-        data: [interceptor],
-        timestamp: Date.now(),
-      });
+      sendMessageToPlugin(
+        "interceptors:add",
+        {
+          name: interceptor.name,
+          data: [interceptor],
+          timestamp: Date.now(),
+        },
+        tabId,
+      );
     },
-    [addInterceptors],
+    [addInterceptors, tabId],
   );
 
   const onInterceptorDuplicate = useCallback(
@@ -258,47 +273,59 @@ export function App() {
           timestamp: Date.now(),
         };
         addInterceptors([interceptor]);
-        sendMessageToPlugin("interceptors:add", {
-          name: interceptor.name,
-          data: [interceptor],
-          timestamp: Date.now(),
-        });
+        sendMessageToPlugin(
+          "interceptors:add",
+          {
+            name: interceptor.name,
+            data: [interceptor],
+            timestamp: Date.now(),
+          },
+          tabId,
+        );
       }
     },
-    [addInterceptors],
+    [addInterceptors, tabId],
   );
 
   const onInterceptorChange = useCallback(
     (interceptor: ExtensionInterceptor) => {
       updateInterceptor(interceptor);
-      sendMessageToPlugin("interceptors:update", {
-        name: interceptor.name,
-        data: [interceptor],
-        timestamp: Date.now(),
-      });
+      sendMessageToPlugin(
+        "interceptors:update",
+        {
+          name: interceptor.name,
+          data: [interceptor],
+          timestamp: Date.now(),
+        },
+        tabId,
+      );
     },
-    [updateInterceptor],
+    [updateInterceptor, tabId],
   );
 
   const onInterceptorRemove = useCallback(
     (interceptor: ExtensionInterceptor) => {
       removeInterceptors([interceptor]);
-      sendMessageToPlugin("interceptors:remove", {
-        name: interceptor.name,
-        data: [interceptor],
-        timestamp: Date.now(),
-      });
+      sendMessageToPlugin(
+        "interceptors:remove",
+        {
+          name: interceptor.name,
+          data: [interceptor],
+          timestamp: Date.now(),
+        },
+        tabId,
+      );
     },
-    [removeInterceptors],
+    [removeInterceptors, tabId],
   );
 
   const clearMessages = () => {
-    sendMessageToPlugin("clear-messages", { timestamp: Date.now() });
+    sendMessageToPlugin("clear-messages", { timestamp: Date.now() }, tabId);
     setMessages([]);
   };
 
   const clearInterceptors = () => {
-    sendMessageToPlugin("clear-interceptors", { timestamp: Date.now() });
+    sendMessageToPlugin("clear-interceptors", { timestamp: Date.now() }, tabId);
     setInterceptors([]);
   };
 
@@ -357,13 +384,17 @@ export function App() {
           {false && (
             <BlueButton
               onClick={() =>
-                sendMessageToPlugin("init", {
-                  // name: "test",
-                  timestamp: Date.now(),
-                  enabled: true,
-                  interceptors: [], // TODO: remove
-                  // data: ["Message from extension!"],
-                })
+                sendMessageToPlugin(
+                  "init",
+                  {
+                    // name: "test",
+                    timestamp: Date.now(),
+                    enabled: true,
+                    interceptors: [], // TODO: remove
+                    // data: ["Message from extension!"],
+                  },
+                  tabId,
+                )
               }
             >
               Send Message
