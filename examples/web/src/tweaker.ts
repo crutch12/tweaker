@@ -2,15 +2,20 @@ import { Tweaker, TweakerSample } from "@tweaker/core";
 import { extensionPlugin } from "@tweaker/extension-plugin";
 import { Dog, User } from "./Example";
 
+const plugins = {
+  extension: extensionPlugin(),
+};
+
 const tweaker = new Tweaker<{
   patterns: {
     "users.generate": User;
     "dogs.generate": Dog;
     "dogs.replace.*": Dog;
   };
+  plugins: typeof plugins;
 }>({
   name: "web",
-  plugins: [extensionPlugin()],
+  plugins,
 });
 
 export function prepareTweakerSamples<T>(

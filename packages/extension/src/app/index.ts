@@ -10,10 +10,16 @@ const urlParams = new URLSearchParams(window.location.search);
 
 const tabId = urlParams.get("tabId")
   ? Number(urlParams.get("tabId"))
-  : undefined;
+  : chrome?.devtools?.inspectedWindow?.tabId;
+
+if (!tabId) {
+  alert(
+    `Couldn't find tab id (${tabId}).\nYou should provide it via ?tabId=TAB_ID`,
+  );
+}
 
 if (container) {
   renderWidget(container, {
-    tabId: tabId || chrome?.devtools?.inspectedWindow?.tabId,
+    tabId,
   });
 }

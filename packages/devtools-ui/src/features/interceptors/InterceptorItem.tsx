@@ -185,6 +185,7 @@ export function InterceptorItem({
       classNames="bounce"
     >
       <Flex
+        data-interceptor-id={interceptor.id}
         ref={nodeRef}
         onMouseEnter={() =>
           onHightLight({

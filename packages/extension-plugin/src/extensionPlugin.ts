@@ -17,14 +17,20 @@ import {
 } from "./sendMessageToExtension";
 import { isForPluginMessage } from "./messages";
 
+interface ExtensionPlugin extends TweakerPlugin {
+  getTabId: () => Promise<number | undefined>;
+}
+
 export interface ExtensionPluginOptions {}
 
-export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin {
+export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugin {
   const promises: Promise<void>[] = [];
 
   let _instance: Tweaker;
 
   let expressions = new Map<InterceptorId, string>();
+
+  let tabId: number | undefined;
 
   function start() {
     function notify(type: "ping" | "pong") {
@@ -268,6 +274,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
         }
 
         if (event.data.type === "init") {
+          tabId = event.data.tabId;
           handleInterceptors(event.data.payload.interceptors);
           globalThis.removeEventListener("message", handler);
           resolve();
@@ -292,6 +299,9 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): TweakerPlugin 
     },
     ready: () => {
       return Promise.all(promises).then(() => true);
+    },
+    getTabId: () => {
+      return Promise.all(promises).then(() => tabId);
     },
   };
 }

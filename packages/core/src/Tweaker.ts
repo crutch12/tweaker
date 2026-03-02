@@ -54,7 +54,9 @@ interface ReadyOptions {
   throw?: boolean;
 }
 
-export interface TweakerOptions {
+export interface TweakerOptions<
+  Plugins extends Record<string, TweakerPlugin> = Record<string, TweakerPlugin>,
+> {
   /**
    * Unique Tweaker name
    */
@@ -67,7 +69,7 @@ export interface TweakerOptions {
   /**
    * Extra plugins (e.g. @tweaker/extension-plugin)
    */
-  plugins?: TweakerPlugin[];
+  plugins?: Plugins;
 }
 
 type ValueEventOptions = {
@@ -82,6 +84,7 @@ type ValueEventOptions = {
 
 type TweakerValueParams = {
   patterns: Record<TweakerKey, any>;
+  plugins: Record<string, TweakerPlugin>;
 };
 
 type TweakerValidParams = Partial<TweakerValueParams>;
@@ -103,9 +106,13 @@ export type TweakerKeyValues<
 export type TweakerGlobKeys<T extends TweakerValidParams> =
   T extends TweakerValueParams ? keyof T["patterns"] : TweakerKey;
 
-export class Tweaker<T extends TweakerValidParams = {}> {
+export class Tweaker<
+  T extends TweakerValidParams = {
+    plugins: TweakerValueParams["plugins"];
+  },
+> {
   public readonly name: string;
-  public readonly plugins: TweakerPlugin[];
+  public readonly plugins: NonNullable<T["plugins"]>;
   private _enabled = true;
   private _isReady = false;
 
@@ -117,12 +124,16 @@ export class Tweaker<T extends TweakerValidParams = {}> {
     interceptors: (listener: TweakerInterceptor<TweakerKey, any>[]) => void;
   }>();
 
-  constructor({ name, plugins, enabled }: TweakerOptions) {
+  constructor({
+    name,
+    plugins,
+    enabled,
+  }: TweakerOptions<NonNullable<T["plugins"]>>) {
     this.name = name;
-    this.plugins = plugins ?? [];
+    this.plugins = plugins ?? ({} as NonNullable<T["plugins"]>);
     this._enabled = enabled ?? true;
     this.setup();
-    registerInstance(this);
+    registerInstance(this as Tweaker);
   }
 
   public get enabled() {
@@ -149,10 +160,12 @@ export class Tweaker<T extends TweakerValidParams = {}> {
   }
 
   private setup() {
-    this.plugins.forEach((plugin) => {
-      plugin.setup(this);
+    Object.values(this.plugins).forEach((plugin) => {
+      plugin.setup(this as Tweaker);
     });
-    const promises = this.plugins.map((plugin) => plugin.ready());
+    const promises = Object.values(this.plugins).map((plugin) =>
+      plugin.ready(),
+    );
     Promise.allSettled(promises).finally(() => {
       this._isReady = true;
     });
@@ -178,7 +191,9 @@ export class Tweaker<T extends TweakerValidParams = {}> {
         resolve(false);
       }, options.timeout),
     );
-    const promises = this.plugins.map((plugin) => plugin.ready());
+    const promises = Object.values(this.plugins).map((plugin) =>
+      plugin.ready(),
+    );
     const pluginsPromise = options.throw
       ? Promise.all(promises)
       : Promise.allSettled(promises);
@@ -459,6 +474,12 @@ export class Tweaker<T extends TweakerValidParams = {}> {
       this.eventEmitter.emit("intercept.update", interceptor);
     }
     return interceptor;
+  }
+
+  public getPlugin<Key extends keyof T["plugins"]>(
+    name: Key,
+  ): T["plugins"][Key] {
+    return this.plugins[name as string] as T["plugins"][Key];
   }
 }
 
