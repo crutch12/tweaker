@@ -39,3 +39,11 @@ export function getBrowserType(
   if (ua.includes("chrome")) return "chrome";
   return undefined;
 }
+
+export function getStack(depth = 0) {
+  const stack = new Error().stack;
+
+  if (!stack) return undefined;
+
+  return stack.replace("Error\n", "").split("\n").slice(depth).join("\n");
+}

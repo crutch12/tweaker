@@ -4,8 +4,6 @@ import { renderWidget } from "@tweaker/devtools-widget";
 import "@tweaker/styles/radix-ui.css";
 import "@tweaker/devtools-ui/styles.css";
 
-const container = document.getElementById("root");
-
 const urlParams = new URLSearchParams(window.location.search);
 
 const tabId = urlParams.get("tabId")
@@ -18,8 +16,14 @@ if (!tabId) {
   );
 }
 
-if (container) {
-  renderWidget(container, {
-    tabId,
-  });
-}
+// waiting for __TWEAKER_DEVTOOLS_ initialization from devtools script
+setTimeout(() => {
+  const container = document.getElementById("root");
+  if (container) {
+    renderWidget(container, {
+      tabId,
+      canViewSourceCode: window.__TWEAKER_DEVTOOLS_?.canViewSourceCode,
+      viewSourceCode: window.__TWEAKER_DEVTOOLS_?.viewSourceCode,
+    });
+  }
+}, 100);

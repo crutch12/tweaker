@@ -1,10 +1,13 @@
 import { Popover, Flex, Code, Text, Skeleton } from "@radix-ui/themes";
 import { lazy, Suspense, useMemo, use } from "react";
 import { InspectorIcon } from "@devtools-ds/icon";
+import { CodeIcon, CopyIcon } from "@radix-ui/react-icons";
 import { ButtonIcon } from "./ButtonIcon";
 import { PopoverContent } from "./base/PopoverContent";
 import { css } from "@emotion/css";
 import { IconPropsSize } from "../icons/props";
+import * as stackTraceParser from "stacktrace-parser";
+import { useDevtools } from "../features/devtools/DevtoolsProvider";
 
 const ExpressionCodeBlock = lazy(() =>
   import("../features/interceptors/ExpressionCodeBlock").then((r) => ({
@@ -47,6 +50,11 @@ export function SourceCodePopover({
   title,
   size = "small",
 }: SourceCodePopoverProps) {
+  const { canViewSourceCode, viewSourceCode } = useDevtools();
+  const parsedStack = useMemo(
+    () => (stack ? stackTraceParser.parse(stack) : []),
+    [stack],
+  );
   return (
     <Popover.Root>
       <Popover.Trigger>
@@ -84,16 +92,69 @@ export function SourceCodePopover({
           )}
           {stack && (
             <Flex direction="column" gap="1">
-              <Text as="label">
-                <Code>{stackLabel}</Code>
-              </Text>
-              <Code
-                className={css`
-                  white-space: pre;
-                `}
-              >
-                {stack}
-              </Code>
+              <Flex gap="1">
+                <Text as="label">
+                  <Code>{stackLabel}</Code>
+                </Text>
+              </Flex>
+              {parsedStack.length > 0 && (
+                <Flex direction="column">
+                  {parsedStack.map((line, idx) => (
+                    <Flex key={idx} gap="1">
+                      <ButtonIcon
+                        title="Copy"
+                        onClick={() => {
+                          const url = line.file
+                            ? new URL(line.file)
+                            : undefined;
+                          const path = url
+                            ? [url.pathname, url.search, url.hash].join("")
+                            : line.file;
+                          navigator.clipboard.writeText(
+                            [path, line.lineNumber, line.column]
+                              .filter(Boolean)
+                              .join(":"),
+                          );
+                        }}
+                      >
+                        <CopyIcon color="var(--indigo-9)" />
+                      </ButtonIcon>
+                      <ButtonIcon
+                        title={
+                          canViewSourceCode
+                            ? "View source for this call"
+                            : "Viewing source is not available"
+                        }
+                        disabled={!canViewSourceCode}
+                        onClick={() => {
+                          if (
+                            line &&
+                            line.file &&
+                            line.lineNumber &&
+                            line.column
+                          ) {
+                            viewSourceCode(
+                              line.file,
+                              line.lineNumber,
+                              line.column,
+                            );
+                          }
+                        }}
+                      >
+                        <CodeIcon color="var(--indigo-9)" />
+                      </ButtonIcon>
+                      <Code
+                        className={css`
+                          white-space: pre;
+                        `}
+                      >
+                        {line.file}:{line.lineNumber}:{line.column} (
+                        {line.methodName})
+                      </Code>
+                    </Flex>
+                  ))}
+                </Flex>
+              )}
             </Flex>
           )}
         </Flex>

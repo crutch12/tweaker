@@ -9,7 +9,7 @@ import {
 import { EventEmitter } from "eventemitter3";
 import { TweakerPlugin } from "./plugin";
 import { TWEAKER_OWNER } from "./const";
-import { generateNumberId, keyMatchesPatterns } from "./utils";
+import { generateNumberId, getStack, keyMatchesPatterns } from "./utils";
 import { registerInstance } from "./global";
 
 export interface InterceptOptions {
@@ -218,12 +218,8 @@ export class Tweaker<
       TweakerValueKeys<T>
     >,
   >(key: K, value: V, options?: Partial<TweakerValueOptions<V>>): V {
-    const stack = new Error().stack;
-    const [handled, result] = this.handleValue(
-      key,
-      value,
-      stack ? stack.replace("Error\n", "") : undefined,
-    );
+    const stack = getStack(2);
+    const [handled, result] = this.handleValue(key, value, stack);
     if (handled) return result as V;
     return value;
   }
@@ -243,7 +239,7 @@ export class Tweaker<
       interactive = false,
     }: InterceptOptions = {},
   ): RemoveListener {
-    const stack = new Error().stack;
+    const stack = getStack(2);
     const interceptor: TweakerInterceptor<K, V> = {
       id: id ?? generateNumberId(),
       staticId: id,
@@ -253,10 +249,7 @@ export class Tweaker<
       owner,
       enabled,
       timestamp: Date.now(),
-      stack:
-        owner === TWEAKER_OWNER && stack
-          ? stack.replace("Error\n", "")
-          : undefined,
+      stack,
     };
 
     this.listeners.set(interceptor.id, interceptor as TweakerAnyInterceptor);

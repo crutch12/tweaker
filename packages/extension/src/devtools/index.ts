@@ -1,6 +1,7 @@
 import "../extension-polyfill";
 import debounce from "../utils/debounce";
 import { getBrowserType } from "@tweaker/core/utils";
+import { normalizeUrlIfValid } from "../utils/normalizeUrlIfValid";
 
 const evalScripts = {
   checkIfTweakerPresentInInspectedWindow: () =>
@@ -11,6 +12,14 @@ function showNoTweakerDisclaimer() {
   if (tweakerContainer) {
     tweakerContainer.document.body.innerHTML = `<h1 class="no-tweaker-disclaimer">This page doesn't have Tweaker, or it hasn't been loaded yet.</h1>`;
   }
+}
+
+function viewSourceCode(file: string, line: number, column: number) {
+  chrome.devtools.panels.openResource(
+    normalizeUrlIfValid(file),
+    line - 1,
+    column - 1,
+  );
 }
 
 function mountTweakerDevTools(reload = false) {
@@ -28,6 +37,11 @@ function mountTweakerDevTools(reload = false) {
     (createdPanel) => {
       tweakerPanel = createdPanel;
       createdPanel.onShown.addListener((container) => {
+        container.__TWEAKER_DEVTOOLS_ = {
+          ...container.__TWEAKER_DEVTOOLS_,
+          canViewSourceCode: ["chrome", "edge"].includes(browserType!),
+          viewSourceCode,
+        };
         tweakerContainer = container;
         if (tweakerNotFound) {
           showNoTweakerDisclaimer();
