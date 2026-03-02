@@ -15,7 +15,7 @@ test.describe("extension", () => {
   test("extensionId", async ({ page, browserName, extensionId }) => {
     await page.goto("about:blank");
 
-    const shouldBeDefined = browserName === "chromium";
+    const shouldBeDefined = browserName !== "webkit";
 
     if (shouldBeDefined) {
       expect(extensionId).toBeDefined();
@@ -25,11 +25,37 @@ test.describe("extension", () => {
     }
   });
 
-  test("devtools", async ({ page, extensionId, context }) => {
+  test("extensionUrl", async ({ page, browserName, extensionUrl }) => {
+    await page.goto("about:blank");
+
     test.skip(
-      typeof extensionId === "undefined",
-      "This feature is Chromium-only (so far)",
+      browserName === "webkit",
+      "Playwright doesn't support extensions for webkit",
     );
+
+    expect(extensionUrl).toBeDefined();
+
+    switch (browserName) {
+      case "chromium":
+        expect(extensionUrl).toMatch(/chrome-extension:\/\/.+/);
+        break;
+      case "firefox":
+        expect(extensionUrl).toMatch(/moz-extension:\/\/.+/);
+        break;
+      default: {
+        throw new Error(`Undandled browser ${browserName}`);
+      }
+    }
+  });
+
+  test("devtools", async ({ page, browserName, extensionUrl, context }) => {
+    test.skip(
+      browserName !== "chromium",
+      "Playwright cannot open extension on non-chromium browsers",
+    );
+
+    if (!extensionUrl)
+      throw new Error(`extensionUrl should exist ${extensionUrl}`);
 
     const appName = "web";
 
@@ -46,16 +72,12 @@ test.describe("extension", () => {
       });
     }, appName);
 
-    expect(tabId).toBeTruthy();
-
-    if (!tabId) {
-      throw new Error(`tabId show exist ${tabId}`);
-    }
+    if (!tabId) throw new Error(`tabId should exist ${tabId}`);
 
     const devToolsPage = await context.newPage();
 
     await devToolsPage.goto(
-      `chrome-extension://${extensionId}/src/app/index.html?tabId=${tabId}`,
+      new URL(`/src/app/index.html?tabId=${tabId}`, extensionUrl).href,
     );
 
     await expect(
