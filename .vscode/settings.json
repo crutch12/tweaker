@@ -1,0 +1,4 @@
+{
+  "typescript.preferences.autoImportFileExcludePatterns": ["./dist/**"],
+  "javascript.preferences.autoImportFileExcludePatterns": ["./dist/**"]
+}
