@@ -227,25 +227,10 @@ export function InterceptorItem({
           style={{
             "--background-color": "var(--color-panel-solid)",
             "--active-background-color": appBackgroundColor,
+            "--interceptor-name-color": appColor,
           }}
-          className={css`
-            border: 1.5px solid ${appColor};
-            border-left-width: 6px;
-            border-radius: 10px;
-            opacity: ${interceptor.enabled ? undefined : 0.6};
-            background-color: var(--background-color);
-
-            :hover {
-              background-color: var(--active-background-color);
-            }
-            &.bounce-appear-active {
-              animation: ${bounceIn} 1s ease;
-            }
-            &.intercepted-enter-active,
-            &.intercepted-exit-active {
-              animation: ${interceptedIn} 2s ease;
-            }
-          `}
+          data-enabled={interceptor.enabled}
+          className={styles.Container}
         >
           <Flex gap="1" align="center" justify="between">
             <Flex gap="1" align="center" wrap="wrap">
@@ -266,7 +251,7 @@ export function InterceptorItem({
                 weight="bold"
                 size="3"
                 className={css`
-                  color: ${appColor};
+                  color: var(--interceptor-name-color);
                 `}
               >
                 {interceptor.name}
@@ -618,5 +603,26 @@ const styles = {
   TooltipContentList: css`
     padding-inline-start: var(--space-4);
     margin: 0;
+  `,
+  Container: css`
+    border: 1.5px solid var(--interceptor-name-color);
+    border-left-width: 6px;
+    border-radius: 10px;
+    background-color: var(--background-color);
+
+    &[data-enabled="false"] {
+      opacity: 0.6;
+    }
+
+    :hover {
+      background-color: var(--active-background-color);
+    }
+    &.bounce-appear-active {
+      animation: ${bounceIn} 1s ease;
+    }
+    &.intercepted-enter-active,
+    &.intercepted-exit-active {
+      animation: ${interceptedIn} 2s ease;
+    }
   `,
 };

@@ -1,7 +1,6 @@
-import { css } from "@emotion/css";
 import { HTMLAttributes, RefObject } from "react";
 import { ExtensionInterceptor, InterceptorItem } from "./InterceptorItem";
-import { Flex, Text } from "@radix-ui/themes";
+import { Grid } from "@radix-ui/themes";
 
 export interface InterceptorsListProps extends HTMLAttributes<HTMLElement> {
   interceptors: ExtensionInterceptor[];
@@ -26,7 +25,12 @@ export function InterceptorsList({
   ...props
 }: InterceptorsListProps) {
   return (
-    <Flex ref={ref} direction="column" gap="2" {...props}>
+    <Grid
+      ref={ref}
+      columns="repeat(auto-fit, minmax(min(100%, 400px), 1fr))"
+      gap="2"
+      {...props}
+    >
       {interceptors.map((interceptor) => (
         <InterceptorItem
           key={interceptor.name + interceptor.id}
@@ -38,6 +42,6 @@ export function InterceptorsList({
           onHightLightInterceptor={onHightLightInterceptor}
         />
       ))}
-    </Flex>
+    </Grid>
   );
 }
