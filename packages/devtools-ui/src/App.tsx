@@ -586,6 +586,7 @@ export function App() {
             </ButtonIcon>
             <ButtonIcon
               title="Toggle Interceptors"
+              disabled={interceptors.length === 0}
               onClick={toggleInterceptors}
             >
               <ComponentBooleanIcon />
