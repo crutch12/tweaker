@@ -15,7 +15,7 @@ export function CreateTweakerDropdown({
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger disabled={!names.length}>
-        <Button size="1" radius="large" color="indigo" disabled={!names.length}>
+        <Button size="1" radius="full" color="indigo" disabled={!names.length}>
           <Flex gap="1" align="center">
             New interceptor
             <DropdownMenu.TriggerIcon />
