@@ -122,7 +122,7 @@ export function MessageRow({
                   error
                 </Text>
               )}
-              <Box title={stringifiedResult} overflow="hidden">
+              <Box title={stringifiedResult} overflow="hidden" flexGrow="1">
                 <ObjectInspector
                   className={styles.ObjectInspector}
                   sortKeys={false}

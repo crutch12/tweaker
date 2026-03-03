@@ -21,6 +21,7 @@ const ButtonIconContainer = styled.button<ButtonIconProps>`
     disabled ? "default" : cursor ? cursor : "pointer"};
 
   &:hover {
-    background-color: ${({ disabled }) => (disabled ? undefined : "#dbdbdb")};
+    background-color: ${({ disabled }) =>
+      disabled ? undefined : "var(--gray-8)"};
   }
 `;

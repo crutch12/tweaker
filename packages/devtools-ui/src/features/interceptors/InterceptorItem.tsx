@@ -218,7 +218,7 @@ export function InterceptorItem({
           }
         `}
       >
-        <Flex gap="1" align="center" wrap="wrap" justify="between">
+        <Flex gap="1" align="center" justify="between">
           <Flex gap="1" align="center" wrap="wrap">
             <Switch
               id={`${uniqueId}-enabled`}

@@ -46,6 +46,7 @@ import {
   MoonIcon,
   ReloadIcon,
   GitHubLogoIcon,
+  EnterFullScreenIcon,
 } from "@radix-ui/react-icons";
 import { homepage } from "../../../package.json";
 import { useDevtools } from "./features/devtools/DevtoolsProvider";
@@ -130,6 +131,13 @@ export function App() {
   }, []);
 
   const { tabId } = useDevtools();
+
+  const extensionDevtoolsHref = useMemo(() => {
+    if (typeof location === "undefined" || !tabId) return undefined;
+    const url = new URL(location.href);
+    url.searchParams.set("tabId", String(tabId));
+    return url.href;
+  }, [tabId]);
 
   useEffect(() => {
     sendMessageToPlugin(
@@ -402,13 +410,25 @@ export function App() {
           )}
         </Flex>
         <Flex gap="4" align="center" wrap="wrap">
+          {extensionDevtoolsHref && (
+            <IconButton
+              asChild
+              color="gray"
+              size="2"
+              variant="ghost"
+              title="Open Tweaker DevTools in separate tab"
+            >
+              <Link color="gray" target="_blank" href={extensionDevtoolsHref}>
+                <EnterFullScreenIcon />
+              </Link>
+            </IconButton>
+          )}
           <IconButton
             asChild
             color="gray"
             size="2"
             variant="ghost"
             title="View GitHub"
-            onClick={reloadPanel}
           >
             <Link color="gray" target="_blank" href={homepage}>
               <GitHubLogoIcon />
