@@ -47,10 +47,12 @@ import {
   ReloadIcon,
   GitHubLogoIcon,
   EnterFullScreenIcon,
+  ComponentBooleanIcon,
 } from "@radix-ui/react-icons";
 import { homepage } from "../../../package.json";
 import { useDevtools } from "./features/devtools/DevtoolsProvider";
 import { useMessagesStore } from "./features/messages/useMessagesStore";
+import { groupBy } from "./utils/groupBy";
 
 export function App() {
   const reloadPage = () => {
@@ -334,6 +336,32 @@ export function App() {
     setInterceptors([]);
   };
 
+  const toggleInterceptors = () => {
+    const someEnabled = interceptors.some((x) => x.enabled);
+    const updatedInterceptors = interceptors
+      .filter((x) => x.enabled === someEnabled)
+      .map((interceptor) => ({
+        ...interceptor,
+        enabled: !someEnabled,
+      }));
+
+    updatedInterceptors.forEach(updateInterceptor);
+
+    Object.entries(
+      groupBy(updatedInterceptors, (interceptor) => interceptor.name),
+    ).forEach(([name, data]) => {
+      sendMessageToPlugin(
+        "interceptors:update",
+        {
+          name,
+          data,
+          timestamp: Date.now(),
+        },
+        tabId,
+      );
+    });
+  };
+
   const onGoToInterceptorClick = useCallback((interceptorId: InterceptorId) => {
     setInterceptorsFilter(String(interceptorId));
   }, []);
@@ -543,6 +571,12 @@ export function App() {
           >
             <ButtonIcon title="Clear Interceptors" onClick={clearInterceptors}>
               <ClearIcon size="medium" />
+            </ButtonIcon>
+            <ButtonIcon
+              title="Toggle Interceptors"
+              onClick={toggleInterceptors}
+            >
+              <ComponentBooleanIcon />
             </ButtonIcon>
             <TextField.Root
               size="1"

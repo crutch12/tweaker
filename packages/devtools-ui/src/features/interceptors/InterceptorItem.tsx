@@ -237,6 +237,11 @@ export function InterceptorItem({
               <Switch
                 id={`${uniqueId}-enabled`}
                 checked={interceptor.enabled}
+                title={
+                  interceptor.enabled
+                    ? "Disable interceptor"
+                    : "Enable interceptor"
+                }
                 size="1"
                 onCheckedChange={(checked) => {
                   onChange?.({
