@@ -1,5 +1,5 @@
 import { TweakerPlugin } from "@tweaker/core/plugin";
-import { generateStringId } from "@tweaker/core/utils";
+import { generateNumberId, generateStringId } from "@tweaker/core/utils";
 import { version, name } from "../package.json";
 import { ExtensionDevtoolsMessages } from "./messages/types";
 import { klona } from "klona/json";
@@ -174,6 +174,34 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
       }
     }
 
+    function handleDuplicatedInterceptors(
+      interceptors: ExtensionDevtoolsMessages.DuplicateInterceptorsMessage["payload"]["data"],
+    ) {
+      interceptors.forEach((interceptor) => {
+        const listener = _instance.getListener(interceptor.id);
+        if (!listener) return;
+
+        const id = generateNumberId();
+
+        _instance.intercept(listener.patterns, listener.handler, {
+          id,
+          enabled: false,
+          interactive: listener.interactive,
+          owner: listener.owner,
+        });
+
+        const newListener = _instance.getListener(id);
+
+        if (newListener) {
+          newListener.stack = listener.stack;
+        }
+
+        if (listener.owner === EXTENSION_OWNER) {
+          expressions.set(id, interceptor.expression ?? "");
+        }
+      });
+    }
+
     function handleClearInterceptors() {
       _instance.reset();
     }
@@ -201,6 +229,10 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
           }
           case "interceptors:remove": {
             handleRemovedInterceptors(event.data.payload.data);
+            break;
+          }
+          case "interceptors:duplicate": {
+            handleDuplicatedInterceptors(event.data.payload.data);
             break;
           }
           case "clear-interceptors": {

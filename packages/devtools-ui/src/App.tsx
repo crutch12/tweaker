@@ -262,33 +262,45 @@ export function App() {
   );
 
   const onInterceptorDuplicate = useCallback(
-    (i: ExtensionInterceptor) => {
+    (interceptor: ExtensionInterceptor) => {
       {
-        const id = generateNumberId();
-        const interceptor: ExtensionInterceptor = {
-          id,
-          staticId: id,
-          name: i.name,
-          patterns: i.patterns,
-          interactive: i.interactive,
-          enabled: false,
-          expression:
-            typeof i.expression === "string"
-              ? i.expression
-              : getDefaultExpression(),
-          owner: EXTENSION_OWNER,
-          timestamp: Date.now(),
-        };
-        addInterceptors([interceptor]);
-        sendMessageToPlugin(
-          "interceptors:add",
-          {
+        if (interceptor.owner === EXTENSION_OWNER) {
+          const id = generateNumberId();
+          const newInterceptor: ExtensionInterceptor = {
+            id,
+            staticId: id,
             name: interceptor.name,
-            data: [interceptor],
+            patterns: interceptor.patterns,
+            interactive: interceptor.interactive,
+            enabled: false,
+            expression:
+              typeof interceptor.expression === "string"
+                ? interceptor.expression
+                : getDefaultExpression(),
+            owner: EXTENSION_OWNER,
             timestamp: Date.now(),
-          },
-          tabId,
-        );
+          };
+          addInterceptors([newInterceptor]);
+          sendMessageToPlugin(
+            "interceptors:add",
+            {
+              name: newInterceptor.name,
+              data: [newInterceptor],
+              timestamp: Date.now(),
+            },
+            tabId,
+          );
+        } else {
+          sendMessageToPlugin(
+            "interceptors:duplicate",
+            {
+              name: interceptor.name,
+              data: [interceptor],
+              timestamp: Date.now(),
+            },
+            tabId,
+          );
+        }
       }
     },
     [addInterceptors, tabId],

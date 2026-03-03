@@ -69,6 +69,16 @@ export namespace ExtensionDevtoolsMessages {
       data: Pick<InterceptorPayload<unknown>, "id">[];
     }
   >;
+
+  export type DuplicateInterceptorsMessage = DevtoolsAnyMessage<
+    "interceptors:duplicate",
+    {
+      name: string;
+      timestamp: number;
+      data: Pick<InterceptorPayload<unknown>, "id" | "expression">[];
+    }
+  >;
+
   export type InitConnectionMessage = DevtoolsAnyMessage<
     "init-connection",
     {
@@ -98,6 +108,7 @@ export namespace ExtensionDevtoolsMessages {
     | AddInterceptorsMessage
     | UpdateInterceptorsMessage
     | RemoveInterceptorsMessage
+    | DuplicateInterceptorsMessage
     | InitConnectionMessage
     | ClearMessagesMessage
     | ClearInterceptorsMessage;

@@ -29,7 +29,7 @@ function SourceCode({
   );
 }
 
-function FormattedSourceCode({ code }: { code: string }) {
+export function FormattedSourceCode({ code }: { code: string }) {
   const formattedCodePromise = useMemo(() => {
     return import("dedent").then((dedent) => dedent.default(code));
   }, [code]);
