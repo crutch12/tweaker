@@ -406,6 +406,17 @@ export function App() {
           )}
         </Flex>
         <Flex gap="4" align="center" wrap="wrap">
+          <IconButton
+            asChild
+            color="gray"
+            size="2"
+            variant="ghost"
+            title="View GitHub"
+          >
+            <Link color="gray" target="_blank" href={homepage}>
+              <GitHubLogoIcon />
+            </Link>
+          </IconButton>
           {extensionDevtoolsHref && (
             <IconButton
               asChild
@@ -419,17 +430,6 @@ export function App() {
               </Link>
             </IconButton>
           )}
-          <IconButton
-            asChild
-            color="gray"
-            size="2"
-            variant="ghost"
-            title="View GitHub"
-          >
-            <Link color="gray" target="_blank" href={homepage}>
-              <GitHubLogoIcon />
-            </Link>
-          </IconButton>
           <IconButton
             color="gray"
             size="2"
