@@ -53,6 +53,7 @@ import { homepage } from "../../../package.json";
 import { useDevtools } from "./features/devtools/DevtoolsProvider";
 import { useMessagesStore } from "./features/messages/useMessagesStore";
 import { groupBy } from "./utils/groupBy";
+import { useInterceptedCountsStore } from "./features/interceptors/useInterceptedCountsStore";
 
 export function App() {
   const reloadPage = () => {
@@ -89,6 +90,8 @@ export function App() {
   const messages = useMessagesStore((state) => state.messages);
   const addMessasges = useMessagesStore((state) => state.add);
   const setMessages = useMessagesStore((state) => state.set);
+
+  const setInterceptedCounts = useInterceptedCountsStore((state) => state.set);
 
   const appNames = useMemo(() => {
     if (interceptors.length === 0 && messages.length === 0) return [];
@@ -177,13 +180,16 @@ export function App() {
           break;
         }
         case "interceptors": {
-          // message.payload
           setInterceptors(
             message.payload.map((interceptor) => ({
               ...interceptor,
               expression: interceptor.expression,
             })),
           );
+          break;
+        }
+        case "intercepted-count": {
+          setInterceptedCounts(message.payload.id, message.payload.count);
           break;
         }
       }

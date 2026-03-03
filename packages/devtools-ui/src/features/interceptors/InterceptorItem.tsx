@@ -36,8 +36,8 @@ import { CSSTransition } from "react-transition-group";
 import { Tooltip } from "../../components/base/Tooltip";
 import { BreakpointIcon } from "../../icons/BreakpointIcon";
 import { BreakpointCrossedIcon } from "../../icons/BreakpointCrossedIcon";
-import { useMessagesStore } from "../messages/useMessagesStore";
-import { usePrevious } from "../../hooks/usePrevious";
+import { BarChartIcon } from "@radix-ui/react-icons";
+import { useInterceptedCountsStore } from "./useInterceptedCountsStore";
 
 const ExpressionCodeBlock = lazy(() =>
   import("./ExpressionCodeBlock").then((r) => ({
@@ -167,23 +167,11 @@ export function InterceptorItem({
     };
   }, []);
 
-  const [interceptedCount, setInterceptedCount] = useState(0);
+  const interceptedCount = useInterceptedCountsStore(
+    (state) => state.interceptedCounts.get(interceptor.id) ?? 0,
+  );
 
   const interceptedCountThrottled = useThrottle(interceptedCount, 10);
-
-  useEffect(() => {
-    return useMessagesStore.subscribe(
-      (state) => state.messages,
-      (state, prev) => {
-        const intercepted =
-          state.filter((m) => m.interceptorId === interceptor.id).length -
-          prev.filter((m) => m.interceptorId === interceptor.id).length;
-        if (intercepted > 0) {
-          setInterceptedCount((count) => count + intercepted);
-        }
-      },
-    );
-  }, [interceptor.id]);
 
   const uniqueId = useMemo(() => {
     return `${interceptor.name}-${interceptor.id}`;
@@ -312,8 +300,9 @@ export function InterceptorItem({
                   variant="solid"
                   radius="full"
                 >
+                  <BarChartIcon width={12} height={12} />
                   <Text as="label" size="1" weight="bold">
-                    {interceptedCount}
+                    {interceptedCount} hits
                   </Text>
                 </RadixBadge>
               )}
@@ -594,12 +583,12 @@ export function InterceptorItem({
   );
 }
 
-const bounceIn = keyframes`
+const bounceAnimation = keyframes`
   from { background-color: var(--orange-4); }
   to { background-color: var(--background-color); }
 `;
 
-const interceptedIn = keyframes`
+const interceptedAnimation = keyframes`
   from { background-color: var(--indigo-6); }
   to { background-color: var(--background-color); }
 `;
@@ -623,11 +612,11 @@ const styles = {
       background-color: var(--active-background-color);
     }
     &.bounce-appear-active {
-      animation: ${bounceIn} 1s ease;
+      animation: ${bounceAnimation} 1s ease;
     }
     &.intercepted-enter-active,
     &.intercepted-exit-active {
-      animation: ${interceptedIn} 2s ease;
+      animation: ${interceptedAnimation} 2s ease;
     }
   `,
 };

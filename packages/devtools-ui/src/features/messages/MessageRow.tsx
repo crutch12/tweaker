@@ -182,7 +182,7 @@ export function MessageRow({
   );
 }
 
-const bounceIn = keyframes`
+const bounceAnimation = keyframes`
   from { background-color: var(--orange-4); }
   to { background-color: var(--background-color); }
 `;
@@ -196,7 +196,7 @@ const styles = {
     }
 
     &.bounce-appear-active {
-      animation: ${bounceIn} 1s ease;
+      animation: ${bounceAnimation} 1s ease;
     }
 
     td {

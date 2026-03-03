@@ -70,6 +70,15 @@ export namespace ExtensionPluginMessages {
     }
   >;
 
+  export type IntercepterCountMessage = PluginAnyMessage<
+    "intercepted-count",
+    {
+      name: string;
+      id: InterceptorId;
+      count: number;
+    }
+  >;
+
   export type Message =
     | PingMessage
     | PongMessage
@@ -77,5 +86,6 @@ export namespace ExtensionPluginMessages {
     | ValueMessage
     | InterceptorsMessage
     | NewInterceptMessage
-    | RemoveInterceptMessage;
+    | RemoveInterceptMessage
+    | IntercepterCountMessage;
 }

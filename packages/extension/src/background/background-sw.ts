@@ -14,8 +14,22 @@ import { version } from "../../package.json";
 import PQueue from "p-queue";
 import { setExtensionIconAndPopup } from "./setExtensionIconAndPopup";
 import { setExtensionCounter } from "./setExtensionCounter";
+import type { InterceptorId } from "@tweaker/core";
 
-const tweakedCounter: Record<number, number> = {};
+const tweakedCounter: Map<number, Map<InterceptorId, number>> = new Map();
+
+function increaseTweakerCounter(tabId: number, interceptorId: InterceptorId) {
+  const counter = tweakedCounter.get(tabId) ?? new Map<InterceptorId, number>();
+  const count = (counter.get(interceptorId) ?? 0) + 1;
+  counter.set(interceptorId, count);
+  tweakedCounter.set(tabId, counter);
+  const total = Array.from(counter.values()).reduce(
+    (sum, count) => sum + count,
+    0,
+  );
+
+  return { count, total };
+}
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.session.setAccessLevel?.({
@@ -98,14 +112,25 @@ chrome.runtime.onMessage.addListener((message: unknown, sender): boolean => {
       break;
     }
     case "value": {
-      if (message.payload.tweaked) {
-        tweakedCounter[tabId] = tweakedCounter[tabId]
-          ? tweakedCounter[tabId] + 1
-          : 1;
-        setExtensionCounter(tweakedCounter[tabId], tabId);
-      }
       saveValueMessage(message);
       sendMessageToDevTools(tabId, message);
+      if (message.payload.tweaked && message.payload.interceptorId) {
+        const { total, count } = increaseTweakerCounter(
+          tabId,
+          message.payload.interceptorId,
+        );
+        setExtensionCounter(total, tabId);
+        sendMessageToDevTools(tabId, {
+          type: "intercepted-count",
+          version,
+          source: EXTENSION_PLUGIN_SOURCE,
+          payload: {
+            id: message.payload.interceptorId,
+            name: message.payload.name,
+            count,
+          },
+        });
+      }
       break;
     }
     default: {
@@ -256,7 +281,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === "complete") {
     setExtensionIconAndPopup("disabled", tabId);
     if (tabId in tweakedCounter) {
-      delete tweakedCounter[tabId];
+      tweakedCounter.delete(tabId);
       setExtensionCounter(0, tabId);
     }
     // chrome.tabs.get(tabId).then((r) => {
