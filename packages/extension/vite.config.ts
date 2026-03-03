@@ -106,7 +106,7 @@ export default defineConfig(({}) => {
     },
 
     build: {
-      minify: !isWatchMode,
+      minify: false,
       watch: isWatchMode
         ? {
             buildDelay: 1000,
@@ -138,7 +138,7 @@ export default defineConfig(({}) => {
     },
     server: {
       cors: {
-        origin: [/chrome-extension:\/\//],
+        origin: [/chrome-extension:\/\//, /moz-extension:\/\//],
       },
     },
   };
