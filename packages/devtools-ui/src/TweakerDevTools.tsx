@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "sonner";
 import { App } from "./App";
 import { ContainerQueryRootProvider } from "./components/container-query/ContainerQueryRootProvider";
 
@@ -49,6 +50,11 @@ export function TweakerDevTools({
           <ContainerQueryRootProvider documentNode={documentNode}>
             <ThemeProvider>
               <App />
+              <Toaster
+                toastOptions={{
+                  unstyled: true,
+                }}
+              />
             </ThemeProvider>
           </ContainerQueryRootProvider>
         </DevtoolsContextProvider>
