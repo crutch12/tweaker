@@ -105,7 +105,6 @@ export function MessageRow({
             expandLevel={0}
             includePrototypes={false}
             data={originalValueData}
-            data-tweaker-devtools
           />
         </Table.Cell>
         {message.tweaked ? (
@@ -207,7 +206,7 @@ const styles = {
   ObjectInspector: css`
     font-size: var(--font-size-1);
 
-    &[data-tweaker-devtools] {
+    && {
       * {
         --labelColor: var(--sand-11);
         --textColor: var(--gray-10);
