@@ -27,7 +27,7 @@ export function InterceptorsList({
   return (
     <Grid
       ref={ref}
-      columns="repeat(auto-fit, minmax(min(100%, 400px), 1fr))"
+      columns="repeat(auto-fit, minmax(min(100%, 450px), 1fr))"
       gap="2"
       {...props}
     >
