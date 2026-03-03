@@ -4,12 +4,14 @@ export interface DevtoolsContextProps {
   tabId?: number;
   canViewSourceCode: boolean;
   viewSourceCode: (file: string, line: number, column: number) => void;
+  reloadApp: () => void;
 }
 
 const DevtoolsContext = createContext<DevtoolsContextProps>({
   tabId: undefined,
   canViewSourceCode: false,
   viewSourceCode: () => {},
+  reloadApp: () => {},
 });
 
 export function DevtoolsContextProvider({
@@ -17,14 +19,16 @@ export function DevtoolsContextProvider({
   tabId,
   canViewSourceCode,
   viewSourceCode,
+  reloadApp,
 }: DevtoolsContextProps & { children: ReactNode }) {
   const value = useMemo(
     () => ({
       tabId,
       canViewSourceCode,
       viewSourceCode,
+      reloadApp,
     }),
-    [tabId, canViewSourceCode, viewSourceCode],
+    [tabId, canViewSourceCode, viewSourceCode, reloadApp],
   );
 
   return (

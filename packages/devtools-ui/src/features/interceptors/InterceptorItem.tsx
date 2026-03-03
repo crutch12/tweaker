@@ -319,7 +319,7 @@ export function InterceptorItem({
                   });
                 }}
                 className={css`
-                  margin: -2px;
+                  padding: 3px;
                 `}
               >
                 {interceptor.interactive ? (

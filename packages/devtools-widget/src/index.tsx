@@ -2,6 +2,10 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { TweakerDevTools, TweakerDevToolsProps } from "@tweaker/devtools-ui";
 
+function reloadWindow() {
+  window.location.reload();
+}
+
 export interface RenderWidgetOptions {
   tabId?: number;
   canViewSourceCode?: TweakerDevToolsProps["canViewSourceCode"];
@@ -14,17 +18,28 @@ export function renderWidget(
 ) {
   if (!container) throw new Error("container is required");
 
-  const root = createRoot(container);
-  root.render(
-    <StrictMode>
-      <TweakerDevTools
-        container={container}
-        tabId={tabId}
-        canViewSourceCode={canViewSourceCode}
-        viewSourceCode={viewSourceCode}
-      />
-    </StrictMode>,
-  );
+  function mount() {
+    const root = createRoot(container);
+    root.render(
+      <StrictMode>
+        <TweakerDevTools
+          container={container}
+          tabId={tabId}
+          canViewSourceCode={canViewSourceCode}
+          viewSourceCode={viewSourceCode}
+          reloadApp={tabId ? reloadWindow : reloadApp}
+        />
+      </StrictMode>,
+    );
+    return root;
+  }
+
+  let root = mount();
+
+  function reloadApp() {
+    root.unmount();
+    root = mount();
+  }
 
   return () => {
     root.unmount();

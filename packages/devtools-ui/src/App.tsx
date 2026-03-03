@@ -60,10 +60,6 @@ export function App() {
     });
   };
 
-  const reloadPanel = () => {
-    window.location.reload();
-  };
-
   const evalTweaker = () => {
     chrome.devtools.inspectedWindow.eval(
       "globalThis.__TWEAKER_DEVTOOLS_GLOBAL_HOOK__.version",
@@ -130,7 +126,7 @@ export function App() {
       });
   }, []);
 
-  const { tabId } = useDevtools();
+  const { tabId, reloadApp } = useDevtools();
 
   const extensionDevtoolsHref = useMemo(() => {
     if (typeof location === "undefined" || !tabId) return undefined;
@@ -438,8 +434,8 @@ export function App() {
             color="gray"
             size="2"
             variant="ghost"
-            title="Reload DevTools Panel"
-            onClick={reloadPanel}
+            title="Reload Tweaker DevTools"
+            onClick={reloadApp}
           >
             <ReloadIcon />
           </IconButton>

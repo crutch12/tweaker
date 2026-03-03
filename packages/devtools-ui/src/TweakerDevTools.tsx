@@ -15,11 +15,16 @@ const queryClient = new QueryClient();
 
 const emptyFn = () => {};
 
+const reloadWindow = () => {
+  window.location.reload();
+};
+
 export interface TweakerDevToolsProps {
   container?: HTMLElement;
   tabId?: number;
   canViewSourceCode?: DevtoolsContextProps["canViewSourceCode"];
   viewSourceCode?: DevtoolsContextProps["viewSourceCode"];
+  reloadApp?: DevtoolsContextProps["reloadApp"];
 }
 
 export function TweakerDevTools({
@@ -27,6 +32,7 @@ export function TweakerDevTools({
   tabId,
   viewSourceCode,
   canViewSourceCode,
+  reloadApp,
 }: TweakerDevToolsProps) {
   const documentNode = useMemo(() => {
     return container?.getRootNode() as Document;
@@ -38,6 +44,7 @@ export function TweakerDevTools({
           tabId={tabId}
           viewSourceCode={viewSourceCode ?? emptyFn}
           canViewSourceCode={canViewSourceCode ?? false}
+          reloadApp={reloadApp ?? reloadWindow}
         >
           <ContainerQueryRootProvider documentNode={documentNode}>
             <ThemeProvider>
