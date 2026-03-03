@@ -121,7 +121,8 @@ export function InterceptorItem({
     serializePatterns(interceptor.patterns),
   );
 
-  const canChangeExpression = interceptor.owner === EXTENSION_OWNER;
+  const isByExtension = interceptor.owner === EXTENSION_OWNER;
+  const canChangeExpression = isByExtension;
 
   useEffect(() => {
     setPatterns(serializePatterns(interceptor.patterns));
@@ -269,14 +270,15 @@ export function InterceptorItem({
                 <ExportIcon size="medium" />
               </ButtonIcon>
             )}
-            {(interceptor.sourceCode || interceptor.stack) && (
-              <SourceCodePopover
-                code={interceptor.sourceCode}
-                stack={interceptor.stack}
-                title="Show interceptor source code (formatted)"
-                size="medium"
-              />
-            )}
+            {!isByExtension &&
+              (interceptor.sourceCode || interceptor.stack) && (
+                <SourceCodePopover
+                  code={interceptor.sourceCode}
+                  stack={interceptor.stack}
+                  title="Show interceptor source code (formatted)"
+                  size="medium"
+                />
+              )}
             <RadixBadge
               title={new Date(interceptor.timestamp).toLocaleString()}
               color="cyan"
