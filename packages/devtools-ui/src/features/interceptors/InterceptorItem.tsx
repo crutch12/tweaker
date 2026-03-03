@@ -614,8 +614,8 @@ const styles = {
     &.bounce-appear-active {
       animation: ${bounceAnimation} 1s ease;
     }
-    &.intercepted-enter-active,
-    &.intercepted-exit-active {
+    &&.intercepted-enter-active,
+    &&.intercepted-exit-active {
       animation: ${interceptedAnimation} 2s ease;
     }
   `,

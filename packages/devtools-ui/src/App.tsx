@@ -11,7 +11,7 @@ import {
   EXTENSION_OWNER,
   isForDevtoolsMessage,
 } from "@tweaker/extension-plugin";
-import { generateNumberId } from "@tweaker/core/utils";
+import { generateNumberId, groupBy } from "@tweaker/core/utils";
 import type { InterceptorId } from "@tweaker/core";
 import { version, name } from "../package.json";
 import { useInterceptorsStore } from "./features/interceptors/useInterceptorsStore";
@@ -52,7 +52,6 @@ import {
 import { homepage } from "../../../package.json";
 import { useDevtools } from "./features/devtools/DevtoolsProvider";
 import { useMessagesStore } from "./features/messages/useMessagesStore";
-import { groupBy } from "./utils/groupBy";
 import { useInterceptedCountsStore } from "./features/interceptors/useInterceptedCountsStore";
 
 export function App() {

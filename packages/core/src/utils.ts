@@ -47,3 +47,5 @@ export function getStack(depth = 0) {
 
   return stack.replace("Error\n", "").split("\n").slice(depth).join("\n");
 }
+
+export * from "./groupBy";
