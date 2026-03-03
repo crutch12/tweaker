@@ -10,11 +10,7 @@ import {
   useState,
 } from "react";
 import { EXTENSION_OWNER, InterceptorPayload } from "@tweaker/extension-plugin";
-import {
-  getActiveBackgroundColor,
-  getBackgroundColor,
-  getTextColor,
-} from "../../utils/colors";
+import { getBackgroundColor, getTextColor } from "../../utils/colors";
 import equal from "fast-deep-equal";
 import { Badge } from "../../components/Badge";
 import { DeleteIcon, SelectIcon, ExportIcon } from "@devtools-ds/icon";
@@ -23,6 +19,7 @@ import { isJsSyntaxValid } from "../../utils/isJsSyntaxValid";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { parsePatterns, serializePatterns } from "../../utils/pattern";
 import { InfoIcon } from "@devtools-ds/icon";
+import { useThrottle } from "@uidotdev/usehooks";
 import {
   Text,
   Code,
@@ -39,6 +36,8 @@ import { CSSTransition } from "react-transition-group";
 import { Tooltip } from "../../components/base/Tooltip";
 import { BreakpointIcon } from "../../icons/BreakpointIcon";
 import { BreakpointCrossedIcon } from "../../icons/BreakpointCrossedIcon";
+import { useMessagesStore } from "../messages/useMessagesStore";
+import { usePrevious } from "../../hooks/usePrevious";
 
 const ExpressionCodeBlock = lazy(() =>
   import("./ExpressionCodeBlock").then((r) => ({
@@ -168,6 +167,24 @@ export function InterceptorItem({
     };
   }, []);
 
+  const [interceptedCount, setInterceptedCount] = useState(0);
+
+  const interceptedCountThrottled = useThrottle(interceptedCount, 10);
+
+  useEffect(() => {
+    return useMessagesStore.subscribe(
+      (state) => state.messages,
+      (state, prev) => {
+        const intercepted =
+          state.filter((m) => m.interceptorId === interceptor.id).length -
+          prev.filter((m) => m.interceptorId === interceptor.id).length;
+        if (intercepted > 0) {
+          setInterceptedCount((count) => count + intercepted);
+        }
+      },
+    );
+  }, [interceptor.id]);
+
   const uniqueId = useMemo(() => {
     return `${interceptor.name}-${interceptor.id}`;
   }, [interceptor]);
@@ -186,299 +203,211 @@ export function InterceptorItem({
       timeout={1000}
       classNames="bounce"
     >
-      <Flex
-        data-interceptor-id={interceptor.id}
-        ref={nodeRef}
-        onMouseEnter={() =>
-          onHightLight({
-            ...interceptor,
-            patterns: parsePatterns(patterns),
-          })
-        }
-        onMouseLeave={() => onHightLight(undefined)}
-        direction="column"
-        p="3"
-        gap="2"
-        position="relative"
-        style={{
-          "--background-color": "var(--color-panel-solid)",
-          "--active-background-color": appBackgroundColor,
-        }}
-        className={css`
-          border: 1.5px solid ${appColor};
-          border-left-width: 6px;
-          border-radius: 10px;
-          opacity: ${interceptor.enabled ? undefined : 0.6};
-          background-color: var(--background-color);
-
-          :hover {
-            background-color: var(--active-background-color);
-          }
-          &.bounce-appear-active {
-            animation: ${bounceIn} 1s ease;
-          }
-        `}
+      <CSSTransition
+        nodeRef={nodeRef}
+        in={interceptedCount > interceptedCountThrottled}
+        enter
+        timeout={2000}
+        classNames="intercepted"
       >
-        <Flex gap="1" align="center" justify="between">
-          <Flex gap="1" align="center" wrap="wrap">
-            <Switch
-              id={`${uniqueId}-enabled`}
-              checked={interceptor.enabled}
-              size="1"
-              onCheckedChange={(checked) => {
-                onChange?.({
-                  ...interceptor,
-                  enabled: Boolean(checked),
-                });
-              }}
-            />
-            <Text
-              as="label"
-              htmlFor={`${uniqueId}-enabled`}
-              weight="bold"
-              size="3"
-              className={css`
-                color: ${appColor};
-              `}
-            >
-              {interceptor.name}
-            </Text>
-            <ButtonIcon
-              title="Remove interceptor"
-              onClick={() => onRemove?.(interceptor)}
-            >
-              <DeleteIcon size="medium" />
-            </ButtonIcon>
-            {onFilterMessages && (
-              <ButtonIcon
-                disabled={parsePatterns(patterns).length === 0}
-                title={
-                  parsePatterns(patterns).length === 0
-                    ? undefined
-                    : `Filter messages by patterns "${patterns}"`
-                }
-                onClick={() => onFilterMessages(interceptor.patterns)}
-              >
-                <SelectIcon size="medium" />
-              </ButtonIcon>
-            )}
-            {onDuplicate && (
-              <ButtonIcon
-                title="Duplicate interceptor"
-                onClick={() => onDuplicate(interceptor)}
-              >
-                <ExportIcon size="medium" />
-              </ButtonIcon>
-            )}
-            {!isByExtension &&
-              (interceptor.sourceCode || interceptor.stack) && (
-                <SourceCodePopover
-                  code={interceptor.sourceCode}
-                  stack={interceptor.stack}
-                  title="Show interceptor source code (formatted)"
-                  size="medium"
-                />
-              )}
-            <RadixBadge
-              title={new Date(interceptor.timestamp).toLocaleString()}
-              color="cyan"
-            >
-              <Text size="1" weight="bold">
-                {interceptor.id}
-              </Text>
-            </RadixBadge>
-          </Flex>
-          <Flex gap="1" align="center" wrap="wrap">
-            <Tooltip
-              content={
-                <Flex asChild direction="column" gap="1">
-                  <ul className={styles.TooltipContentList}>
-                    <li>
-                      <Text size="2">
-                        Stops code via{" "}
-                        <Code variant="solid" color="yellow">
-                          debugger
-                        </Code>{" "}
-                        before result return
-                      </Text>
-                    </li>
-                    <li>
-                      <Text size="2">
-                        Works only if Browser's DevTools panel is open
-                      </Text>
-                    </li>
-                  </ul>
-                </Flex>
-              }
-            >
-              <ButtonIcon
-                id={`${uniqueId}-interactive`}
-                disabled={!interceptor.enabled}
-                onClick={() => {
+        <Flex
+          data-interceptor-id={interceptor.id}
+          ref={nodeRef}
+          onMouseEnter={() =>
+            onHightLight({
+              ...interceptor,
+              patterns: parsePatterns(patterns),
+            })
+          }
+          onMouseLeave={() => onHightLight(undefined)}
+          direction="column"
+          p="3"
+          gap="2"
+          position="relative"
+          style={{
+            "--background-color": "var(--color-panel-solid)",
+            "--active-background-color": appBackgroundColor,
+          }}
+          className={css`
+            border: 1.5px solid ${appColor};
+            border-left-width: 6px;
+            border-radius: 10px;
+            opacity: ${interceptor.enabled ? undefined : 0.6};
+            background-color: var(--background-color);
+
+            :hover {
+              background-color: var(--active-background-color);
+            }
+            &.bounce-appear-active {
+              animation: ${bounceIn} 1s ease;
+            }
+            &.intercepted-enter-active,
+            &.intercepted-exit-active {
+              animation: ${interceptedIn} 2s ease;
+            }
+          `}
+        >
+          <Flex gap="1" align="center" justify="between">
+            <Flex gap="1" align="center" wrap="wrap">
+              <Switch
+                id={`${uniqueId}-enabled`}
+                checked={interceptor.enabled}
+                size="1"
+                onCheckedChange={(checked) => {
                   onChange?.({
                     ...interceptor,
-                    interactive: !interceptor.interactive,
+                    enabled: Boolean(checked),
                   });
                 }}
+              />
+              <Text
+                as="label"
+                htmlFor={`${uniqueId}-enabled`}
+                weight="bold"
+                size="3"
                 className={css`
-                  && {
-                    padding: 3px;
-                  }
+                  color: ${appColor};
                 `}
               >
-                {interceptor.interactive ? (
-                  <BreakpointIcon
-                    width="20"
-                    height="20"
-                    color="var(--indigo-9)"
-                  />
-                ) : (
-                  <BreakpointCrossedIcon width="20" height="20" />
-                )}
+                {interceptor.name}
+              </Text>
+              <ButtonIcon
+                title="Remove interceptor"
+                onClick={() => onRemove?.(interceptor)}
+              >
+                <DeleteIcon size="medium" />
               </ButtonIcon>
-            </Tooltip>
-          </Flex>
-        </Flex>
-        <Flex gap="2" wrap="wrap">
-          <Flex direction="column" gap="2">
-            <Flex direction="column" gap="1">
-              <Flex align="center" gap="1">
-                <Text size="2" as="label" htmlFor={`${uniqueId}-patterns`}>
-                  Patterns
-                </Text>
-                <Tooltip
-                  content={
-                    <Flex asChild direction="column" gap="1">
-                      <ul className={styles.TooltipContentList}>
-                        <li>
-                          <Text size="2">
-                            Write any valid glob (e.g.{" "}
-                            <Code variant="solid" color="yellow">
-                              *.*
-                            </Code>
-                            )
-                          </Text>
-                        </li>
-                        <li>
-                          <Text size="2">
-                            Separate multiple globs using{" "}
-                            <Code variant="solid" color="yellow">
-                              ,
-                            </Code>
-                          </Text>
-                        </li>
-                      </ul>
-                    </Flex>
+              {onFilterMessages && (
+                <ButtonIcon
+                  disabled={parsePatterns(patterns).length === 0}
+                  title={
+                    parsePatterns(patterns).length === 0
+                      ? undefined
+                      : `Filter messages by patterns "${patterns}"`
                   }
+                  onClick={() => onFilterMessages(interceptor.patterns)}
                 >
-                  <ButtonIcon>
-                    <InfoIcon size="medium" />
-                  </ButtonIcon>
-                </Tooltip>
-              </Flex>
-              <TextField.Root
-                id={`${uniqueId}-patterns`}
-                type="text"
-                placeholder="Patterns"
-                value={patterns}
-                color={patternsError ? "red" : undefined}
-                variant={patternsError ? "soft" : undefined}
-                disabled={!interceptor.enabled}
-                onKeyDown={(ev) => {
-                  if (ev.key === "Escape") {
-                    ev.stopPropagation();
-                    ev.currentTarget.blur();
-                  }
-                }}
-                onChange={(ev) => {
-                  setPatterns(ev.target.value);
-                  onHightLight({
-                    ...interceptor,
-                    patterns: parsePatterns(ev.target.value),
-                  });
-                }}
-                onBlur={() => {
-                  serializePatterns(interceptor.patterns) !==
-                    serializePatterns(parsePatterns(patterns)) &&
+                  <SelectIcon size="medium" />
+                </ButtonIcon>
+              )}
+              {onDuplicate && (
+                <ButtonIcon
+                  title="Duplicate interceptor"
+                  onClick={() => onDuplicate(interceptor)}
+                >
+                  <ExportIcon size="medium" />
+                </ButtonIcon>
+              )}
+              {!isByExtension &&
+                (interceptor.sourceCode || interceptor.stack) && (
+                  <SourceCodePopover
+                    code={interceptor.sourceCode}
+                    stack={interceptor.stack}
+                    title="Show interceptor source code (formatted)"
+                    size="medium"
+                  />
+                )}
+              <RadixBadge
+                title={new Date(interceptor.timestamp).toLocaleString()}
+                color="cyan"
+              >
+                <Text size="1" weight="bold">
+                  {interceptor.id}
+                </Text>
+              </RadixBadge>
+              {interceptedCount > 0 && (
+                <RadixBadge
+                  title="Count of intercepted messages"
+                  color="blue"
+                  variant="solid"
+                  radius="full"
+                >
+                  <Text as="label" size="1" weight="bold">
+                    {interceptedCount}
+                  </Text>
+                </RadixBadge>
+              )}
+            </Flex>
+            <Flex gap="1" align="center" wrap="wrap">
+              <Tooltip
+                content={
+                  <Flex asChild direction="column" gap="1">
+                    <ul className={styles.TooltipContentList}>
+                      <li>
+                        <Text size="2">
+                          Stops code via{" "}
+                          <Code variant="solid" color="yellow">
+                            debugger
+                          </Code>{" "}
+                          before result return
+                        </Text>
+                      </li>
+                      <li>
+                        <Text size="2">
+                          Works only if Browser's DevTools panel is open
+                        </Text>
+                      </li>
+                    </ul>
+                  </Flex>
+                }
+              >
+                <ButtonIcon
+                  id={`${uniqueId}-interactive`}
+                  disabled={!interceptor.enabled}
+                  onClick={() => {
                     onChange?.({
                       ...interceptor,
-                      patterns: parsePatterns(patterns),
+                      interactive: !interceptor.interactive,
                     });
-                  onHightLight(undefined);
-                }}
-                className={css`
-                  width: 150px;
-                `}
-              />
+                  }}
+                  className={css`
+                    && {
+                      padding: 3px;
+                    }
+                  `}
+                >
+                  {interceptor.interactive ? (
+                    <BreakpointIcon
+                      width="20"
+                      height="20"
+                      color="var(--indigo-9)"
+                    />
+                  ) : (
+                    <BreakpointCrossedIcon width="20" height="20" />
+                  )}
+                </ButtonIcon>
+              </Tooltip>
             </Flex>
           </Flex>
-          {canChangeExpression && (
-            <Flex flexGrow="1" overflow="hidden" gap="1" direction="column">
-              <Flex align="center" gap="1">
+          <Flex gap="2" wrap="wrap">
+            <Flex direction="column" gap="2">
+              <Flex direction="column" gap="1">
                 <Flex align="center" gap="1">
-                  <Text size="2" as="label">
-                    Expression
+                  <Text size="2" as="label" htmlFor={`${uniqueId}-patterns`}>
+                    Patterns
                   </Text>
                   <Tooltip
-                    minWidth="400px"
                     content={
-                      <Flex direction="column" gap="1">
-                        <Flex asChild direction="column" gap="1">
-                          <ul className={styles.TooltipContentList}>
-                            <li>
-                              <Text size="2">
-                                Write any valid javascript code to return target
-                                value
-                              </Text>
-                            </li>
-                            <li>
-                              <Text size="2">
-                                Even{" "}
-                                <Code variant="solid" color="yellow">
-                                  throw
-                                </Code>{" "}
-                                and{" "}
-                                <Code variant="solid" color="yellow">
-                                  debugger
-                                </Code>{" "}
-                                are available
-                              </Text>
-                            </li>
-                            <li>
-                              <Text size="2">
-                                Return{" "}
-                                <Code variant="solid" color="yellow">
-                                  ctx.bypass
-                                </Code>{" "}
-                                to skip current interceptor
-                              </Text>
-                            </li>
-                            <li>
-                              <Text size="2">
-                                Press <Kbd size="1">Ctrl + S</Kbd> to save
-                                changes
-                              </Text>
-                            </li>
-                          </ul>
-                        </Flex>
-                        <Flex direction="column" gap="1" pb="1">
-                          <Text size="2" weight="bold">
-                            Types Definition
-                          </Text>
-                          <Suspense
-                            fallback={
-                              <Flex direction="column" gap="1">
-                                <Skeleton height="18px" />
-                              </Flex>
-                            }
-                          >
-                            <ExpressionCodeBlock
-                              code={ExpressionTypeDefinition}
-                              readOnly
-                              language="ts"
-                            />
-                          </Suspense>
-                        </Flex>
+                      <Flex asChild direction="column" gap="1">
+                        <ul className={styles.TooltipContentList}>
+                          <li>
+                            <Text size="2">
+                              Write any valid glob (e.g.{" "}
+                              <Code variant="solid" color="yellow">
+                                *.*
+                              </Code>
+                              )
+                            </Text>
+                          </li>
+                          <li>
+                            <Text size="2">
+                              Separate multiple globs using{" "}
+                              <Code variant="solid" color="yellow">
+                                ,
+                              </Code>
+                            </Text>
+                          </li>
+                        </ul>
                       </Flex>
                     }
                   >
@@ -487,82 +416,201 @@ export function InterceptorItem({
                     </ButtonIcon>
                   </Tooltip>
                 </Flex>
-                {hasChanges && (
-                  <Button
-                    size="1"
-                    radius="large"
-                    color="indigo"
-                    onClick={() => onChange?.({ ...interceptor, expression })}
+                <TextField.Root
+                  id={`${uniqueId}-patterns`}
+                  type="text"
+                  placeholder="Patterns"
+                  value={patterns}
+                  color={patternsError ? "red" : undefined}
+                  variant={patternsError ? "soft" : undefined}
+                  disabled={!interceptor.enabled}
+                  onKeyDown={(ev) => {
+                    if (ev.key === "Escape") {
+                      ev.stopPropagation();
+                      ev.currentTarget.blur();
+                    }
+                  }}
+                  onChange={(ev) => {
+                    setPatterns(ev.target.value);
+                    onHightLight({
+                      ...interceptor,
+                      patterns: parsePatterns(ev.target.value),
+                    });
+                  }}
+                  onBlur={() => {
+                    serializePatterns(interceptor.patterns) !==
+                      serializePatterns(parsePatterns(patterns)) &&
+                      onChange?.({
+                        ...interceptor,
+                        patterns: parsePatterns(patterns),
+                      });
+                    onHightLight(undefined);
+                  }}
+                  className={css`
+                    width: 150px;
+                  `}
+                />
+              </Flex>
+            </Flex>
+            {canChangeExpression && (
+              <Flex flexGrow="1" overflow="hidden" gap="1" direction="column">
+                <Flex align="center" gap="1">
+                  <Flex align="center" gap="1">
+                    <Text size="2" as="label">
+                      Expression
+                    </Text>
+                    <Tooltip
+                      minWidth="400px"
+                      content={
+                        <Flex direction="column" gap="1">
+                          <Flex asChild direction="column" gap="1">
+                            <ul className={styles.TooltipContentList}>
+                              <li>
+                                <Text size="2">
+                                  Write any valid javascript code to return
+                                  target value
+                                </Text>
+                              </li>
+                              <li>
+                                <Text size="2">
+                                  Even{" "}
+                                  <Code variant="solid" color="yellow">
+                                    throw
+                                  </Code>{" "}
+                                  and{" "}
+                                  <Code variant="solid" color="yellow">
+                                    debugger
+                                  </Code>{" "}
+                                  are available
+                                </Text>
+                              </li>
+                              <li>
+                                <Text size="2">
+                                  Return{" "}
+                                  <Code variant="solid" color="yellow">
+                                    ctx.bypass
+                                  </Code>{" "}
+                                  to skip current interceptor
+                                </Text>
+                              </li>
+                              <li>
+                                <Text size="2">
+                                  Press <Kbd size="1">Ctrl + S</Kbd> to save
+                                  changes
+                                </Text>
+                              </li>
+                            </ul>
+                          </Flex>
+                          <Flex direction="column" gap="1" pb="1">
+                            <Text size="2" weight="bold">
+                              Types Definition
+                            </Text>
+                            <Suspense
+                              fallback={
+                                <Flex direction="column" gap="1">
+                                  <Skeleton height="18px" />
+                                </Flex>
+                              }
+                            >
+                              <ExpressionCodeBlock
+                                code={ExpressionTypeDefinition}
+                                readOnly
+                                language="ts"
+                              />
+                            </Suspense>
+                          </Flex>
+                        </Flex>
+                      }
+                    >
+                      <ButtonIcon>
+                        <InfoIcon size="medium" />
+                      </ButtonIcon>
+                    </Tooltip>
+                  </Flex>
+                  {hasChanges && (
+                    <Button
+                      size="1"
+                      radius="large"
+                      color="indigo"
+                      onClick={() => onChange?.({ ...interceptor, expression })}
+                    >
+                      Save
+                    </Button>
+                  )}
+                  {hasChanges && (
+                    <Button
+                      size="1"
+                      radius="large"
+                      color="orange"
+                      variant="soft"
+                      onClick={discardChanges}
+                    >
+                      Discard
+                    </Button>
+                  )}
+                </Flex>
+                <Suspense
+                  fallback={
+                    <Flex direction="column" gap="1">
+                      <Skeleton height="18px" />
+                      <Skeleton height="18px" />
+                      <Skeleton height="18px" />
+                    </Flex>
+                  }
+                >
+                  <ExpressionCodeBlockContainer
+                    codeBefore="(key: string, value: T, ctx: Context) => {"
+                    codeAfter="}"
+                    language="ts"
                   >
-                    Save
-                  </Button>
-                )}
-                {hasChanges && (
-                  <Button
-                    size="1"
-                    radius="large"
-                    color="orange"
-                    variant="soft"
-                    onClick={discardChanges}
-                  >
-                    Discard
-                  </Button>
+                    <ExpressionCodeBlock
+                      key={updatesCount}
+                      code={initialExpression ?? ""}
+                      onUpdate={onCodeUpdate}
+                      readOnly={!interceptor.enabled}
+                      onSave={() =>
+                        hasChanges && onChange?.({ ...interceptor, expression })
+                      }
+                    />
+                  </ExpressionCodeBlockContainer>
+                </Suspense>
+                {expressionError && (
+                  <Text size="2" color="red">
+                    {expressionError}
+                  </Text>
                 )}
               </Flex>
-              <Suspense
-                fallback={
-                  <Flex direction="column" gap="1">
-                    <Skeleton height="18px" />
-                    <Skeleton height="18px" />
-                    <Skeleton height="18px" />
-                  </Flex>
-                }
-              >
-                <ExpressionCodeBlockContainer
-                  codeBefore="(key: string, value: T, ctx: Context) => {"
-                  codeAfter="}"
-                  language="ts"
-                >
-                  <ExpressionCodeBlock
-                    key={updatesCount}
-                    code={initialExpression ?? ""}
-                    onUpdate={onCodeUpdate}
-                    readOnly={!interceptor.enabled}
-                    onSave={() =>
-                      hasChanges && onChange?.({ ...interceptor, expression })
-                    }
-                  />
-                </ExpressionCodeBlockContainer>
-              </Suspense>
-              {expressionError && (
-                <Text size="2" color="red">
-                  {expressionError}
-                </Text>
-              )}
+            )}
+          </Flex>
+          <Badge
+            position="bottom-right"
+            appearance={
+              canChangeExpression
+                ? hasChanges
+                  ? "warn"
+                  : "primary"
+                : "secondary"
+            }
+          >
+            <Flex gap="1">
+              <Text size="2" weight="bold">
+                {interceptor.owner}
+              </Text>
             </Flex>
-          )}
+          </Badge>
         </Flex>
-        <Badge
-          position="bottom-right"
-          appearance={
-            canChangeExpression
-              ? hasChanges
-                ? "warn"
-                : "primary"
-              : "secondary"
-          }
-        >
-          <Text size="2" weight="bold">
-            {interceptor.owner}
-          </Text>
-        </Badge>
-      </Flex>
+      </CSSTransition>
     </CSSTransition>
   );
 }
 
 const bounceIn = keyframes`
   from { background-color: var(--orange-4); }
+  to { background-color: var(--background-color); }
+`;
+
+const interceptedIn = keyframes`
+  from { background-color: var(--indigo-6); }
   to { background-color: var(--background-color); }
 `;
 

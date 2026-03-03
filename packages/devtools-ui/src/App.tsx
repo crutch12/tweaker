@@ -50,6 +50,7 @@ import {
 } from "@radix-ui/react-icons";
 import { homepage } from "../../../package.json";
 import { useDevtools } from "./features/devtools/DevtoolsProvider";
+import { useMessagesStore } from "./features/messages/useMessagesStore";
 
 export function App() {
   const reloadPage = () => {
@@ -77,15 +78,15 @@ export function App() {
 
   const date = useMemo(() => new Date(), []);
 
-  const [messages, setMessages] = useState<
-    ExtensionPluginMessages.ValueMessage["payload"][]
-  >([]);
-
   const interceptors = useInterceptorsStore((state) => state.interceptors);
   const addInterceptors = useInterceptorsStore((state) => state.add);
   const setInterceptors = useInterceptorsStore((state) => state.set);
   const updateInterceptor = useInterceptorsStore((state) => state.update);
   const removeInterceptors = useInterceptorsStore((state) => state.remove);
+
+  const messages = useMessagesStore((state) => state.messages);
+  const addMessasges = useMessagesStore((state) => state.add);
+  const setMessages = useMessagesStore((state) => state.set);
 
   const appNames = useMemo(() => {
     if (interceptors.length === 0 && messages.length === 0) return [];
@@ -122,7 +123,7 @@ export function App() {
         messages: ExtensionPluginMessages.ValueMessage[];
       }>({ messages: [] })
       .then((result) => {
-        setMessages((v) => [...v, ...result.messages.map((x) => x.payload)]);
+        addMessasges(result.messages.map((x) => x.payload));
       });
   }, []);
 
@@ -154,7 +155,7 @@ export function App() {
 
       switch (message.type) {
         case "value": {
-          setMessages((v) => [...v, message.payload]);
+          addMessasges([message.payload]);
           break;
         }
         case "new-intercept": {
