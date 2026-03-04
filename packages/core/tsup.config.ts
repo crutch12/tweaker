@@ -2,7 +2,12 @@ import { defineConfig } from "tsup";
 
 export default defineConfig((options) => {
   const config: typeof options = {
-    entry: ["src/index.ts", "src/plugin.ts", "src/utils.ts", "src/global.ts"],
+    entry: [
+      "src/index.ts",
+      "src/plugin.ts",
+      "src/utils/index.ts",
+      "src/global.ts",
+    ],
     dts: true,
     minify: false,
     sourcemap: true,

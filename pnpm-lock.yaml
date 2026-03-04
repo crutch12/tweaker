@@ -122,6 +122,9 @@ importers:
       minimatch:
         specifier: ^10.1.2
         version: 10.1.2
+      p-queue:
+        specifier: ^9.1.0
+        version: 9.1.0
 
   packages/devtools-ui:
     dependencies:
@@ -233,9 +236,6 @@ importers:
       '@tweaker/styles':
         specifier: workspace:*
         version: link:../styles
-      p-queue:
-        specifier: ^9.1.0
-        version: 9.1.0
 
   packages/extension-plugin:
     dependencies:

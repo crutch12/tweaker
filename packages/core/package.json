@@ -21,9 +21,9 @@
       "default": "./dist/esm/plugin.js"
     },
     "./utils": {
-      "types": "./dist/esm/utils.d.ts",
-      "import": "./dist/esm/utils.js",
-      "default": "./dist/esm/utils.js"
+      "types": "./dist/esm/utils/index.d.ts",
+      "import": "./dist/esm/utils/index.js",
+      "default": "./dist/esm/utils/index.js"
     },
     "./global": {
       "types": "./dist/esm/global.d.ts",
@@ -37,7 +37,8 @@
   },
   "dependencies": {
     "eventemitter3": "^5.0.4",
-    "minimatch": "^10.1.2"
+    "minimatch": "^10.1.2",
+    "p-queue": "^9.1.0"
   },
   "sideEffects": [
     "./dist/esm/global.js"

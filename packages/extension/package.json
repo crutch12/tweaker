@@ -13,7 +13,6 @@
     "@tweaker/devtools-ui": "workspace:*",
     "@tweaker/devtools-widget": "workspace:*",
     "@tweaker/extension-plugin": "workspace:*",
-    "@tweaker/styles": "workspace:*",
-    "p-queue": "^9.1.0"
+    "@tweaker/styles": "workspace:*"
   }
 }

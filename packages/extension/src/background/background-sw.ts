@@ -11,11 +11,17 @@ import {
 } from "@tweaker/extension-plugin";
 import { version } from "../../package.json";
 
-import PQueue from "p-queue";
 import { setExtensionIconAndPopup } from "./setExtensionIconAndPopup";
 import { setExtensionCounter } from "./setExtensionCounter";
 import type { InterceptorId } from "@tweaker/core";
-import { groupBy } from "@tweaker/core/utils";
+import { CachedStorage } from "@tweaker/core/utils";
+
+const storage = new CachedStorage({
+  clear: chrome.storage.session.clear,
+  getItem: (key) => chrome.storage.session.get(key).then((value) => value[key]),
+  setItem: (key, value) => chrome.storage.session.set({ [key]: value }),
+  removeItem: (key) => chrome.storage.session.remove(key), // TODO: doesn't properly work
+});
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.session.setAccessLevel?.({
@@ -198,53 +204,44 @@ async function handleInterceptors(
   });
 }
 
-// prevent race conditions and add new messages in order
-const messagesStoreQueue = new PQueue({ concurrency: 1 });
-
 async function saveValueMessage(message: ExtensionPluginMessages.ValueMessage) {
-  return messagesStoreQueue.add(async () => {
-    const { messages } = await chrome.storage.session.get<{
-      messages: ExtensionPluginMessages.ValueMessage[];
-    }>({ messages: [] });
+  const messagesStorage = storage.create<
+    ExtensionPluginMessages.ValueMessage[]
+  >("messages", []);
 
+  return messagesStorage.set((messages) => {
     messages.push(message);
 
     const MAX_LENGTH = 1000;
 
     console.log({ messages });
 
-    // TODO: should batch frequent storage operations
-    await chrome.storage.session.set({ messages: messages.slice(-MAX_LENGTH) });
+    return messages.slice(-MAX_LENGTH);
   });
 }
 
 async function clearMessages() {
-  return messagesStoreQueue.add(() =>
-    chrome.storage.session.set({ messages: [] }),
-  );
+  const messagesStorage = storage.create<
+    ExtensionPluginMessages.ValueMessage[]
+  >("messages", []);
+  return messagesStorage.set(() => []);
 }
 
 async function getMessages() {
-  return messagesStoreQueue.add(async () => {
-    const { messages = [] } = await chrome.storage.session.get<{
-      messages: ExtensionPluginMessages.ValueMessage[];
-    }>({ messages: [] });
-
-    return messages;
-  });
+  const messagesStorage = storage.create<
+    ExtensionPluginMessages.ValueMessage[]
+  >("messages", []);
+  return messagesStorage.get();
 }
-
-// prevent race conditions and add new interceptors in order
-const interceptorsStoreQueue = new PQueue({ concurrency: 1 });
 
 async function saveInterceptors(
   newInterceptors: ExtensionPluginMessages.InitMessage["payload"]["interceptors"],
 ) {
-  return interceptorsStoreQueue.add(async () => {
-    let { interceptors } = await chrome.storage.session.get<{
-      interceptors: ExtensionPluginMessages.InitMessage["payload"]["interceptors"];
-    }>({ interceptors: [] });
+  const interceptorsStorage = storage.create<
+    ExtensionPluginMessages.InitMessage["payload"]["interceptors"]
+  >("interceptors", []);
 
+  return interceptorsStorage.set((interceptors) => {
     interceptors = Array.from(
       new Map(
         [...interceptors, ...newInterceptors]
@@ -257,67 +254,58 @@ async function saveInterceptors(
 
     console.log({ interceptors });
 
-    await chrome.storage.session.set({
-      interceptors: interceptors.slice(-MAX_LENGTH),
-    });
+    return interceptors.slice(-MAX_LENGTH);
   });
 }
 
 async function clearInterceptors() {
-  return interceptorsStoreQueue.add(() =>
-    chrome.storage.session.set({ interceptors: [] }),
-  );
+  const interceptorsStorage = storage.create<
+    ExtensionPluginMessages.InitMessage["payload"]["interceptors"]
+  >("interceptors", []);
+  return interceptorsStorage.set(() => []);
 }
 
 async function getInterceptors() {
-  return interceptorsStoreQueue.add(async () => {
-    const { interceptors } = await chrome.storage.session.get<{
-      interceptors: ExtensionPluginMessages.InitMessage["payload"]["interceptors"];
-    }>({ interceptors: [] });
-
-    return interceptors;
-  });
+  const interceptorsStorage = storage.create<
+    ExtensionPluginMessages.InitMessage["payload"]["interceptors"]
+  >("interceptors", []);
+  return interceptorsStorage.get();
 }
 
-// prevent race conditions and add new messages in order
-const tweakedCounterStoreQueue = new PQueue({ concurrency: 1 });
-
 async function getTabTweakedCounter(tabId: number) {
-  return tweakedCounterStoreQueue.add(async () => {
-    const { tweakedCounter } = await chrome.storage.session.get<{
-      tweakedCounter: Record<number, Record<InterceptorId, number>>;
-    }>({ tweakedCounter: {} });
-
-    return tweakedCounter[tabId];
-  });
+  const tweakedCounterStorage = storage.create<
+    Record<number, Record<InterceptorId, number>>
+  >("tweakedCounter", {});
+  return tweakedCounterStorage.get().then((v) => v[tabId]);
 }
 
 async function increaseTweakedCounter(
   tabId: number,
   interceptorId: InterceptorId,
 ) {
-  return tweakedCounterStoreQueue.add(async () => {
-    const { tweakedCounter } = await chrome.storage.session.get<{
-      tweakedCounter: Record<number, Record<InterceptorId, number>>;
-    }>({ tweakedCounter: {} });
+  const tweakedCounterStorage = storage.create<
+    Record<number, Record<InterceptorId, number>>
+  >("tweakedCounter", {});
+  let total = 0;
+  let count = 0;
 
+  await tweakedCounterStorage.set((tweakedCounter) => {
     const counter = tweakedCounter[tabId] ?? {};
-    const count = (counter[interceptorId] ?? 0) + 1;
+    count = (counter[interceptorId] ?? 0) + 1;
     counter[interceptorId] = count;
     tweakedCounter[tabId] = counter;
-    const total = Object.values(counter).reduce((sum, count) => sum + count, 0);
-
-    // TODO: should batch frequent storage operations
-    await chrome.storage.session.set({ tweakedCounter });
-
-    return { count, total };
+    total = Object.values(counter).reduce((sum, count) => sum + count, 0);
+    return tweakedCounter;
   });
+
+  return { total, count };
 }
 
 async function clearTweakedCounter() {
-  return tweakedCounterStoreQueue.add(() =>
-    chrome.storage.session.remove("tweakedCounter"),
-  );
+  const tweakedCounterStorage = storage.create<
+    Record<number, Record<InterceptorId, number>>
+  >("tweakedCounter", {});
+  return tweakedCounterStorage.set(() => ({}));
 }
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
