@@ -42,7 +42,7 @@
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
     "vite-live-preview": "^0.4.0",
-    "vite-plugin-reload-on-rebuild": "0.0.4",
+    "vite-plugin-reload-on-rebuild": "0.0.5",
     "web-ext": "^9.3.0"
   }
 }

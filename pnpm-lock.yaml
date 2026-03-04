@@ -87,8 +87,8 @@ importers:
         specifier: ^0.4.0
         version: 0.4.0(vite@7.3.1(@types/node@25.2.0)(tsx@4.21.0)(yaml@2.8.2))
       vite-plugin-reload-on-rebuild:
-        specifier: 0.0.4
-        version: 0.0.4
+        specifier: 0.0.5
+        version: 0.0.5
       web-ext:
         specifier: ^9.3.0
         version: 9.3.0
@@ -3575,8 +3575,8 @@ packages:
     peerDependencies:
       vite: '>=5.4.0'
 
-  vite-plugin-reload-on-rebuild@0.0.4:
-    resolution: {integrity: sha512-r3Q/UAdC4/53fM4dYTQexyT7YRt1JSJZzRnIxsNkeYq8KRCTUhASrEYTV3lJk5yuBbg3mJLo1OSyPbsKEduXjw==}
+  vite-plugin-reload-on-rebuild@0.0.5:
+    resolution: {integrity: sha512-rqs/EXtfNeJO4IFHwpWvYOruADUsA6x6J9fOxaMgzIpL4qWbyPVhEi++ldji3FjbKft2oc4Phd1Bad0J5dE5qg==}
 
   vite@7.3.1:
     resolution: {integrity: sha512-w+N7Hifpc3gRjZ63vYBXA56dvvRlNWRczTdmCBBa+CotUzAPf5b7YMdMR/8CQoeYE5LX3W4wj6RYTgonm1b9DA==}
@@ -7037,7 +7037,7 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  vite-plugin-reload-on-rebuild@0.0.4: {}
+  vite-plugin-reload-on-rebuild@0.0.5: {}
 
   vite@7.3.1(@types/node@25.2.0)(tsx@4.21.0)(yaml@2.8.2):
     dependencies:
