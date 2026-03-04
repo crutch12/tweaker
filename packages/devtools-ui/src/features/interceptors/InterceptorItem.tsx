@@ -36,7 +36,11 @@ import { CSSTransition } from "react-transition-group";
 import { Tooltip } from "../../components/base/Tooltip";
 import { BreakpointIcon } from "../../icons/BreakpointIcon";
 import { BreakpointCrossedIcon } from "../../icons/BreakpointCrossedIcon";
-import { BarChartIcon } from "@radix-ui/react-icons";
+import {
+  BarChartIcon,
+  DrawingPinFilledIcon,
+  DrawingPinIcon,
+} from "@radix-ui/react-icons";
 import { useInterceptedCountsStore } from "./useInterceptedCountsStore";
 
 const ExpressionCodeBlock = lazy(() =>
@@ -183,6 +187,8 @@ export function InterceptorItem({
     return Date.now() - interceptor.timestamp < 1000;
   }, [interceptor.timestamp]);
 
+  const [persistent, setPersistent] = useState(false); // TODO: save in storage
+
   return (
     <CSSTransition
       nodeRef={nodeRef}
@@ -251,6 +257,7 @@ export function InterceptorItem({
               </Text>
               <ButtonIcon
                 title="Remove interceptor"
+                disabled={persistent}
                 onClick={() => onRemove?.(interceptor)}
               >
                 <DeleteIcon size="medium" />
@@ -308,6 +315,50 @@ export function InterceptorItem({
               )}
             </Flex>
             <Flex gap="1" align="center" wrap="wrap">
+              {isByExtension && (
+                <Tooltip
+                  content={
+                    <Flex asChild direction="column" gap="1">
+                      <ul className={styles.TooltipContentList}>
+                        <li>
+                          <Text size="2">
+                            Saves interceptor to persistent storage, so it will
+                            be recreated on following page reloads
+                          </Text>
+                        </li>
+                        <li>
+                          <Text size="2" weight="bold">
+                            Available only for interceptors created by Tweaker
+                            DevTools
+                          </Text>
+                        </li>
+                      </ul>
+                    </Flex>
+                  }
+                >
+                  <ButtonIcon
+                    disabled={!interceptor.enabled}
+                    onClick={() => {
+                      setPersistent((v) => !v);
+                    }}
+                    className={css`
+                      && {
+                        padding: 3px;
+                      }
+                    `}
+                  >
+                    {persistent ? (
+                      <DrawingPinFilledIcon
+                        color="var(--indigo-9)"
+                        width="20"
+                        height="20"
+                      />
+                    ) : (
+                      <DrawingPinIcon width="20" height="20" />
+                    )}
+                  </ButtonIcon>
+                </Tooltip>
+              )}
               <Tooltip
                 content={
                   <Flex asChild direction="column" gap="1">
@@ -331,7 +382,6 @@ export function InterceptorItem({
                 }
               >
                 <ButtonIcon
-                  id={`${uniqueId}-interactive`}
                   disabled={!interceptor.enabled}
                   onClick={() => {
                     onChange?.({
