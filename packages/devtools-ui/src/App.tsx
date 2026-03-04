@@ -164,6 +164,8 @@ export function App() {
     };
   }, [tabId]);
 
+  const [connected, setConnected] = useState(false);
+
   useEffect(() => {
     const handler = (message: unknown): boolean => {
       if (!isForDevtoolsMessage(message)) return false;
@@ -193,6 +195,7 @@ export function App() {
           break;
         }
         case "interceptors": {
+          setConnected(true);
           setInterceptors(
             message.payload.map((interceptor) => ({
               ...interceptor,
@@ -677,13 +680,13 @@ export function App() {
         <Flex gap="2">
           <Flex gap="1" align="center">
             <Badge
-              color="green"
+              color={connected ? "green" : "gray"}
               variant="solid"
               radius="full"
               style={{ padding: 0, width: "8px", height: "8px" }}
             />
             <Text size="1" color="gray">
-              Connected
+              {connected ? "Connected" : "Not connected"}
             </Text>
           </Flex>
           <Separator orientation="vertical" />
