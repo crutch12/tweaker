@@ -5,6 +5,7 @@ declare global {
     __TWEAKER_DEVTOOLS__?: {
       canViewSourceCode: RenderWidgetOptions["canViewSourceCode"];
       viewSourceCode: RenderWidgetOptions["viewSourceCode"];
+      url?: RenderWidgetOptions["url"];
     };
   }
 }

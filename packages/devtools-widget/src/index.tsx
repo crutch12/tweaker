@@ -2,10 +2,6 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { TweakerDevTools, TweakerDevToolsProps } from "@tweaker/devtools-ui";
 
-function reloadWindow() {
-  window.location.reload();
-}
-
 export interface RenderWidgetOptions {
   tabId?: number;
   canViewSourceCode?: TweakerDevToolsProps["canViewSourceCode"];
@@ -28,7 +24,7 @@ export function renderWidget(
           tabId={tabId}
           canViewSourceCode={canViewSourceCode}
           viewSourceCode={viewSourceCode}
-          reloadApp={tabId ? reloadWindow : reloadApp}
+          reloadApp={reloadApp}
           url={url}
         />
       </StrictMode>,

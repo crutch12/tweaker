@@ -107,18 +107,20 @@ chrome.runtime.onMessage.addListener((message: unknown, sender): boolean => {
         if (!url) return;
         const storage = getTweakedCounterStorage(url);
         storage.getTabTweakedCounter(tabId).then((tweakedCounter) => {
-          message.payload.forEach((interceptor) => {
-            sendMessageToDevTools(tabId, {
-              type: "intercepted-count",
-              version,
-              source: EXTENSION_PLUGIN_SOURCE,
-              payload: {
-                id: interceptor.id,
-                name: interceptor.name,
-                count: tweakedCounter[interceptor.id],
-              },
+          if (tweakedCounter) {
+            message.payload.forEach((interceptor) => {
+              sendMessageToDevTools(tabId, {
+                type: "intercepted-count",
+                version,
+                source: EXTENSION_PLUGIN_SOURCE,
+                payload: {
+                  id: interceptor.id,
+                  name: interceptor.name,
+                  count: tweakedCounter[interceptor.id],
+                },
+              });
             });
-          });
+          }
         });
       });
       break;

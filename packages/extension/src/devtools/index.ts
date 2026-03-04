@@ -6,7 +6,10 @@ import { normalizeUrlIfValid } from "../utils/normalizeUrlIfValid";
 const evalScripts = {
   checkIfTweakerPresentInInspectedWindow: () =>
     `window.__TWEAKER_DEVTOOLS_GLOBAL_HOOK__ && window.__TWEAKER_DEVTOOLS_GLOBAL_HOOK__.version && window.__TWEAKER_DEVTOOLS_GLOBAL_HOOK__.instances.size > 0`,
+  getUrl: () => `window.location.href`,
 };
+
+let tabUrl: string | undefined = undefined;
 
 function showNoTweakerDisclaimer() {
   if (tweakerContainer) {
@@ -20,6 +23,16 @@ function viewSourceCode(file: string, line: number, column: number) {
     line - 1,
     column - 1,
   );
+}
+
+function setupContainerDevTools(container: Window) {
+  const browserType = getBrowserType(navigator.userAgent);
+  container.__TWEAKER_DEVTOOLS__ = {
+    ...container.__TWEAKER_DEVTOOLS__,
+    canViewSourceCode: ["chrome", "edge"].includes(browserType!),
+    viewSourceCode,
+    url: tabUrl,
+  };
 }
 
 function mountTweakerDevTools(reload = false) {
@@ -37,11 +50,7 @@ function mountTweakerDevTools(reload = false) {
     (createdPanel) => {
       tweakerPanel = createdPanel;
       createdPanel.onShown.addListener((container) => {
-        container.__TWEAKER_DEVTOOLS__ = {
-          ...container.__TWEAKER_DEVTOOLS__,
-          canViewSourceCode: ["chrome", "edge"].includes(browserType!),
-          viewSourceCode,
-        };
+        setupContainerDevTools(container);
         tweakerContainer = container;
         if (tweakerNotFound) {
           showNoTweakerDisclaimer();
@@ -89,12 +98,21 @@ function mountTweakerDevToolsWhenTweakerHasLoaded() {
   );
 }
 
+function loadTabUrl() {
+  chrome.devtools.inspectedWindow.eval(evalScripts.getUrl(), (url) => {
+    if (typeof url === "string") {
+      tabUrl = url;
+    }
+  });
+}
+
 const debouncedMountTweakerDevToolsCallback = debounce(
   mountTweakerDevToolsWhenTweakerHasLoaded,
   500,
 );
 
 function onNavigatedToOtherPage(url: string) {
+  tabUrl = url;
   debouncedMountTweakerDevToolsCallback();
 }
 
@@ -102,6 +120,8 @@ function onNavigatedToOtherPage(url: string) {
 chrome.devtools.network.onNavigated.addListener(onNavigatedToOtherPage);
 
 mountTweakerDevToolsWhenTweakerHasLoaded();
+
+loadTabUrl();
 
 // const currentTabId = chrome.devtools.inspectedWindow.tabId;
 

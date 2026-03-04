@@ -156,6 +156,12 @@ export function App() {
       },
       tabId,
     );
+    return () => {
+      // reset zustand state
+      useInterceptedCountsStore.setState({ interceptedCounts: new Map() });
+      useInterceptorsStore.setState({ interceptors: [] });
+      useMessagesStore.setState({ messages: [] });
+    };
   }, [tabId]);
 
   useEffect(() => {

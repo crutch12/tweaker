@@ -7,7 +7,9 @@ export function getTweakedCounterStorage(url: string) {
     {},
   );
 
-  async function getTabTweakedCounter(tabId: number) {
+  async function getTabTweakedCounter(
+    tabId: number,
+  ): Promise<Record<InterceptorId, number> | undefined> {
     return store.get().then((v) => v[tabId]);
   }
 
