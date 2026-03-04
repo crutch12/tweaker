@@ -35,6 +35,28 @@ function setupContainerDevTools(container: Window) {
   };
 }
 
+function handleDevtoolsSearch(action: string, queryString?: string) {
+  if (!tweakerContainer) return;
+  if (action === "performSearch") {
+    tweakerContainer.dispatchEvent(
+      new CustomEvent("devtools:search", {
+        detail: {
+          queryString,
+        },
+      }),
+    );
+  }
+  if (action === "cancelSearch") {
+    tweakerContainer.dispatchEvent(
+      new CustomEvent("devtools:search", {
+        detail: {
+          queryString: undefined,
+        },
+      }),
+    );
+  }
+}
+
 function mountTweakerDevTools(reload = false) {
   if (tweakerPanel) {
     if (reload && tweakerContainer) {
@@ -49,6 +71,7 @@ function mountTweakerDevTools(reload = false) {
     "/src/app/index.html",
     (createdPanel) => {
       tweakerPanel = createdPanel;
+      createdPanel.onSearch?.addListener(handleDevtoolsSearch);
       createdPanel.onShown.addListener((container) => {
         setupContainerDevTools(container);
         tweakerContainer = container;
