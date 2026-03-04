@@ -121,16 +121,6 @@ export function App() {
     setFilterPatterns(pattenrs ? serializePatterns(pattenrs) : undefined);
   }, []);
 
-  useEffect(() => {
-    chrome.storage.session
-      .get<{
-        messages: ExtensionPluginMessages.ValueMessage[];
-      }>({ messages: [] })
-      .then((result) => {
-        addMessasges(result.messages.map((x) => x.payload));
-      });
-  }, []);
-
   const { tabId, reloadApp } = useDevtools();
 
   const extensionDevtoolsHref = useMemo(() => {
@@ -189,6 +179,10 @@ export function App() {
         }
         case "intercepted-count": {
           setInterceptedCounts(message.payload.id, message.payload.count);
+          break;
+        }
+        case "saved-messages": {
+          addMessasges(message.payload.messages);
           break;
         }
       }

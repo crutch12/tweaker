@@ -79,13 +79,6 @@ export namespace ExtensionDevtoolsMessages {
     }
   >;
 
-  export type InitConnectionMessage = DevtoolsAnyMessage<
-    "init-connection",
-    {
-      timestamp: number;
-    }
-  >;
-
   export type ClearMessagesMessage = DevtoolsAnyMessage<
     "clear-messages",
     {
@@ -109,7 +102,6 @@ export namespace ExtensionDevtoolsMessages {
     | UpdateInterceptorsMessage
     | RemoveInterceptorsMessage
     | DuplicateInterceptorsMessage
-    | InitConnectionMessage
     | ClearMessagesMessage
     | ClearInterceptorsMessage;
 }

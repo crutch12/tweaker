@@ -13,15 +13,9 @@ import { version } from "../../package.json";
 
 import { setExtensionIconAndPopup } from "./setExtensionIconAndPopup";
 import { setExtensionCounter } from "./setExtensionCounter";
-import type { InterceptorId } from "@tweaker/core";
-import { CachedStorage } from "@tweaker/core/utils";
-
-const storage = new CachedStorage({
-  clear: chrome.storage.session.clear,
-  getItem: (key) => chrome.storage.session.get(key).then((value) => value[key]),
-  setItem: (key, value) => chrome.storage.session.set({ [key]: value }),
-  removeItem: (key) => chrome.storage.session.remove(key), // TODO: doesn't properly work
-});
+import { getInterceptorsStorage } from "./storage/InterceptorsStorage";
+import { getTweakedCounterStorage } from "./storage/TweakedCounterStorage";
+import { getMessagesStorage } from "./storage/MessagesStorage";
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.session.setAccessLevel?.({
@@ -78,21 +72,28 @@ chrome.runtime.onMessage.addListener((message: unknown, sender): boolean => {
     }
     case "init": {
       setExtensionIconAndPopup("enabled", tabId);
-      handleInterceptors(message.payload.interceptors).then((interceptors) => {
-        const _message: ExtensionBackgroundMessages.DevtoolsMessages = {
-          source: EXTENSION_DEVTOOLS_SOURCE,
-          target: EXTENSION_PLUGIN_SOURCE,
-          version,
-          type: "init",
-          payload: {
-            enabled: message.payload.enabled, // TODO: read enabled state from storage
-            interceptors: interceptors, // TODO: read interceptors from storage
-            timestamp: Date.now(),
-          },
-          tabId,
-        };
-        sendMessageToPlugin(tabId, _message);
-        sendMessageToDevTools(tabId, message);
+
+      getTabUrl(tabId).then((url) => {
+        if (!url) return;
+        const interceptorsStorage = getInterceptorsStorage(url);
+        interceptorsStorage
+          .handleInterceptors(message.payload.interceptors)
+          .then((interceptors) => {
+            const _message: ExtensionBackgroundMessages.DevtoolsMessages = {
+              source: EXTENSION_DEVTOOLS_SOURCE,
+              target: EXTENSION_PLUGIN_SOURCE,
+              version,
+              type: "init",
+              payload: {
+                enabled: message.payload.enabled, // TODO: read enabled state from storage
+                interceptors: interceptors, // TODO: read interceptors from storage
+                timestamp: Date.now(),
+              },
+              tabId,
+            };
+            sendMessageToPlugin(tabId, _message);
+            sendMessageToDevTools(tabId, message);
+          });
       });
       break;
     }
@@ -101,31 +102,43 @@ chrome.runtime.onMessage.addListener((message: unknown, sender): boolean => {
       //   sendMessageToDevTools(tabId, { ...message, payload: interceptors });
       // });
       sendMessageToDevTools(tabId, message);
-      getTabTweakedCounter(tabId).then((tweakedCounter) => {
-        message.payload.forEach((interceptor) => {
-          sendMessageToDevTools(tabId, {
-            type: "intercepted-count",
-            version,
-            source: EXTENSION_PLUGIN_SOURCE,
-            payload: {
-              id: interceptor.id,
-              name: interceptor.name,
-              count: tweakedCounter[interceptor.id],
-            },
+
+      getTabUrl(tabId).then((url) => {
+        if (!url) return;
+        const storage = getTweakedCounterStorage(url);
+        storage.getTabTweakedCounter(tabId).then((tweakedCounter) => {
+          message.payload.forEach((interceptor) => {
+            sendMessageToDevTools(tabId, {
+              type: "intercepted-count",
+              version,
+              source: EXTENSION_PLUGIN_SOURCE,
+              payload: {
+                id: interceptor.id,
+                name: interceptor.name,
+                count: tweakedCounter[interceptor.id],
+              },
+            });
           });
         });
       });
       break;
     }
     case "value": {
-      saveValueMessage(message);
       sendMessageToDevTools(tabId, message);
-      (async () => {
+
+      getTabUrl(tabId).then(async (url) => {
+        if (!url) return;
+        const storage = getMessagesStorage(url);
+        storage.saveValueMessage(message);
+
+        const tweakedCounterStorage = getTweakedCounterStorage(url);
+
         if (message.payload.tweaked && message.payload.interceptorId) {
-          const { total, count } = await increaseTweakedCounter(
-            tabId,
-            message.payload.interceptorId,
-          );
+          const { total, count } =
+            await tweakedCounterStorage.increaseTweakedCounter(
+              tabId,
+              message.payload.interceptorId,
+            );
           setExtensionCounter(total, tabId);
           sendMessageToDevTools(tabId, {
             type: "intercepted-count",
@@ -138,7 +151,8 @@ chrome.runtime.onMessage.addListener((message: unknown, sender): boolean => {
             },
           });
         }
-      })();
+      });
+
       break;
     }
     default: {
@@ -158,14 +172,37 @@ chrome.runtime.onMessage.addListener((message: unknown, sender): boolean => {
   };
 
   switch (message.type) {
-    case "init-connection":
-      break;
     case "clear-interceptors":
-      clearInterceptors();
       sendMessageToPlugin(message.tabId, _message);
+      getTabUrl(message.tabId).then((url) => {
+        if (!url) return;
+        const storage = getInterceptorsStorage(url);
+        storage.clearInterceptors();
+      });
       break;
     case "clear-messages":
-      clearMessages();
+      getTabUrl(message.tabId).then((url) => {
+        if (!url) return;
+        const storage = getMessagesStorage(url);
+        storage.clearMessages();
+      });
+      break;
+    case "ping":
+      sendMessageToPlugin(message.tabId, _message);
+      getTabUrl(message.tabId).then((url) => {
+        if (!url) return;
+        const messagesStorage = getMessagesStorage(url);
+        messagesStorage.getMessages().then((messages) => {
+          sendMessageToDevTools(message.tabId, {
+            type: "saved-messages",
+            version,
+            source: EXTENSION_PLUGIN_SOURCE,
+            payload: {
+              messages: messages.map((m) => m.payload),
+            },
+          });
+        });
+      });
       break;
     default:
       sendMessageToPlugin(message.tabId, _message);
@@ -174,146 +211,19 @@ chrome.runtime.onMessage.addListener((message: unknown, sender): boolean => {
   return false;
 });
 
-async function handleInterceptors(
-  interceptors: ExtensionDevtoolsMessages.InitMessage["payload"]["interceptors"],
-) {
-  return getInterceptors().then(async (_savedInterceptors) => {
-    const savedInterceptors = new Map(_savedInterceptors.map((i) => [i.id, i]));
-    const fixedInterceptors = interceptors.map((i) => {
-      const found = savedInterceptors.get(i.id);
-      if (found) {
-        savedInterceptors.delete(i.id);
-        return {
-          ...i,
-          enabled: found.enabled,
-          interactive: found.interactive,
-          timestamp: found.timestamp,
-          expression: found.expression, // TODO
-        };
-      }
-      return i;
-    });
-
-    const finalInterceptors = fixedInterceptors
-      .concat(Array.from(savedInterceptors.values()))
-      .sort((x) => x.timestamp);
-
-    await saveInterceptors(finalInterceptors);
-
-    return finalInterceptors;
-  });
-}
-
-async function saveValueMessage(message: ExtensionPluginMessages.ValueMessage) {
-  const messagesStorage = storage.create<
-    ExtensionPluginMessages.ValueMessage[]
-  >("messages", []);
-
-  return messagesStorage.set((messages) => {
-    messages.push(message);
-
-    const MAX_LENGTH = 1000;
-
-    console.log({ messages });
-
-    return messages.slice(-MAX_LENGTH);
-  });
-}
-
-async function clearMessages() {
-  const messagesStorage = storage.create<
-    ExtensionPluginMessages.ValueMessage[]
-  >("messages", []);
-  return messagesStorage.set(() => []);
-}
-
-async function getMessages() {
-  const messagesStorage = storage.create<
-    ExtensionPluginMessages.ValueMessage[]
-  >("messages", []);
-  return messagesStorage.get();
-}
-
-async function saveInterceptors(
-  newInterceptors: ExtensionPluginMessages.InitMessage["payload"]["interceptors"],
-) {
-  const interceptorsStorage = storage.create<
-    ExtensionPluginMessages.InitMessage["payload"]["interceptors"]
-  >("interceptors", []);
-
-  return interceptorsStorage.set((interceptors) => {
-    interceptors = Array.from(
-      new Map(
-        [...interceptors, ...newInterceptors]
-          .filter((x) => x.staticId)
-          .map((x) => [x.staticId!, x]),
-      ).values(),
-    );
-
-    const MAX_LENGTH = 1000;
-
-    console.log({ interceptors });
-
-    return interceptors.slice(-MAX_LENGTH);
-  });
-}
-
-async function clearInterceptors() {
-  const interceptorsStorage = storage.create<
-    ExtensionPluginMessages.InitMessage["payload"]["interceptors"]
-  >("interceptors", []);
-  return interceptorsStorage.set(() => []);
-}
-
-async function getInterceptors() {
-  const interceptorsStorage = storage.create<
-    ExtensionPluginMessages.InitMessage["payload"]["interceptors"]
-  >("interceptors", []);
-  return interceptorsStorage.get();
-}
-
-async function getTabTweakedCounter(tabId: number) {
-  const tweakedCounterStorage = storage.create<
-    Record<number, Record<InterceptorId, number>>
-  >("tweakedCounter", {});
-  return tweakedCounterStorage.get().then((v) => v[tabId]);
-}
-
-async function increaseTweakedCounter(
-  tabId: number,
-  interceptorId: InterceptorId,
-) {
-  const tweakedCounterStorage = storage.create<
-    Record<number, Record<InterceptorId, number>>
-  >("tweakedCounter", {});
-  let total = 0;
-  let count = 0;
-
-  await tweakedCounterStorage.set((tweakedCounter) => {
-    const counter = tweakedCounter[tabId] ?? {};
-    count = (counter[interceptorId] ?? 0) + 1;
-    counter[interceptorId] = count;
-    tweakedCounter[tabId] = counter;
-    total = Object.values(counter).reduce((sum, count) => sum + count, 0);
-    return tweakedCounter;
-  });
-
-  return { total, count };
-}
-
-async function clearTweakedCounter() {
-  const tweakedCounterStorage = storage.create<
-    Record<number, Record<InterceptorId, number>>
-  >("tweakedCounter", {});
-  return tweakedCounterStorage.set(() => ({}));
+function getTabUrl(tabId: number) {
+  return chrome.tabs.get(tabId).then((tab) => tab.url);
 }
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   // We look for 'complete' status so the content script is likely ready
   if (changeInfo.status === "complete") {
     setExtensionIconAndPopup("disabled", tabId);
-    clearTweakedCounter();
     setExtensionCounter(0, tabId);
+    if (tab.url) {
+      const storage = getTweakedCounterStorage(tab.url);
+      storage.clearTweakedCounter();
+    }
     // chrome.tabs.get(tabId).then((r) => {
     //   debugger;
     // });

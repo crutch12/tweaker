@@ -79,6 +79,13 @@ export namespace ExtensionPluginMessages {
     }
   >;
 
+  export type SavedMessagesMessage = PluginAnyMessage<
+    "saved-messages",
+    {
+      messages: ExtensionPluginMessages.ValueMessage["payload"][];
+    }
+  >;
+
   export type Message =
     | PingMessage
     | PongMessage
@@ -87,5 +94,6 @@ export namespace ExtensionPluginMessages {
     | InterceptorsMessage
     | NewInterceptMessage
     | RemoveInterceptMessage
-    | IntercepterCountMessage;
+    | IntercepterCountMessage
+    | SavedMessagesMessage;
 }
