@@ -31,6 +31,7 @@ import {
   Heading,
   Text,
   Link,
+  Badge,
 } from "@radix-ui/themes";
 import { ConsoleErrorIcon } from "@devtools-ds/icon";
 import { BlueButton } from "./components/BlueButton";
@@ -48,6 +49,8 @@ import {
   GitHubLogoIcon,
   EnterFullScreenIcon,
   ComponentBooleanIcon,
+  CircleIcon,
+  DotFilledIcon,
 } from "@radix-ui/react-icons";
 import { homepage } from "../../../package.json";
 import { useDevtools } from "./features/devtools/DevtoolsProvider";
@@ -92,6 +95,16 @@ export function App() {
 
   const setInterceptedCounts = useInterceptedCountsStore((state) => state.set);
 
+  const tweakedMessages = useMemo(
+    () => messages.filter((x) => x.tweaked),
+    [messages],
+  );
+
+  const activeInterceptors = useMemo(
+    () => interceptors.filter((x) => x.enabled),
+    [interceptors],
+  );
+
   const appNames = useMemo(() => {
     if (interceptors.length === 0 && messages.length === 0) return [];
     return Array.from(
@@ -121,7 +134,12 @@ export function App() {
     setFilterPatterns(pattenrs ? serializePatterns(pattenrs) : undefined);
   }, []);
 
-  const { tabId, reloadApp } = useDevtools();
+  const { tabId, reloadApp, url } = useDevtools();
+
+  const host = useMemo(() => {
+    if (url) return new URL(url).host;
+    return undefined;
+  }, []);
 
   const extensionDevtoolsHref = useMemo(() => {
     if (typeof location === "undefined" || !tabId) return undefined;
@@ -639,6 +657,61 @@ export function App() {
           />
         </Flex>
       </Grid>
+      <Flex
+        gap="2"
+        align="center"
+        justify="between"
+        wrap="wrap"
+        py="1"
+        px="2"
+        className={css`
+          border-top: 1px solid var(--gray-a6);
+        `}
+      >
+        <Flex gap="2">
+          <Flex gap="1" align="center">
+            <Badge
+              color="green"
+              variant="solid"
+              radius="full"
+              style={{ padding: 0, width: "8px", height: "8px" }}
+            />
+            <Text size="1" color="gray">
+              Connected
+            </Text>
+          </Flex>
+          <Separator orientation="vertical" />
+          <Flex gap="1">
+            <Text size="1" color="gray">
+              Logs:{" "}
+            </Text>
+            <Text size="1" color="gray" weight="bold">
+              {tweakedMessages.length}/{messages.length} tweaked
+            </Text>
+          </Flex>
+          <Separator orientation="vertical" />
+          <Flex gap="1">
+            <Text size="1" color="gray">
+              Interceptors:{" "}
+            </Text>
+            <Text size="1" color="gray" weight="bold">
+              {activeInterceptors.length}/{interceptors.length} active
+            </Text>
+          </Flex>
+        </Flex>
+        {host && (
+          <Flex gap="2">
+            <Flex gap="1">
+              <Text size="1" color="gray">
+                HOST:{" "}
+              </Text>
+              <Text size="1" color="gray" weight="bold">
+                {host}
+              </Text>
+            </Flex>
+          </Flex>
+        )}
+      </Flex>
     </Flex>
   );
 }

@@ -37,8 +37,8 @@ function mountTweakerDevTools(reload = false) {
     (createdPanel) => {
       tweakerPanel = createdPanel;
       createdPanel.onShown.addListener((container) => {
-        container.__TWEAKER_DEVTOOLS_ = {
-          ...container.__TWEAKER_DEVTOOLS_,
+        container.__TWEAKER_DEVTOOLS__ = {
+          ...container.__TWEAKER_DEVTOOLS__,
           canViewSourceCode: ["chrome", "edge"].includes(browserType!),
           viewSourceCode,
         };

@@ -16,14 +16,17 @@ if (!tabId) {
   );
 }
 
-// waiting for __TWEAKER_DEVTOOLS_ initialization from devtools script
-setTimeout(() => {
-  const container = document.getElementById("root");
-  if (container) {
-    renderWidget(container, {
-      tabId,
-      canViewSourceCode: window.__TWEAKER_DEVTOOLS_?.canViewSourceCode,
-      viewSourceCode: window.__TWEAKER_DEVTOOLS_?.viewSourceCode,
-    });
-  }
-}, 100);
+chrome.tabs.get(tabId).then((tab) => {
+  // waiting for __TWEAKER_DEVTOOLS__ initialization from devtools script
+  setTimeout(() => {
+    const container = document.getElementById("root");
+    if (container) {
+      renderWidget(container, {
+        tabId,
+        canViewSourceCode: window.__TWEAKER_DEVTOOLS__?.canViewSourceCode,
+        viewSourceCode: window.__TWEAKER_DEVTOOLS__?.viewSourceCode,
+        url: tab.url,
+      });
+    }
+  }, 100);
+});

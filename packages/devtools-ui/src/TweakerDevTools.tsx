@@ -26,6 +26,7 @@ export interface TweakerDevToolsProps {
   canViewSourceCode?: DevtoolsContextProps["canViewSourceCode"];
   viewSourceCode?: DevtoolsContextProps["viewSourceCode"];
   reloadApp?: DevtoolsContextProps["reloadApp"];
+  url?: DevtoolsContextProps["url"];
 }
 
 export function TweakerDevTools({
@@ -34,6 +35,7 @@ export function TweakerDevTools({
   viewSourceCode,
   canViewSourceCode,
   reloadApp,
+  url,
 }: TweakerDevToolsProps) {
   const documentNode = useMemo(() => {
     return container?.getRootNode() as Document;
@@ -46,6 +48,7 @@ export function TweakerDevTools({
           viewSourceCode={viewSourceCode ?? emptyFn}
           canViewSourceCode={canViewSourceCode ?? false}
           reloadApp={reloadApp ?? reloadWindow}
+          url={url}
         >
           <ContainerQueryRootProvider documentNode={documentNode}>
             <ThemeProvider>

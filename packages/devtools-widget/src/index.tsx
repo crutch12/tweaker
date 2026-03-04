@@ -10,11 +10,12 @@ export interface RenderWidgetOptions {
   tabId?: number;
   canViewSourceCode?: TweakerDevToolsProps["canViewSourceCode"];
   viewSourceCode?: TweakerDevToolsProps["viewSourceCode"];
+  url?: TweakerDevToolsProps["url"];
 }
 
 export function renderWidget(
   container: HTMLElement,
-  { tabId, canViewSourceCode, viewSourceCode }: RenderWidgetOptions = {},
+  { tabId, canViewSourceCode, viewSourceCode, url }: RenderWidgetOptions = {},
 ) {
   if (!container) throw new Error("container is required");
 
@@ -28,6 +29,7 @@ export function renderWidget(
           canViewSourceCode={canViewSourceCode}
           viewSourceCode={viewSourceCode}
           reloadApp={tabId ? reloadWindow : reloadApp}
+          url={url}
         />
       </StrictMode>,
     );
