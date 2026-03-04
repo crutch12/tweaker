@@ -180,7 +180,7 @@ export function InterceptorItem({
   const nodeRef = useRef(null);
 
   const inAnimate = useMemo(() => {
-    return Date.now() - interceptor.timestamp < 500;
+    return Date.now() - interceptor.timestamp < 1000;
   }, [interceptor.timestamp]);
 
   return (

@@ -66,7 +66,7 @@ export function MessageRow({
   const nodeRef = useRef(null);
 
   const inAnimate = useMemo(() => {
-    return Date.now() - message.timestamp < 500;
+    return Date.now() - message.timestamp < 1000;
   }, [message.timestamp]);
 
   return (
