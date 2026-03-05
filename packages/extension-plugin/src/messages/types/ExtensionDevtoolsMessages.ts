@@ -75,7 +75,7 @@ export namespace ExtensionDevtoolsMessages {
     {
       name: string;
       timestamp: number;
-      data: Pick<InterceptorPayload<unknown>, "id" | "expression">[];
+      data: Pick<InterceptorPayload<unknown>, "id" | "data">[];
     }
   >;
 

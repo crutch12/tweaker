@@ -48,7 +48,7 @@ export function getInterceptorsStorage(url: string) {
               enabled: found.enabled,
               interactive: found.interactive,
               timestamp: found.timestamp,
-              expression: found.expression, // TODO
+              data: found.data,
               type: found.type,
             };
           }

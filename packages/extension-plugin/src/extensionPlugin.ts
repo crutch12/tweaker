@@ -2,7 +2,13 @@ import { TweakerPlugin } from "@tweaker/core/plugin";
 import { generateNumberId, generateStringId } from "@tweaker/core/utils";
 import { version, name } from "../package.json";
 import { ExtensionDevtoolsMessages } from "./messages/types";
-import { Tweaker, TWEAKER_OWNER, InterceptorId } from "@tweaker/core";
+import {
+  Tweaker,
+  TWEAKER_OWNER,
+  InterceptorId,
+  TweakerValueType,
+  TweakHandler,
+} from "@tweaker/core";
 import { registerInstance } from "./global";
 import { EXTENSION_OWNER } from "./const";
 import type { InterceptorPayload } from "./types";
@@ -16,6 +22,68 @@ import {
 import { isForPluginMessage } from "./messages";
 import { clone } from "./clone";
 
+function getHandler(
+  type: TweakerValueType,
+  data: InterceptorPayload<unknown>["data"],
+): TweakHandler<string, any> {
+  switch (type) {
+    case "default": {
+      return (key, value, ctx) => {
+        return new Function("key", "value", "ctx", data?.expression ?? "")(
+          key,
+          value,
+          ctx,
+        );
+      };
+    }
+    case "fetch": {
+      return (key, response: Response, ctx) => {
+        if (ctx.type !== "fetch") return ctx.bypass;
+        return new Proxy(response, {
+          get(target, prop: keyof typeof response) {
+            const value = target[prop];
+
+            if (typeof value === "function") {
+              // We only care about body-reading methods
+              const bodyMethods = [
+                "json",
+                "text",
+                "blob",
+                "formData",
+                "arrayBuffer",
+              ];
+
+              if (bodyMethods.includes(prop) && data?.[prop]?.static) {
+                return async function (...methodArgs: any) {
+                  try {
+                    // @ts-expect-error
+                    const result = await value.apply(target, methodArgs);
+                    const mock = data[prop].static;
+                    if (mock) {
+                      if (prop === "json") {
+                        return JSON.parse(mock);
+                      }
+                      return mock;
+                    }
+                    return result;
+                  } catch (err) {
+                    console.error(`Fetch error in .${prop}():`, err);
+                    throw err; // Re-throw so the app can handle the error
+                  }
+                };
+              }
+              // Bind other methods (like .clone()) to the original response
+              return value.bind(target);
+            }
+
+            return value;
+          },
+        });
+      };
+    }
+  }
+}
+
 interface ExtensionPlugin extends TweakerPlugin {
   getTabId: () => Promise<number | undefined>;
 }
@@ -26,8 +94,6 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
   const promises: Promise<void>[] = [];
 
   let _instance: Tweaker;
-
-  let expressions = new Map<InterceptorId, string>();
 
   let tabId: number | undefined;
 
@@ -41,7 +107,6 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
 
     function getListeners(): InterceptorPayload<unknown>[] {
       return _instance.getListeners().map((listener) => {
-        const expression = expressions.get(listener.id);
         return {
           id: listener.id,
           staticId: listener.staticId,
@@ -52,8 +117,9 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
           owner: listener.owner,
           enabled: listener.enabled,
           timestamp: listener.timestamp,
-          expression,
-          sourceCode: expression ? undefined : String(listener.handler).trim(),
+          sourceCode: listener.data
+            ? undefined
+            : String(listener.handler).trim(),
           stack: listener.stack,
         };
       });
@@ -84,18 +150,9 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
           _instance.removeListener(listener.id);
         }
 
-        expressions.set(listener.id, listener.expression ?? "");
-
         _instance.intercept(
           listener.patterns,
-          (key, value, ctx) => {
-            return new Function(
-              "key",
-              "value",
-              "ctx",
-              listener.expression ?? "",
-            )(key, value, ctx);
-          },
+          getHandler(listener.type, listener.data),
           {
             id: listener.id,
             owner: listener.owner,
@@ -118,18 +175,9 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
           continue;
         }
 
-        expressions.set(listener.id, listener.expression ?? "");
-
         _instance.intercept(
           listener.patterns,
-          (key, value, ctx) => {
-            return new Function(
-              "key",
-              "value",
-              "ctx",
-              listener.expression ?? "",
-            )(key, value, ctx);
-          },
+          getHandler(listener.type, listener.data),
           {
             id: listener.id,
             owner: listener.owner,
@@ -150,24 +198,13 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
           continue;
         }
 
-        if (expressions.has(listener.id)) {
-          expressions.set(listener.id, listener.expression ?? "");
-        }
-
         _instance.updateListener(listener.id, {
           owner: listener.owner,
           interactive: listener.interactive,
           enabled: listener.enabled,
           patterns: listener.patterns,
           ...(found.owner === EXTENSION_OWNER && {
-            handler: (key, value, ctx) => {
-              return new Function(
-                "key",
-                "value",
-                "ctx",
-                listener.expression ?? "",
-              )(key, value, ctx);
-            },
+            handler: getHandler(listener.type, listener.data),
           }),
         });
       }
@@ -178,7 +215,6 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
     ) {
       for (const listener of interceptors) {
         _instance.removeListener(listener.id);
-        expressions.delete(listener.id);
       }
     }
 
@@ -203,10 +239,6 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
 
         if (newListener) {
           newListener.stack = listener.stack;
-        }
-
-        if (listener.owner === EXTENSION_OWNER) {
-          expressions.set(id, interceptor.expression ?? "");
         }
       });
     }

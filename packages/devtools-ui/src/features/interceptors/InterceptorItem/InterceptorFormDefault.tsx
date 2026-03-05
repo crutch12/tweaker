@@ -49,8 +49,8 @@ const ExpressionTypeDefinition = `type ExpressionCallback<T extends any> = (
 ) => T | symbol`;
 
 export interface DefaultInterceptorFormProps extends InterceptorItemProps {
-  expression: string | undefined;
-  setExpression: Dispatch<SetStateAction<string | undefined>>;
+  data: ExtensionInterceptor["data"];
+  setData: Dispatch<SetStateAction<ExtensionInterceptor["data"]>>;
   patterns: string;
   setPatterns: Dispatch<SetStateAction<string>>;
   hasChanges: boolean;
@@ -60,30 +60,28 @@ export function DefaultInterceptorForm({
   interceptor,
   onChange,
   onHightLightInterceptor,
-  expression,
-  setExpression,
+  data,
+  setData,
   patterns,
   setPatterns,
   hasChanges,
 }: DefaultInterceptorFormProps) {
-  const [initialExpression, setInitialExpression] = useState(
-    () => interceptor.expression,
-  );
+  const [initialData, setInitialData] = useState(() => interceptor.data);
 
   const actualizeCodeExpression = useEffectEvent((force: boolean) => {
-    if (force || interceptor.expression !== expression) {
+    if (force || interceptor.data?.expression !== data?.expression) {
       setUpdatesCount((v) => v + 1);
-      setInitialExpression(interceptor.expression);
-      setExpression(interceptor.expression);
+      setInitialData(interceptor.data);
+      setData(interceptor.data);
     }
   });
 
   useEffect(() => {
     actualizeCodeExpression(false);
-  }, [interceptor.expression]);
+  }, [interceptor.data?.expression]);
 
   const onCodeUpdate = useCallback((code: string) => {
-    setExpression((v) => code || undefined);
+    setData((v) => code || undefined);
   }, []);
 
   const [updatesCount, setUpdatesCount] = useState(0);
@@ -93,10 +91,10 @@ export function DefaultInterceptorForm({
   }, []);
 
   const { data: expressionError } = useQuery({
-    queryKey: ["validateExpression", expression],
+    queryKey: ["validateExpression", data],
     queryFn: () => {
-      if (!expression) return { valid: true, error: undefined };
-      return isJsSyntaxValid("() => {\n" + expression + "\n}");
+      if (!data) return { valid: true, error: undefined };
+      return isJsSyntaxValid("() => {\n" + data + "\n}");
     },
     select: ({ error }) => {
       if (error) {
@@ -277,7 +275,7 @@ export function DefaultInterceptorForm({
                 size="1"
                 radius="large"
                 color="indigo"
-                onClick={() => onChange?.({ ...interceptor, expression })}
+                onClick={() => onChange?.({ ...interceptor, data })}
               >
                 Save
               </Button>
@@ -310,11 +308,11 @@ export function DefaultInterceptorForm({
             >
               <ExpressionCodeBlock
                 key={updatesCount}
-                code={initialExpression ?? ""}
+                code={initialData?.expression ?? ""}
                 onUpdate={onCodeUpdate}
                 readOnly={!interceptor.enabled}
                 onSave={() =>
-                  hasChanges && onChange?.({ ...interceptor, expression })
+                  hasChanges && onChange?.({ ...interceptor, data })
                 }
               />
             </ExpressionCodeBlockContainer>

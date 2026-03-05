@@ -31,6 +31,7 @@ export interface InterceptorBase {
   enabled: boolean;
   timestamp: number;
   stack?: string;
+  data?: Record<string | number, any>;
 }
 
 export interface TweakerInterceptor<K, V> extends InterceptorBase {

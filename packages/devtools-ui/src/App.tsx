@@ -39,7 +39,7 @@ import { ExtensionInterceptor } from "./features/interceptors/InterceptorItem/In
 import { CreateTweakerDropdown } from "./components/CreateTweakerDropdown";
 import { Container, Runtime } from "./utils/styles";
 import { useResizeDivider } from "./components/ResizeDivider/useResizeDivider";
-import { getDefaultExpression } from "./utils/expressions";
+import { getDefaultInterceptorData } from "./utils/expressions";
 import { ResizeDivider } from "./components/ResizeDivider/ResizeDivider";
 import { useColorScheme } from "./components/theme/ColorSchemeProvider";
 import {
@@ -57,6 +57,7 @@ import { homepage } from "../../../package.json";
 import { useDevtools } from "./features/devtools/DevtoolsProvider";
 import { useMessagesStore } from "./features/messages/useMessagesStore";
 import { useInterceptedCountsStore } from "./features/interceptors/useInterceptedCountsStore";
+import { json } from "node:stream/consumers";
 
 export function App() {
   const reloadPage = () => {
@@ -197,7 +198,7 @@ export function App() {
           addInterceptors([
             {
               ...message.payload,
-              expression: undefined,
+              data: undefined,
               // fromKey: undefined,
               // sampleId: undefined,
               // sampleIds: undefined,
@@ -240,8 +241,7 @@ export function App() {
   const createInterceptorByMessage = useCallback(
     (message: ExtensionPluginMessages.ValueMessage["payload"]) => {
       const id = generateNumberId();
-      const expression =
-        message.type === "default" ? getDefaultExpression() : undefined;
+      const data = getDefaultInterceptorData(message.type);
       const interceptor: ExtensionInterceptor = {
         id,
         staticId: id,
@@ -253,7 +253,7 @@ export function App() {
         // sampleId: undefined,
         interactive: false,
         enabled: true,
-        expression,
+        data,
         // expression: undefined,
         owner: EXTENSION_OWNER,
         timestamp: Date.now(),
@@ -286,7 +286,7 @@ export function App() {
         // sampleId: undefined,
         interactive: false,
         enabled: true,
-        expression: getDefaultExpression(),
+        data: getDefaultInterceptorData("default"),
         // expression: undefined,
         owner: EXTENSION_OWNER,
         timestamp: Date.now(),
@@ -310,12 +310,6 @@ export function App() {
       {
         if (interceptor.owner === EXTENSION_OWNER) {
           const id = generateNumberId();
-          const expression =
-            interceptor.type === "default"
-              ? typeof interceptor.expression === "string"
-                ? interceptor.expression
-                : getDefaultExpression()
-              : undefined;
           const newInterceptor: ExtensionInterceptor = {
             id,
             staticId: id,
@@ -324,7 +318,7 @@ export function App() {
             patterns: interceptor.patterns,
             interactive: interceptor.interactive,
             enabled: false,
-            expression,
+            data: interceptor.data,
             owner: EXTENSION_OWNER,
             timestamp: Date.now(),
           };

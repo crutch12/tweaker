@@ -111,8 +111,8 @@ function FetchResponseBodySelect(props: Select.RootProps) {
 }
 
 export interface InterceptorFormFetchProps extends InterceptorItemProps {
-  expression: string | undefined;
-  setExpression: Dispatch<SetStateAction<string | undefined>>;
+  data: ExtensionInterceptor["data"];
+  setData: Dispatch<SetStateAction<ExtensionInterceptor["data"]>>;
   patterns: string;
   setPatterns: Dispatch<SetStateAction<string>>;
   hasChanges: boolean;
@@ -122,52 +122,37 @@ export function InterceptorFormFetch({
   interceptor,
   onChange,
   onHightLightInterceptor,
-  expression,
-  setExpression,
+  data,
+  setData,
   patterns,
   setPatterns,
   hasChanges,
 }: InterceptorFormFetchProps) {
-  const [initialExpression, setInitialExpression] = useState(
-    () => interceptor.expression,
-  );
+  const [initialData, setInitialData] = useState(() => interceptor.data);
+
+  const [method, setMethod] = useState(() => patternsToState(patterns).method);
+  const [bodyType, setBodyType] = useState("json");
 
   const actualizeCodeExpression = useEffectEvent((force: boolean) => {
-    if (force || interceptor.expression !== expression) {
+    if (
+      force ||
+      interceptor.data?.[bodyType]?.static !== data?.[bodyType]?.static
+    ) {
       setUpdatesCount((v) => v + 1);
-      setInitialExpression(interceptor.expression);
-      setExpression(interceptor.expression);
+      setInitialData(interceptor.data);
+      setData(interceptor.data);
     }
   });
 
   useEffect(() => {
     actualizeCodeExpression(false);
-  }, [interceptor.expression]);
-
-  const onCodeUpdate = useCallback((code: string) => {
-    setExpression((v) => code || undefined);
-  }, []);
+  }, [interceptor.data?.[bodyType]?.static]);
 
   const [updatesCount, setUpdatesCount] = useState(0);
 
   const discardChanges = useCallback(() => {
     actualizeCodeExpression(true);
   }, []);
-
-  const { data: expressionError } = useQuery({
-    queryKey: ["validateExpression", expression],
-    queryFn: () => {
-      if (!expression) return { valid: true, error: undefined };
-      return isJsSyntaxValid("() => {\n" + expression + "\n}");
-    },
-    select: ({ error }) => {
-      if (error) {
-        return `${error.name} - ${error.message}`;
-      }
-      return undefined;
-    },
-    placeholderData: keepPreviousData,
-  });
 
   const uniqueId = useMemo(() => {
     return `${interceptor.name}-${interceptor.id}`;
@@ -191,8 +176,17 @@ export function InterceptorFormFetch({
     setUrlPatterns(patternsToState(patterns).patterns);
   }, [patterns]);
 
-  const [method, setMethod] = useState(() => patternsToState(patterns).method);
-  const [bodyType, setBodyType] = useState("json");
+  const onCodeUpdate = useCallback(
+    (code: string) => {
+      setData((v) => ({
+        ...v,
+        [bodyType]: {
+          static: code,
+        },
+      }));
+    },
+    [bodyType],
+  );
 
   const onMethodChange = useEffectEvent(() => {
     serializePatterns(interceptor.patterns) !==
@@ -206,6 +200,27 @@ export function InterceptorFormFetch({
   useEffect(() => {
     onMethodChange();
   }, [method, interceptor.patterns]);
+
+  const { data: expressionError } = useQuery({
+    queryKey: ["validateFetchExpression", data?.[bodyType], bodyType],
+    queryFn: () => {
+      if (!data?.[bodyType]?.static) return { valid: true, error: undefined };
+      const value = data?.[bodyType].static;
+      try {
+        JSON.parse(value);
+        return { valid: true, error: undefined };
+      } catch (error) {
+        return { valid: false, error: error as Error };
+      }
+    },
+    select: ({ error }) => {
+      if (error) {
+        return `${error.name} - ${error.message}`;
+      }
+      return undefined;
+    },
+    placeholderData: keepPreviousData,
+  });
 
   return (
     <Flex gap="2" direction="column">
@@ -312,7 +327,7 @@ export function InterceptorFormFetch({
               size="1"
               radius="large"
               color="indigo"
-              onClick={() => onChange?.({ ...interceptor, expression })}
+              onClick={() => onChange?.({ ...interceptor, data })}
             >
               Save
             </Button>
@@ -341,12 +356,10 @@ export function InterceptorFormFetch({
           <ExpressionCodeBlock
             language="json"
             key={updatesCount}
-            code={initialExpression ?? ""}
+            code={initialData?.[bodyType]?.static ?? ""}
             onUpdate={onCodeUpdate}
             readOnly={!interceptor.enabled}
-            onSave={() =>
-              hasChanges && onChange?.({ ...interceptor, expression })
-            }
+            onSave={() => hasChanges && onChange?.({ ...interceptor, data })}
           />
         </Suspense>
         {expressionError && (

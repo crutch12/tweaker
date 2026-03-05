@@ -226,8 +226,8 @@ function _Example() {
         <button
           onClick={() => {
             window
-              .fetch("/")
-              .then((res) => res.text())
+              .fetch("/api/data.json")
+              .then((res) => res.json())
               .then(console.log);
           }}
         >

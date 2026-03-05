@@ -61,29 +61,22 @@ export function InterceptorItem({
   onDuplicate,
   onHightLightInterceptor,
 }: InterceptorItemProps) {
-  const [expression, setExpression] = useState(() => interceptor.expression);
+  const [data, setData] = useState(() => interceptor.data);
 
   const [patterns, setPatterns] = useState(() =>
     serializePatterns(interceptor.patterns),
   );
 
   const isByExtension = interceptor.owner === EXTENSION_OWNER;
-  const canChangeExpression = isByExtension;
+  const canChangeValue = isByExtension;
 
   useEffect(() => {
     setPatterns(serializePatterns(interceptor.patterns));
   }, [interceptor.patterns]);
 
   const hasChanges = useMemo(() => {
-    return !equal(
-      {
-        expression: interceptor.expression,
-      },
-      {
-        expression,
-      },
-    );
-  }, [expression, interceptor.expression]);
+    return !equal(interceptor.data, data);
+  }, [data, interceptor.data]);
 
   const appColor = getTextColor(interceptor.name);
   const appBackgroundColor = getBackgroundColor(interceptor.name);
@@ -370,8 +363,8 @@ export function InterceptorItem({
               onFilterMessages={onFilterMessages}
               onDuplicate={onDuplicate}
               onHightLightInterceptor={onHightLightInterceptor}
-              expression={expression}
-              setExpression={setExpression}
+              data={data}
+              setData={setData}
               patterns={patterns}
               setPatterns={setPatterns}
               hasChanges={hasChanges}
@@ -385,8 +378,8 @@ export function InterceptorItem({
               onFilterMessages={onFilterMessages}
               onDuplicate={onDuplicate}
               onHightLightInterceptor={onHightLightInterceptor}
-              expression={expression}
-              setExpression={setExpression}
+              data={data}
+              setData={setData}
               patterns={patterns}
               setPatterns={setPatterns}
               hasChanges={hasChanges}
@@ -395,11 +388,7 @@ export function InterceptorItem({
           <Badge
             position="bottom-right"
             appearance={
-              canChangeExpression
-                ? hasChanges
-                  ? "warn"
-                  : "primary"
-                : "secondary"
+              canChangeValue ? (hasChanges ? "warn" : "primary") : "secondary"
             }
           >
             <Flex gap="1">
