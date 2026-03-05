@@ -380,6 +380,29 @@ export function InterceptorItem({
                           Works only if Browser's DevTools panel is open
                         </Text>
                       </li>
+                      <li>
+                        <Text size="2">
+                          May not work if your bundler removes{" "}
+                          <Code variant="solid" color="yellow">
+                            debugger
+                          </Code>{" "}
+                          statements from libraries, e.g. if you have:
+                        </Text>
+                        <Flex asChild direction="column" gap="1">
+                          <ul className={styles.TooltipContentList}>
+                            <li>
+                              <Code variant="solid" color="yellow">
+                                terserOptions.compress.drop_debugger
+                              </Code>
+                            </li>
+                            <li>
+                              <Code variant="solid" color="yellow">
+                                esbuild.drop: ['debugger']
+                              </Code>
+                            </li>
+                          </ul>
+                        </Flex>
+                      </li>
                     </ul>
                   </Flex>
                 }

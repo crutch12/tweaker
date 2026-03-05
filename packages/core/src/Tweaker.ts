@@ -12,6 +12,22 @@ import { TWEAKER_OWNER } from "./const";
 import { generateNumberId, getStack, keyMatchesPatterns } from "./utils";
 import { registerInstance } from "./global";
 
+function debugResult<V, R>(key: TweakerKey, value: V, result: R) {
+  try {
+    // throws if CSP doesn't allow run eval
+    return new Function(
+      "key",
+      "value",
+      "result",
+      `debugger;
+return result;`,
+    )(key, value, result);
+  } catch (err) {
+    debugger; // NOTE: May be deleted by bundler (e.g. terser or esbuild)
+    return result;
+  }
+}
+
 export interface InterceptOptions {
   /**
    * Calls "debugger" when tweaks result
@@ -342,7 +358,7 @@ export class Tweaker<
 
       if (listener.interactive) {
         this.log(key, "interactive", [value, result]);
-        debugger; // @TODO: check availability via performance call
+        result = debugResult(key, value, result);
       }
 
       this.eventEmitter.emit("value", {
@@ -362,7 +378,7 @@ export class Tweaker<
 
       if (listener.interactive) {
         this.log(key, "interactive", [value, err]);
-        debugger; // @TODO: check availability via performance call
+        err = debugResult(key, value, err);
       }
 
       this.eventEmitter.emit("value", {
