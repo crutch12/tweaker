@@ -84,13 +84,17 @@ export function App() {
 
   const date = useMemo(() => new Date(), []);
 
-  const interceptors = useInterceptorsStore((state) => state.interceptors);
+  const interceptors = useDeferredValue(
+    useInterceptorsStore((state) => state.interceptors),
+  );
   const addInterceptors = useInterceptorsStore((state) => state.add);
   const setInterceptors = useInterceptorsStore((state) => state.set);
   const updateInterceptor = useInterceptorsStore((state) => state.update);
   const removeInterceptors = useInterceptorsStore((state) => state.remove);
 
-  const messages = useMessagesStore((state) => state.messages);
+  const messages = useDeferredValue(
+    useMessagesStore((state) => state.messages),
+  );
   const addMessasges = useMessagesStore((state) => state.add);
   const setMessages = useMessagesStore((state) => state.set);
 

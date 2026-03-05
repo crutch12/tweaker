@@ -3,6 +3,7 @@ import {
   lazy,
   Suspense,
   useCallback,
+  useDeferredValue,
   useEffect,
   useEffectEvent,
   useMemo,
@@ -171,8 +172,10 @@ export function InterceptorItem({
     };
   }, []);
 
-  const interceptedCount = useInterceptedCountsStore(
-    (state) => state.interceptedCounts.get(interceptor.id) ?? 0,
+  const interceptedCount = useDeferredValue(
+    useInterceptedCountsStore(
+      (state) => state.interceptedCounts.get(interceptor.id) ?? 0,
+    ),
   );
 
   const interceptedCountThrottled = useThrottle(interceptedCount, 10);
