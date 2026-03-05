@@ -1,9 +1,11 @@
 import { Tweaker, TweakerSample } from "@tweaker/core";
 import { extensionPlugin } from "@tweaker/extension-plugin";
+import { fetchPlugin } from "@tweaker/fetch-plugin";
 import { Dog, User } from "./Example";
 
 const plugins = {
   extension: extensionPlugin(),
+  fetch: fetchPlugin(),
 };
 
 const tweaker = new Tweaker<{

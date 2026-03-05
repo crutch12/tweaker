@@ -5,7 +5,7 @@ import { memo, useMemo } from "react";
 import { keyMatchesPatterns } from "@tweaker/core/utils";
 import { Code, Text, Flex, Box } from "@radix-ui/themes";
 import { css } from "@emotion/css";
-import { ExtensionInterceptor } from "../interceptors/InterceptorItem";
+import { ExtensionInterceptor } from "../interceptors/InterceptorItem/InterceptorItem";
 import type { InterceptorId } from "@tweaker/core";
 
 export interface HighlightRow {

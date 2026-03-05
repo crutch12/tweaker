@@ -8,7 +8,7 @@ export function keyMatchesPatterns(
     if (key.trim() === pattern.trim()) {
       return "exact";
     }
-    const found = minimatch(key, pattern);
+    const found = minimatch(key, pattern, { preserveMultipleSlashes: true });
     if (found) {
       return "pattern";
     }

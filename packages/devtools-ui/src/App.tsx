@@ -35,7 +35,7 @@ import {
 } from "@radix-ui/themes";
 import { ConsoleErrorIcon } from "@devtools-ds/icon";
 import { BlueButton } from "./components/BlueButton";
-import { ExtensionInterceptor } from "./features/interceptors/InterceptorItem";
+import { ExtensionInterceptor } from "./features/interceptors/InterceptorItem/InterceptorItem";
 import { CreateTweakerDropdown } from "./components/CreateTweakerDropdown";
 import { Container, Runtime } from "./utils/styles";
 import { useResizeDivider } from "./components/ResizeDivider/useResizeDivider";
@@ -214,7 +214,6 @@ export function App() {
           setInterceptors(
             message.payload.map((interceptor) => ({
               ...interceptor,
-              expression: interceptor.expression,
             })),
           );
           break;
@@ -241,9 +240,12 @@ export function App() {
   const createInterceptorByMessage = useCallback(
     (message: ExtensionPluginMessages.ValueMessage["payload"]) => {
       const id = generateNumberId();
+      const expression =
+        message.type === "default" ? getDefaultExpression() : undefined;
       const interceptor: ExtensionInterceptor = {
         id,
         staticId: id,
+        type: message.type,
         name: message.name,
         patterns: [message.key],
         // fromKey: message.key,
@@ -251,7 +253,7 @@ export function App() {
         // sampleId: undefined,
         interactive: false,
         enabled: true,
-        expression: getDefaultExpression(),
+        expression,
         // expression: undefined,
         owner: EXTENSION_OWNER,
         timestamp: Date.now(),
@@ -276,6 +278,7 @@ export function App() {
       const interceptor: ExtensionInterceptor = {
         id,
         staticId: id,
+        type: "default",
         name: name,
         patterns: [],
         // fromKey: message.key,
@@ -307,17 +310,21 @@ export function App() {
       {
         if (interceptor.owner === EXTENSION_OWNER) {
           const id = generateNumberId();
+          const expression =
+            interceptor.type === "default"
+              ? typeof interceptor.expression === "string"
+                ? interceptor.expression
+                : getDefaultExpression()
+              : undefined;
           const newInterceptor: ExtensionInterceptor = {
             id,
             staticId: id,
+            type: interceptor.type,
             name: interceptor.name,
             patterns: interceptor.patterns,
             interactive: interceptor.interactive,
             enabled: false,
-            expression:
-              typeof interceptor.expression === "string"
-                ? interceptor.expression
-                : getDefaultExpression(),
+            expression,
             owner: EXTENSION_OWNER,
             timestamp: Date.now(),
           };
@@ -342,6 +349,15 @@ export function App() {
             tabId,
           );
         }
+        sendMessageToPlugin(
+          "interceptors:duplicate",
+          {
+            name: interceptor.name,
+            data: [interceptor],
+            timestamp: Date.now(),
+          },
+          tabId,
+        );
       }
     },
     [addInterceptors, tabId],

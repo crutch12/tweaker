@@ -1,5 +1,8 @@
 import { HTMLAttributes, RefObject } from "react";
-import { ExtensionInterceptor, InterceptorItem } from "./InterceptorItem";
+import {
+  ExtensionInterceptor,
+  InterceptorItem,
+} from "./InterceptorItem/InterceptorItem";
 import { Grid } from "@radix-ui/themes";
 
 export interface InterceptorsListProps extends HTMLAttributes<HTMLElement> {

@@ -107,6 +107,9 @@ importers:
       '@tweaker/extension-plugin':
         specifier: workspace:*
         version: link:../../packages/extension-plugin
+      '@tweaker/fetch-plugin':
+        specifier: workspace:*
+        version: link:../../packages/fetch-plugin
       react:
         specifier: ^19.2.4
         version: 19.2.4
@@ -238,6 +241,18 @@ importers:
         version: link:../styles
 
   packages/extension-plugin:
+    dependencies:
+      '@tweaker/core':
+        specifier: workspace:*
+        version: link:../core
+      klona:
+        specifier: ^2.0.6
+        version: 2.0.6
+      serialize-error:
+        specifier: ^13.0.1
+        version: 13.0.1
+
+  packages/fetch-plugin:
     dependencies:
       '@tweaker/core':
         specifier: workspace:*

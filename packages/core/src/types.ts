@@ -2,6 +2,8 @@ export type TweakerKey = string;
 
 export type InterceptorId = string | number;
 
+export type TweakerValueType = "default" | "fetch";
+
 export interface InterceptorBase {
   /**
    * Unique interceptor id
@@ -11,6 +13,7 @@ export interface InterceptorBase {
    * If staticId is provided, extension-plugin can persist this interceptor
    */
   staticId?: InterceptorId;
+  type: TweakerValueType;
   /**
    * "Creator" of interceptor (e.g. 'tweaker', 'extension')
    * @default 'tweaker'
@@ -36,7 +39,17 @@ export interface TweakerInterceptor<K, V> extends InterceptorBase {
 
 // type SyncOnly<T> = T extends Promise<any> ? "Error: Async functions are not allowed" : T;
 
-export type TweakHandler<K, V> = (key: K, originalValue: V) => V;
+export interface TweakHandlerContext {
+  type: string;
+  params: Record<string | number | symbol, any>;
+  bypass: symbol;
+}
+
+export type TweakHandler<K, V> = (
+  key: K,
+  originalValue: V,
+  ctx: TweakHandlerContext,
+) => V | symbol;
 
 export type RemoveListener = () => void;
 

@@ -161,9 +161,12 @@ function _Example() {
   }, [tweakerEnabled]);
 
   useEffect(() => {
-    return tweaker.subscribe("*", ({ key, tweaked, originalValue, result }) => {
-      console.log(originalValue);
-    });
+    return tweaker.subscribe(
+      "**",
+      ({ key, tweaked, originalValue, result }) => {
+        console.log(originalValue);
+      },
+    );
   }, []);
 
   const [extensionIsLoaded, setExtensionsIsLoaded] = useState<
@@ -220,6 +223,16 @@ function _Example() {
             Replace Last Dog ({lastDog.id})
           </button>
         )}
+        <button
+          onClick={() => {
+            window
+              .fetch("/")
+              .then((res) => res.text())
+              .then(console.log);
+          }}
+        >
+          Fetch current page
+        </button>
       </div>
       <pre>{JSON.stringify(entities, null, 2)}</pre>
     </div>

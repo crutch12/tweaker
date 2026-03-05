@@ -51,6 +51,7 @@ export function notifyExtensionNewIntercept<T>(
   sendMessageToExtension("new-intercept", {
     id: listener.id,
     name: instance.name,
+    type: listener.type,
     patterns: listener.patterns,
     interactive: listener.interactive,
     owner: listener.owner,

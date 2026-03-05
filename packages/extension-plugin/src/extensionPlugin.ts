@@ -2,9 +2,7 @@ import { TweakerPlugin } from "@tweaker/core/plugin";
 import { generateNumberId, generateStringId } from "@tweaker/core/utils";
 import { version, name } from "../package.json";
 import { ExtensionDevtoolsMessages } from "./messages/types";
-import { klona } from "klona/json";
 import { Tweaker, TWEAKER_OWNER, InterceptorId } from "@tweaker/core";
-import { serializeError, isErrorLike } from "serialize-error";
 import { registerInstance } from "./global";
 import { EXTENSION_OWNER } from "./const";
 import type { InterceptorPayload } from "./types";
@@ -16,6 +14,7 @@ import {
   notifyExtensionInterceptors,
 } from "./sendMessageToExtension";
 import { isForPluginMessage } from "./messages";
+import { clone } from "./clone";
 
 interface ExtensionPlugin extends TweakerPlugin {
   getTabId: () => Promise<number | undefined>;
@@ -46,6 +45,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
         return {
           id: listener.id,
           staticId: listener.staticId,
+          type: listener.type,
           name: _instance.name,
           patterns: listener.patterns,
           interactive: listener.interactive,
@@ -88,17 +88,20 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
 
         _instance.intercept(
           listener.patterns,
-          (key, value) => {
-            return new Function("key", "value", listener.expression ?? "")(
-              key,
-              value,
-            );
+          (key, value, ctx) => {
+            return new Function(
+              "key",
+              "value",
+              "ctx",
+              listener.expression ?? "",
+            )(key, value, ctx);
           },
           {
             id: listener.id,
             owner: listener.owner,
             interactive: listener.interactive,
             enabled: listener.enabled,
+            type: listener.type,
           },
         );
       }
@@ -119,17 +122,20 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
 
         _instance.intercept(
           listener.patterns,
-          (key, value) => {
-            return new Function("key", "value", listener.expression ?? "")(
-              key,
-              value,
-            );
+          (key, value, ctx) => {
+            return new Function(
+              "key",
+              "value",
+              "ctx",
+              listener.expression ?? "",
+            )(key, value, ctx);
           },
           {
             id: listener.id,
             owner: listener.owner,
             interactive: listener.interactive,
             enabled: listener.enabled,
+            type: listener.type,
           },
         );
       }
@@ -154,11 +160,13 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
           enabled: listener.enabled,
           patterns: listener.patterns,
           ...(found.owner === EXTENSION_OWNER && {
-            handler: (key, value) => {
-              return new Function("key", "value", listener.expression ?? "")(
-                key,
-                value,
-              );
+            handler: (key, value, ctx) => {
+              return new Function(
+                "key",
+                "value",
+                "ctx",
+                listener.expression ?? "",
+              )(key, value, ctx);
             },
           }),
         });
@@ -188,6 +196,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
           enabled: false,
           interactive: listener.interactive,
           owner: listener.owner,
+          type: listener.type,
         });
 
         const newListener = _instance.getListener(id);
@@ -250,9 +259,10 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
 
     function subscribeForInstanceMessages() {
       _instance.subscribe(
-        "*",
+        "**",
         async ({
           key,
+          type,
           tweaked,
           originalValue,
           result,
@@ -266,12 +276,9 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
             id: generateStringId(),
             name: _instance.name,
             key,
-            originalValue: isErrorLike(originalValue)
-              ? serializeError(originalValue)
-              : klona(originalValue),
-            result: isErrorLike(result)
-              ? serializeError(result)
-              : klona(result),
+            type,
+            originalValue: clone(originalValue),
+            result: clone(result),
             timestamp,
             tweaked,
             error: error ?? false,

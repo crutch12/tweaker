@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { ExtensionInterceptor } from "./InterceptorItem";
+import { ExtensionInterceptor } from "./InterceptorItem/InterceptorItem";
 import { InterceptorId } from "@tweaker/core";
 
 interface InterceptorsState {

@@ -5,6 +5,7 @@ import {
   TweakerInterceptor,
   InterceptorId,
   TweakerAnyInterceptor,
+  TweakerValueType,
 } from "./types";
 import { EventEmitter } from "eventemitter3";
 import { TweakerPlugin } from "./plugin";
@@ -39,6 +40,7 @@ export interface InterceptOptions {
    */
   id?: InterceptorId;
   enabled?: boolean;
+  type?: TweakerValueType;
 }
 
 export interface SubscribeOptions {
@@ -54,7 +56,9 @@ export interface TweakerSample<V> {
 }
 
 export interface TweakerValueOptions<V> {
+  type: TweakerValueType;
   samples: TweakerSample<V>[];
+  params: Record<string | number | symbol, any>;
 }
 
 interface ReadyOptions {
@@ -90,6 +94,7 @@ export interface TweakerOptions<
 
 type ValueEventOptions = {
   key: string;
+  type: TweakerValueType;
   tweaked: boolean;
   originalValue: unknown;
   interceptorId?: InterceptorId;
@@ -233,9 +238,14 @@ export class Tweaker<
     K extends GlobToTemplate<TweakerValueKeys<T>> = GlobToTemplate<
       TweakerValueKeys<T>
     >,
-  >(key: K, value: V, options?: Partial<TweakerValueOptions<V>>): V {
+  >(key: K, value: V, options: Partial<TweakerValueOptions<V>> = {}): V {
     const stack = getStack(2);
-    const [handled, result] = this.handleValue(key, value, stack);
+    const [handled, result] = this.handleValue(key, value, {
+      type: options.type,
+      params: options.params,
+      samples: options.samples,
+      stack,
+    });
     if (handled) return result as V;
     return value;
   }
@@ -253,12 +263,14 @@ export class Tweaker<
       owner = TWEAKER_OWNER,
       enabled = true,
       interactive = false,
+      type = "default",
     }: InterceptOptions = {},
   ): RemoveListener {
     const stack = getStack(2);
     const interceptor: TweakerInterceptor<K, V> = {
       id: id ?? generateNumberId(),
       staticId: id,
+      type,
       interactive,
       patterns: Array.isArray(patterns) ? patterns : [patterns],
       handler,
@@ -320,16 +332,20 @@ export class Tweaker<
   private handleValue<V>(
     key: TweakerKey,
     value: unknown,
-    stack?: string,
+    options: Partial<TweakerValueOptions<V>> & {
+      stack?: string;
+    },
   ): [boolean, V | undefined] {
+    const type = options.type ?? "default";
     this.debug(key, "value", value);
 
     if (!this.enabled) {
       this.eventEmitter.emit("value", {
         key,
+        type,
         tweaked: false,
         originalValue: value,
-        stack,
+        stack: options.stack,
       });
       return [false, undefined];
     }
@@ -340,59 +356,77 @@ export class Tweaker<
       this.debug(key, "value", "no listeners found");
       this.eventEmitter.emit("value", {
         key,
+        type,
         tweaked: false,
         originalValue: value,
-        stack,
+        stack: options.stack,
       });
       return [false, undefined];
     }
 
-    if (listeners.length > 1) {
-      this.warn(key, "value", "too many listeners found", listeners);
+    for (const listener of listeners) {
+      const bypass = Symbol("tweaker:bypass");
+      try {
+        let result = listener.handler(key, value, {
+          bypass,
+          params: options.params ?? {},
+          type: options.type ?? "default",
+        }) as V;
+
+        if (result === bypass) {
+          this.log(key, "skipped by bypass", [value]);
+          continue;
+        }
+
+        if (listener.interactive) {
+          this.log(key, "interactive", [value, result]);
+          result = debugResult(key, value, result);
+        }
+
+        this.eventEmitter.emit("value", {
+          key,
+          type,
+          tweaked: true,
+          originalValue: value,
+          result,
+          interceptorId: listener.id,
+          stack: options.stack,
+          // TODO: provide found pattern for info
+          // TODO: provide sample id for info
+        });
+
+        return [true, result];
+      } catch (err) {
+        this.log(key, "error", err);
+
+        if (listener.interactive) {
+          this.log(key, "interactive", [value, err]);
+          err = debugResult(key, value, err);
+        }
+
+        this.eventEmitter.emit("value", {
+          key,
+          type,
+          tweaked: true,
+          originalValue: value,
+          result: err,
+          error: true,
+          interceptorId: listener.id,
+          stack: options.stack,
+        });
+
+        throw err;
+      }
     }
 
-    const listener = listeners[listeners.length - 1];
-
-    try {
-      let result = listener.handler(key, value) as V;
-
-      if (listener.interactive) {
-        this.log(key, "interactive", [value, result]);
-        result = debugResult(key, value, result);
-      }
-
-      this.eventEmitter.emit("value", {
-        key,
-        tweaked: true,
-        originalValue: value,
-        result,
-        interceptorId: listener.id,
-        stack,
-        // TODO: provide found pattern for info
-        // TODO: provide sample id for info
-      });
-
-      return [true, result];
-    } catch (err) {
-      this.log(key, "error", err);
-
-      if (listener.interactive) {
-        this.log(key, "interactive", [value, err]);
-        err = debugResult(key, value, err);
-      }
-
-      this.eventEmitter.emit("value", {
-        key,
-        tweaked: true,
-        originalValue: value,
-        result: err,
-        error: true,
-        interceptorId: listener.id,
-        stack,
-      });
-
-      throw err;
-    }
+    this.eventEmitter.emit("value", {
+      key,
+      type,
+      tweaked: false,
+      originalValue: value,
+      stack: options.stack,
+    });
+    return [false, undefined];
   }
 
   public subscribe(
@@ -408,6 +442,7 @@ export class Tweaker<
 
     const handler: typeof fn = ({
       key,
+      type,
       tweaked,
       originalValue,
       result,
@@ -419,6 +454,7 @@ export class Tweaker<
       if (found) {
         fn({
           key,
+          type,
           tweaked,
           originalValue,
           result,

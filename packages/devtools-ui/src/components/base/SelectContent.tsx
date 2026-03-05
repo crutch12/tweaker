@@ -1,23 +1,15 @@
 import cn from "classnames";
-import { Tooltip as RadixTooltip } from "@radix-ui/themes";
+import { Select } from "@radix-ui/themes";
 import { useContainerQueryRoot } from "../container-query/ContainerQueryRootProvider";
 import { DefaultScrollbarClassName } from "../../utils/styles";
-import { css } from "@emotion/css";
 
-export function Tooltip(props: Parameters<typeof RadixTooltip>[0]) {
+export function SelectContent(props: Parameters<typeof Select.Content>[0]) {
   const { container } = useContainerQueryRoot();
   return (
-    <RadixTooltip
+    <Select.Content
       container={container.current}
       {...props}
       className={cn(DefaultScrollbarClassName, props.className)}
     />
   );
 }
-
-export const TooltipStyles = {
-  ContentList: css`
-    padding-inline-start: var(--space-4);
-    margin: 0;
-  `,
-};

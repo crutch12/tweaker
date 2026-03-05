@@ -4,6 +4,7 @@
   "dependencies": {
     "@tweaker/core": "workspace:*",
     "@tweaker/extension-plugin": "workspace:*",
+    "@tweaker/fetch-plugin": "workspace:*",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },

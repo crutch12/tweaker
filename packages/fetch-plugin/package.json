@@ -1,0 +1,24 @@
+{
+  "name": "@tweaker/fetch-plugin",
+  "version": "0.0.1",
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "module": "dist/index.js",
+  "scripts": {
+    "build": "tsup",
+    "build:dev": "tsup --watch"
+  },
+  "author": "criitch@yandex.ru",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@tweaker/core": "workspace:*",
+    "klona": "^2.0.6",
+    "serialize-error": "^13.0.1"
+  }
+}
