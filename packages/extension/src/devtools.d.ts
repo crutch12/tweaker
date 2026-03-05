@@ -8,9 +8,4 @@ declare global {
       url?: RenderWidgetOptions["url"];
     };
   }
-  interface WindowEventMap {
-    "devtools:search": CustomEvent<{
-      queryString?: string;
-    }>;
-  }
 }

@@ -51,6 +51,7 @@ import {
   ComponentBooleanIcon,
   CircleIcon,
   DotFilledIcon,
+  LoopIcon,
 } from "@radix-ui/react-icons";
 import { homepage } from "../../../package.json";
 import { useDevtools } from "./features/devtools/DevtoolsProvider";
@@ -134,7 +135,15 @@ export function App() {
     setFilterPatterns(pattenrs ? serializePatterns(pattenrs) : undefined);
   }, []);
 
-  const { tabId, reloadApp, url } = useDevtools();
+  const { tabId, reloadApp, url, canReinstallExtension } = useDevtools();
+
+  const reinstallExtension = () => {
+    sendMessageToPlugin(
+      "extension:reinstall",
+      { timestamp: Date.now() },
+      tabId,
+    );
+  };
 
   const host = useMemo(() => {
     if (url) return new URL(url).host;
@@ -149,13 +158,15 @@ export function App() {
   }, [tabId]);
 
   useEffect(() => {
-    sendMessageToPlugin(
-      "ping",
-      {
-        timestamp: Date.now(),
-      },
-      tabId,
-    );
+    try {
+      sendMessageToPlugin(
+        "ping",
+        {
+          timestamp: Date.now(),
+        },
+        tabId,
+      );
+    } catch {}
     return () => {
       // reset zustand state
       useInterceptedCountsStore.setState({ interceptedCounts: new Map() });
@@ -473,6 +484,17 @@ export function App() {
           )}
         </Flex>
         <Flex gap="4" align="center" wrap="wrap">
+          {canReinstallExtension && (
+            <IconButton
+              color="red"
+              size="2"
+              variant="ghost"
+              title="Press double click to reinstall Tweaker DevTools extension"
+              onDoubleClick={reinstallExtension}
+            >
+              <LoopIcon />
+            </IconButton>
+          )}
           <IconButton
             asChild
             color="gray"

@@ -206,12 +206,24 @@ chrome.runtime.onMessage.addListener((message: unknown, sender): boolean => {
         });
       });
       break;
+    case "extension:reinstall": {
+      reinstallExtension(message.tabId);
+      break;
+    }
     default:
       sendMessageToPlugin(message.tabId, _message);
   }
 
   return false;
 });
+
+async function reinstallExtension(tabId: number) {
+  const tab = await chrome.tabs.get(tabId);
+  const newTab = await chrome.tabs.create({ url: tab.url, index: tab.index });
+  await chrome.tabs.remove(tabId);
+  await chrome.tabs.update(newTab.id!, { active: true });
+  chrome.runtime.reload();
+}
 
 function getTabUrl(tabId: number) {
   return chrome.tabs.get(tabId).then((tab) => tab.url);

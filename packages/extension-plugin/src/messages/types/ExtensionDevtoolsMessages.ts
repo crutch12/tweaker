@@ -93,6 +93,13 @@ export namespace ExtensionDevtoolsMessages {
     }
   >;
 
+  export type ReinstallExtensionMessage = DevtoolsAnyMessage<
+    "extension:reinstall",
+    {
+      timestamp: number;
+    }
+  >;
+
   export type Message =
     | PingMessage
     | PongMessage
@@ -103,5 +110,6 @@ export namespace ExtensionDevtoolsMessages {
     | RemoveInterceptorsMessage
     | DuplicateInterceptorsMessage
     | ClearMessagesMessage
-    | ClearInterceptorsMessage;
+    | ClearInterceptorsMessage
+    | ReinstallExtensionMessage;
 }
