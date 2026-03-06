@@ -122,12 +122,18 @@ importers:
       eventemitter3:
         specifier: ^5.0.4
         version: 5.0.4
+      klona:
+        specifier: ^2.0.6
+        version: 2.0.6
       minimatch:
         specifier: ^10.1.2
         version: 10.1.2
       p-queue:
         specifier: ^9.1.0
         version: 9.1.0
+      serialize-error:
+        specifier: ^13.0.1
+        version: 13.0.1
 
   packages/devtools-ui:
     dependencies:
@@ -245,24 +251,15 @@ importers:
       '@tweaker/core':
         specifier: workspace:*
         version: link:../core
-      klona:
-        specifier: ^2.0.6
-        version: 2.0.6
-      serialize-error:
-        specifier: ^13.0.1
-        version: 13.0.1
+      '@tweaker/fetch-plugin':
+        specifier: workspace:*
+        version: link:../fetch-plugin
 
   packages/fetch-plugin:
     dependencies:
       '@tweaker/core':
         specifier: workspace:*
         version: link:../core
-      klona:
-        specifier: ^2.0.6
-        version: 2.0.6
-      serialize-error:
-        specifier: ^13.0.1
-        version: 13.0.1
 
   packages/styles:
     dependencies:

@@ -51,3 +51,5 @@ export function getStack(depth = 0) {
 export * from "./groupBy";
 
 export * from "./CachedStorage";
+
+export * from "./clone";

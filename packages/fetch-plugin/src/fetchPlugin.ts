@@ -1,13 +1,15 @@
 import type { TweakerPlugin } from "@tweaker/core/plugin";
 import { version, name } from "../package.json";
 import type { Tweaker } from "@tweaker/core";
+import { handleResponse } from "./handleResponse";
+import { clone, generateStringId } from "@tweaker/core/utils";
 
 function getRequestUrl(request: RequestInfo | URL) {
   if (request instanceof URL) {
     return request;
   }
   if (typeof request === "string") {
-    return new URL(request, location.href);
+    return new URL(request, globalThis["location"]?.href);
   }
   return new URL(request.url);
 }
@@ -19,66 +21,40 @@ export interface FetchPluginOptions {}
 export function fetchPlugin({}: FetchPluginOptions = {}): FetchPlugin {
   const promises: Promise<void>[] = [];
 
+  let _instance: Tweaker;
+  let _emitter: Tweaker["eventEmitter"];
+
   function replaceGlobalFetch(tweaker: Tweaker) {
     const originalFetch = globalThis["fetch"];
+
+    if (!originalFetch) return;
 
     globalThis["fetch"] = (...args: Parameters<typeof originalFetch>) => {
       const [requestUrl, options] = args;
       return originalFetch(requestUrl, options).then((response) => {
         const method = (options?.method ?? "GET").toUpperCase();
         const url = getRequestUrl(requestUrl);
-        const key = `${method} ${location.host === url.host ? "" : url.host}${url.pathname}${url.search}`;
+        const host = globalThis["location"]?.host === url.host ? "" : url.host;
+        const key = `${method} ${host}${url.pathname}${url.search}`;
 
-        const tweakedResponse = tweaker.value(key, response, {
-          type: "fetch",
-          // params: {
-          //   text: async (data: string) => {
-          //     return "huy sosi, loh";
-          //   },
-          // },
-        });
+        const id = `fetch:${generateStringId()}`;
 
-        // tweaker.intercept(key, (key, response: Response, ctx) => {
-        //   if (ctx.type !== "fetch") return ctx.bypass;
-        //   return new Proxy(response, {
-        //     get(target, prop: keyof typeof response) {
-        //       const value = target[prop];
-
-        //       if (typeof value === "function") {
-        //         // We only care about body-reading methods
-        //         const bodyMethods = [
-        //           "json",
-        //           "text",
-        //           "blob",
-        //           "formData",
-        //           "arrayBuffer",
-        //         ];
-
-        //         if (bodyMethods.includes(prop)) {
-        //           return async function (...methodArgs: any) {
-        //             try {
-        //               // @ts-expect-error
-        //               const data = await value.apply(target, methodArgs);
-        //               const mock = ctx.params[prop];
-        //               if (mock && typeof mock === "function") {
-        //                 const result = await mock(data);
-        //                 return result;
-        //               }
-        //               return data;
-        //             } catch (err) {
-        //               console.error(`Fetch error in .${prop}():`, err);
-        //               throw err; // Re-throw so the app can handle the error
-        //             }
-        //           };
-        //         }
-        //         // Bind other methods (like .clone()) to the original response
-        //         return value.bind(target);
-        //       }
-
-        //       return value;
-        //     },
-        //   });
-        // });
+        const tweakedResponse = tweaker.value(
+          key,
+          handleResponse(response, async (bodyType, value) => {
+            _emitter.emit("value.update", id, {
+              originalValue: {
+                ...clone(response),
+                [bodyType]: value,
+              },
+            });
+            return value;
+          }),
+          {
+            id,
+            type: "fetch",
+          },
+        );
 
         return tweakedResponse;
       });
@@ -92,7 +68,9 @@ export function fetchPlugin({}: FetchPluginOptions = {}): FetchPlugin {
   return {
     name,
     version,
-    setup: (instance) => {
+    setup: (instance, emitter) => {
+      _instance = instance;
+      _emitter = emitter;
       replaceGlobalFetch(instance);
     },
     ready: () => {

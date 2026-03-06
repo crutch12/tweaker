@@ -20,7 +20,8 @@ import {
   notifyExtensionInterceptors,
 } from "./sendMessageToExtension";
 import { isForPluginMessage } from "./messages";
-import { clone } from "./clone";
+import { clone } from "@tweaker/core/utils";
+import { handleResponse } from "@tweaker/fetch-plugin";
 
 function getHandler(
   type: TweakerValueType,
@@ -40,63 +41,24 @@ function getHandler(
     case "fetch": {
       return (key, response: Response, ctx) => {
         if (ctx.type !== "fetch") return ctx.bypass;
-        const newResponse = new Proxy(response, {
-          get(target, prop: keyof typeof response) {
-            const value = target[prop];
 
-            if (typeof value === "function") {
-              // We only care about body-reading methods
-              const bodyMethods = [
-                "json",
-                "text",
-                "blob",
-                "formData",
-                "arrayBuffer",
-              ];
+        return handleResponse(response, async (bodyType, value) => {
+          let mock = data?.[bodyType]?.static;
+          if (!mock) return value;
 
-              if (bodyMethods.includes(prop) && data?.[prop]?.static) {
-                return async function (...methodArgs: any) {
-                  try {
-                    // @ts-expect-error
-                    let result = await value.apply(target, methodArgs);
+          if (bodyType === "json") {
+            mock = JSON.parse(mock);
+          }
 
-                    emitter.emit("value.update", ctx.id, {
-                      originalValue: {
-                        ...clone(response),
-                        [prop]: result,
-                      },
-                    });
+          emitter.emit("value.update", ctx.id, {
+            result: {
+              ...clone(response),
+              [bodyType]: mock,
+            },
+          });
 
-                    let mock = data[prop].static;
-
-                    if (!mock) return result;
-
-                    if (prop === "json") {
-                      mock = JSON.parse(mock);
-                    }
-
-                    emitter.emit("value.update", ctx.id, {
-                      result: {
-                        ...clone(newResponse),
-                        [prop]: mock,
-                      },
-                    });
-
-                    return mock;
-                  } catch (err) {
-                    console.error(`Fetch error in .${prop}():`, err);
-                    throw err; // Re-throw so the app can handle the error
-                  }
-                };
-              }
-              // Bind other methods (like .clone()) to the original response
-              return value.bind(target);
-            }
-
-            return value;
-          },
+          return mock;
         });
-        return newResponse;
       };
     }
   }
@@ -350,6 +312,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
         await readyPromise.finally();
         sendMessageToExtension("value:update", {
           id,
+          timestamp,
           ...options,
         });
       });

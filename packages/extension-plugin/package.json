@@ -18,7 +18,6 @@
   },
   "dependencies": {
     "@tweaker/core": "workspace:*",
-    "klona": "^2.0.6",
-    "serialize-error": "^13.0.1"
+    "@tweaker/fetch-plugin": "workspace:*"
   }
 }

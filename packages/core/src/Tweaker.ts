@@ -250,9 +250,7 @@ export class Tweaker<
   >(key: K, value: V, options: Partial<TweakerValueOptions<V>> = {}): V {
     const stack = getStack(2);
     const [handled, result] = this.handleValue(key, value, {
-      type: options.type,
-      params: options.params,
-      samples: options.samples,
+      ...options,
       stack,
     });
     if (handled) return result as V;
