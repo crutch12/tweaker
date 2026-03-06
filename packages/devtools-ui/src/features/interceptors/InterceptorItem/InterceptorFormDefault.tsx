@@ -81,7 +81,10 @@ export function DefaultInterceptorForm({
   }, [interceptor.data?.expression]);
 
   const onCodeUpdate = useCallback((code: string) => {
-    setData((v) => code || undefined);
+    setData((v) => ({
+      ...v,
+      expression: code || undefined,
+    }));
   }, []);
 
   const [updatesCount, setUpdatesCount] = useState(0);
@@ -91,10 +94,10 @@ export function DefaultInterceptorForm({
   }, []);
 
   const { data: expressionError } = useQuery({
-    queryKey: ["validateExpression", data],
+    queryKey: ["validateExpression", data?.expression],
     queryFn: () => {
-      if (!data) return { valid: true, error: undefined };
-      return isJsSyntaxValid("() => {\n" + data + "\n}");
+      if (!data?.expression) return { valid: true, error: undefined };
+      return isJsSyntaxValid("() => {\n" + data.expression + "\n}");
     },
     select: ({ error }) => {
       if (error) {

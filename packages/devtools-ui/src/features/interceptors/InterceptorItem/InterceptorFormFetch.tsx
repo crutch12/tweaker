@@ -181,7 +181,9 @@ export function InterceptorFormFetch({
       setData((v) => ({
         ...v,
         [bodyType]: {
+          ...v?.[bodyType],
           static: code,
+          // expression: v?.[bodyType]?.expression,
         },
       }));
     },

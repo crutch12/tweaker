@@ -31,6 +31,9 @@ export interface InterceptorBase {
   enabled: boolean;
   timestamp: number;
   stack?: string;
+  /**
+   * Any generic data, used by plugins
+   */
   data?: Record<string | number, any>;
 }
 

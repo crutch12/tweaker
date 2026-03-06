@@ -41,6 +41,7 @@ export interface InterceptOptions {
   id?: InterceptorId;
   enabled?: boolean;
   type?: TweakerValueType;
+  data?: Record<string | number, any>;
 }
 
 export interface SubscribeOptions {
@@ -264,6 +265,7 @@ export class Tweaker<
       enabled = true,
       interactive = false,
       type = "default",
+      data,
     }: InterceptOptions = {},
   ): RemoveListener {
     const stack = getStack(2);
@@ -278,6 +280,7 @@ export class Tweaker<
       enabled,
       timestamp: Date.now(),
       stack,
+      data,
     };
 
     this.listeners.set(interceptor.id, interceptor as TweakerAnyInterceptor);

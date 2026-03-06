@@ -121,6 +121,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
             ? undefined
             : String(listener.handler).trim(),
           stack: listener.stack,
+          data: listener.data,
         };
       });
     }
@@ -159,6 +160,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
             interactive: listener.interactive,
             enabled: listener.enabled,
             type: listener.type,
+            data: listener.data,
           },
         );
       }
@@ -184,6 +186,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
             interactive: listener.interactive,
             enabled: listener.enabled,
             type: listener.type,
+            data: listener.data,
           },
         );
       }
@@ -233,6 +236,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
           interactive: listener.interactive,
           owner: listener.owner,
           type: listener.type,
+          data: listener.data,
         });
 
         const newListener = _instance.getListener(id);
