@@ -25,6 +25,7 @@ import { clone } from "./clone";
 function getHandler(
   type: TweakerValueType,
   data: InterceptorPayload<unknown>["data"],
+  emitter: Tweaker["eventEmitter"],
 ): TweakHandler<string, any> {
   switch (type) {
     case "default": {
@@ -39,7 +40,7 @@ function getHandler(
     case "fetch": {
       return (key, response: Response, ctx) => {
         if (ctx.type !== "fetch") return ctx.bypass;
-        return new Proxy(response, {
+        const newResponse = new Proxy(response, {
           get(target, prop: keyof typeof response) {
             const value = target[prop];
 
@@ -57,15 +58,31 @@ function getHandler(
                 return async function (...methodArgs: any) {
                   try {
                     // @ts-expect-error
-                    const result = await value.apply(target, methodArgs);
-                    const mock = data[prop].static;
-                    if (mock) {
-                      if (prop === "json") {
-                        return JSON.parse(mock);
-                      }
-                      return mock;
+                    let result = await value.apply(target, methodArgs);
+
+                    emitter.emit("value.update", ctx.id, {
+                      originalValue: {
+                        ...clone(response),
+                        [prop]: result,
+                      },
+                    });
+
+                    let mock = data[prop].static;
+
+                    if (!mock) return result;
+
+                    if (prop === "json") {
+                      mock = JSON.parse(mock);
                     }
-                    return result;
+
+                    emitter.emit("value.update", ctx.id, {
+                      result: {
+                        ...clone(newResponse),
+                        [prop]: mock,
+                      },
+                    });
+
+                    return mock;
                   } catch (err) {
                     console.error(`Fetch error in .${prop}():`, err);
                     throw err; // Re-throw so the app can handle the error
@@ -79,6 +96,7 @@ function getHandler(
             return value;
           },
         });
+        return newResponse;
       };
     }
   }
@@ -94,6 +112,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
   const promises: Promise<void>[] = [];
 
   let _instance: Tweaker;
+  let _emitter: Tweaker["eventEmitter"];
 
   let tabId: number | undefined;
 
@@ -153,7 +172,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
 
         _instance.intercept(
           listener.patterns,
-          getHandler(listener.type, listener.data),
+          getHandler(listener.type, listener.data, _emitter),
           {
             id: listener.id,
             owner: listener.owner,
@@ -179,7 +198,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
 
         _instance.intercept(
           listener.patterns,
-          getHandler(listener.type, listener.data),
+          getHandler(listener.type, listener.data, _emitter),
           {
             id: listener.id,
             owner: listener.owner,
@@ -207,7 +226,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
           enabled: listener.enabled,
           patterns: listener.patterns,
           ...(found.owner === EXTENSION_OWNER && {
-            handler: getHandler(listener.type, listener.data),
+            handler: getHandler(listener.type, listener.data, _emitter),
           }),
         });
       }
@@ -297,6 +316,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
       _instance.subscribe(
         "**",
         async ({
+          id,
           key,
           type,
           tweaked,
@@ -309,7 +329,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
           const timestamp = Date.now();
           await readyPromise.finally();
           sendMessageToExtension("value", {
-            id: generateStringId(),
+            id,
             name: _instance.name,
             key,
             type,
@@ -324,6 +344,15 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
         },
         { mode: "all" },
       );
+
+      _emitter.on("value.update", async (id, options) => {
+        const timestamp = Date.now();
+        await readyPromise.finally();
+        sendMessageToExtension("value:update", {
+          id,
+          ...options,
+        });
+      });
 
       _instance.on("intercept.new", async (listener) => {
         if (listener.owner !== TWEAKER_OWNER) return;
@@ -367,8 +396,9 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
   return {
     name,
     version,
-    setup: (instance) => {
+    setup: (instance, emitter) => {
       _instance = instance;
+      _emitter = emitter;
       registerInstance(instance);
       start();
     },

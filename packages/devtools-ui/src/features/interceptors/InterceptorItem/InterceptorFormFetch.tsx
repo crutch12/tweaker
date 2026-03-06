@@ -87,7 +87,6 @@ function FetchMethodSelect(props: Select.RootProps) {
           <Select.Item value="TRACE">TRACE</Select.Item>
           <Select.Item value="CONNECT">CONNECT</Select.Item>
         </Select.Group>
-        <Select.Separator />
       </SelectContent>
     </Select.Root>
   );

@@ -18,6 +18,24 @@ export function getMessagesStorage(url: string) {
       });
     },
 
+    async updateValueMessage(
+      id: string,
+      message: ExtensionPluginMessages.ValueUpdateMessage,
+    ) {
+      return store.set((messages) => {
+        const foundMessage = messages.find((x) => x.payload.id === id);
+
+        if (!foundMessage) return messages;
+
+        foundMessage.payload = {
+          ...foundMessage.payload,
+          ...message.payload,
+        };
+
+        return messages;
+      });
+    },
+
     async clearMessages() {
       return store.set(() => []);
     },

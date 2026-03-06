@@ -9,6 +9,7 @@ interface MessagesState {
   set: (messages: ExtensionMessage[]) => void;
   add: (messages: ExtensionMessage[]) => void;
   remove: (messages: Pick<ExtensionMessage, "id">[]) => void;
+  update: (message: Partial<ExtensionMessage> & { id: string }) => void;
 }
 
 export const useMessagesStore = create<MessagesState>()(
@@ -27,6 +28,19 @@ export const useMessagesStore = create<MessagesState>()(
         messages: state.messages.filter(
           (interceptor) => !messages.map((x) => x.id).includes(interceptor.id),
         ),
+      }));
+    },
+    update: (message) => {
+      set((state) => ({
+        messages: state.messages.map((x) => {
+          if (x.id === message.id) {
+            return {
+              ...x,
+              ...message,
+            };
+          }
+          return x;
+        }),
       }));
     },
   })),

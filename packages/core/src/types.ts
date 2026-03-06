@@ -34,7 +34,7 @@ export interface InterceptorBase {
   /**
    * Any generic data, used by plugins
    */
-  data?: Record<string | number, any>;
+  data?: Record<string, any>;
 }
 
 export interface TweakerInterceptor<K, V> extends InterceptorBase {
@@ -44,8 +44,12 @@ export interface TweakerInterceptor<K, V> extends InterceptorBase {
 // type SyncOnly<T> = T extends Promise<any> ? "Error: Async functions are not allowed" : T;
 
 export interface TweakHandlerContext {
+  /**
+   * tweaker.value() id
+   */
+  id: string;
   type: string;
-  params: Record<string | number | symbol, any>;
+  params: Record<string | symbol, any>;
   bypass: symbol;
 }
 

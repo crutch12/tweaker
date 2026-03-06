@@ -53,6 +53,11 @@ export namespace ExtensionPluginMessages {
     }
   >;
 
+  export type ValueUpdateMessage = PluginAnyMessage<
+    "value:update",
+    Partial<ValueMessage["payload"]> & { id: string }
+  >;
+
   export type InterceptorsMessage = PluginAnyMessage<
     "interceptors",
     InterceptorPayload<unknown>[]
@@ -92,6 +97,7 @@ export namespace ExtensionPluginMessages {
     | PongMessage
     | InitMessage
     | ValueMessage
+    | ValueUpdateMessage
     | InterceptorsMessage
     | NewInterceptMessage
     | RemoveInterceptMessage

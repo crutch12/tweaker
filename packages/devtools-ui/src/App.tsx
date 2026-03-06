@@ -97,6 +97,7 @@ export function App() {
     useMessagesStore((state) => state.messages),
   );
   const addMessasges = useMessagesStore((state) => state.add);
+  const updateMessage = useMessagesStore((state) => state.update);
   const setMessages = useMessagesStore((state) => state.set);
 
   const setInterceptedCounts = useInterceptedCountsStore((state) => state.set);
@@ -192,6 +193,10 @@ export function App() {
       switch (message.type) {
         case "value": {
           addMessasges([message.payload]);
+          break;
+        }
+        case "value:update": {
+          updateMessage(message.payload);
           break;
         }
         case "new-intercept": {

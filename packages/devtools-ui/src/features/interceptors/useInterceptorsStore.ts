@@ -8,7 +8,6 @@ interface InterceptorsState {
   add: (interceptors: ExtensionInterceptor[]) => void;
   remove: (interceptors: Pick<ExtensionInterceptor, "id">[]) => void;
   update: (interceptor: ExtensionInterceptor) => void;
-  interceptedCounts: Map<InterceptorId, number>;
 }
 
 export const useInterceptorsStore = create<InterceptorsState>((set, get) => ({
@@ -39,5 +38,4 @@ export const useInterceptorsStore = create<InterceptorsState>((set, get) => ({
       }),
     }));
   },
-  interceptedCounts: new Map(),
 }));

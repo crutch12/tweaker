@@ -125,13 +125,18 @@ chrome.runtime.onMessage.addListener((message: unknown, sender): boolean => {
       });
       break;
     }
+    case "value:update":
     case "value": {
       sendMessageToDevTools(tabId, message);
 
       getTabUrl(tabId).then(async (url) => {
         if (!url) return;
         const storage = getMessagesStorage(url);
-        storage.saveValueMessage(message);
+        if (message.type === "value") {
+          storage.saveValueMessage(message);
+        } else {
+          storage.updateValueMessage(message.payload.id, message);
+        }
 
         const tweakedCounterStorage = getTweakedCounterStorage(url);
 
