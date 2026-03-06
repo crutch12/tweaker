@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@tweaker/core": "workspace:*",
-    "@tweaker/fetch-plugin": "workspace:*"
+    "@tweaker/fetch-plugin": "workspace:*",
+    "json5": "^2.2.3"
   }
 }

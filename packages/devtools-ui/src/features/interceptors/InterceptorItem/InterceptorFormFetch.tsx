@@ -32,6 +32,7 @@ import { css } from "@emotion/css";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { isJsSyntaxValid } from "../../../utils/isJsSyntaxValid";
 import { SelectContent } from "../../../components/base/SelectContent";
+import JSON5 from "json5";
 
 const ExpressionCodeBlock = lazy(() =>
   import("../ExpressionCodeBlock").then((r) => ({
@@ -203,12 +204,12 @@ export function InterceptorFormFetch({
   }, [method, interceptor.patterns]);
 
   const { data: expressionError } = useQuery({
-    queryKey: ["validateFetchExpression", data?.[bodyType], bodyType],
+    queryKey: ["validateFetchExpression", data?.[bodyType]?.static, bodyType],
     queryFn: () => {
       if (!data?.[bodyType]?.static) return { valid: true, error: undefined };
       const value = data?.[bodyType].static;
       try {
-        JSON.parse(value);
+        JSON5.parse(value);
         return { valid: true, error: undefined };
       } catch (error) {
         return { valid: false, error: error as Error };
@@ -355,7 +356,7 @@ export function InterceptorFormFetch({
           }
         >
           <ExpressionCodeBlock
-            language="json"
+            language="js"
             key={updatesCount}
             code={initialData?.[bodyType]?.static ?? ""}
             onUpdate={onCodeUpdate}

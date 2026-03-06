@@ -22,6 +22,7 @@ import {
 import { isForPluginMessage } from "./messages";
 import { clone } from "@tweaker/core/utils";
 import { handleResponse } from "@tweaker/fetch-plugin";
+import JSON5 from "json5";
 
 function getHandler(
   type: TweakerValueType,
@@ -47,7 +48,7 @@ function getHandler(
           if (!mock) return value;
 
           if (bodyType === "json") {
-            mock = JSON.parse(mock);
+            mock = JSON5.parse(mock);
           }
 
           emitter.emit("value.update", ctx.id, {
