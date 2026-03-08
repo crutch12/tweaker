@@ -48,9 +48,7 @@ const METHODS = [
   "DELETE",
   "HEAD",
   "OPTIONS",
-  "TRACE",
-  "CONNECT",
-];
+] as const;
 
 function patternsToState(patterns: string) {
   const patternsArray = parsePatterns(patterns)
@@ -85,8 +83,6 @@ function FetchMethodSelect(props: Select.RootProps) {
         <Select.Group>
           <Select.Item value="HEAD">HEAD</Select.Item>
           <Select.Item value="OPTIONS">OPTIONS</Select.Item>
-          <Select.Item value="TRACE">TRACE</Select.Item>
-          <Select.Item value="CONNECT">CONNECT</Select.Item>
         </Select.Group>
       </SelectContent>
     </Select.Root>
@@ -256,6 +252,15 @@ export function InterceptorFormFetch({
                         Write any valid url glob (e.g.{" "}
                         <Code variant="solid" color="yellow">
                           /**
+                        </Code>
+                        )
+                      </Text>
+                    </li>
+                    <li>
+                      <Text size="2">
+                        Don't add any protocol (e.g.{" "}
+                        <Code variant="solid" color="yellow">
+                          https://
                         </Code>
                         )
                       </Text>
