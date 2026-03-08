@@ -254,18 +254,15 @@ importers:
       '@tweaker/core':
         specifier: workspace:*
         version: link:../core
-      '@tweaker/fetch-plugin':
-        specifier: workspace:*
-        version: link:../fetch-plugin
-      json5:
-        specifier: ^2.2.3
-        version: 2.2.3
 
   packages/fetch-plugin:
     dependencies:
       '@tweaker/core':
         specifier: workspace:*
         version: link:../core
+      json5:
+        specifier: ^2.2.3
+        version: 2.2.3
 
   packages/styles:
     dependencies:

@@ -21,48 +21,18 @@ import {
 } from "./sendMessageToExtension";
 import { isForPluginMessage } from "./messages";
 import { clone } from "@tweaker/core/utils";
-import { handleResponse } from "@tweaker/fetch-plugin";
-import JSON5 from "json5";
+// import { handleResponse } from "@tweaker/fetch-plugin";
 
 function getHandler(
-  type: TweakerValueType,
   data: InterceptorPayload<unknown>["data"],
-  emitter: Tweaker["eventEmitter"],
 ): TweakHandler<string, any> {
-  switch (type) {
-    case "default": {
-      return (key, value, ctx) => {
-        return new Function("key", "value", "ctx", data?.expression ?? "")(
-          key,
-          value,
-          ctx,
-        );
-      };
-    }
-    case "fetch": {
-      return (key, response: Response, ctx) => {
-        if (ctx.type !== "fetch") return ctx.bypass;
-
-        return handleResponse(response, async (bodyType, value) => {
-          let mock = data?.[bodyType]?.static;
-          if (!mock) return value;
-
-          if (bodyType === "json") {
-            mock = JSON5.parse(mock);
-          }
-
-          emitter.emit("value.update", ctx.id, {
-            result: {
-              ...clone(response),
-              [bodyType]: mock,
-            },
-          });
-
-          return mock;
-        });
-      };
-    }
-  }
+  return (key, value, ctx) => {
+    return new Function("key", "value", "ctx", data?.expression ?? "")(
+      key,
+      value,
+      ctx,
+    );
+  };
 }
 
 interface ExtensionPlugin extends TweakerPlugin {
@@ -76,6 +46,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
 
   let _instance: Tweaker;
   let _emitter: Tweaker["eventEmitter"];
+  let _pluginHooks: Tweaker["pluginHooks"];
 
   let tabId: number | undefined;
 
@@ -99,9 +70,10 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
           owner: listener.owner,
           enabled: listener.enabled,
           timestamp: listener.timestamp,
-          sourceCode: listener.data
-            ? undefined
-            : String(listener.handler).trim(),
+          sourceCode:
+            listener.owner === TWEAKER_OWNER
+              ? String(listener.handler).trim()
+              : undefined,
           stack: listener.stack,
           data: listener.data,
         };
@@ -133,18 +105,34 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
           _instance.removeListener(listener.id);
         }
 
-        _instance.intercept(
-          listener.patterns,
-          getHandler(listener.type, listener.data, _emitter),
-          {
-            id: listener.id,
-            owner: listener.owner,
-            interactive: listener.interactive,
-            enabled: listener.enabled,
-            type: listener.type,
-            data: listener.data,
-          },
-        );
+        _pluginHooks.addInterceptor({
+          id: listener.id,
+          enabled: listener.enabled,
+          interactive: listener.interactive,
+          owner: listener.owner,
+          patterns: listener.patterns,
+          timestamp: listener.timestamp,
+          type: listener.type,
+          staticId: listener.staticId,
+          data: listener.data,
+          stack: listener.stack,
+          handler: () => {},
+          // handler: listener.ha
+          // handler
+        });
+
+        // _instance.intercept(
+        //   listener.patterns,
+        //   getHandler(listener.type, listener.data, _emitter),
+        //   {
+        //     id: listener.id,
+        //     owner: listener.owner,
+        //     interactive: listener.interactive,
+        //     enabled: listener.enabled,
+        //     type: listener.type,
+        //     data: listener.data,
+        //   },
+        // );
       }
     }
 
@@ -159,18 +147,32 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
           continue;
         }
 
-        _instance.intercept(
-          listener.patterns,
-          getHandler(listener.type, listener.data, _emitter),
-          {
-            id: listener.id,
-            owner: listener.owner,
-            interactive: listener.interactive,
-            enabled: listener.enabled,
-            type: listener.type,
-            data: listener.data,
-          },
-        );
+        _pluginHooks.addInterceptor({
+          id: listener.id,
+          enabled: listener.enabled,
+          interactive: listener.interactive,
+          owner: listener.owner,
+          patterns: listener.patterns,
+          timestamp: listener.timestamp,
+          type: listener.type,
+          staticId: listener.staticId,
+          data: listener.data,
+          stack: listener.stack,
+          handler: () => {},
+        });
+
+        // _instance.intercept(
+        //   listener.patterns,
+        //   getHandler(listener.type, listener.data, _emitter),
+        //   {
+        //     id: listener.id,
+        //     owner: listener.owner,
+        //     interactive: listener.interactive,
+        //     enabled: listener.enabled,
+        //     type: listener.type,
+        //     data: listener.data,
+        //   },
+        // );
       }
     }
 
@@ -183,15 +185,29 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
           continue;
         }
 
-        _instance.updateListener(listener.id, {
-          owner: listener.owner,
-          interactive: listener.interactive,
+        _pluginHooks.updateInterceptor({
+          id: listener.id,
           enabled: listener.enabled,
+          interactive: listener.interactive,
+          owner: listener.owner,
           patterns: listener.patterns,
-          ...(found.owner === EXTENSION_OWNER && {
-            handler: getHandler(listener.type, listener.data, _emitter),
-          }),
+          timestamp: listener.timestamp,
+          type: listener.type,
+          staticId: listener.staticId,
+          data: listener.data,
+          stack: listener.stack,
+          handler: () => {},
         });
+
+        // _instance.updateListener(listener.id, {
+        //   owner: listener.owner,
+        //   interactive: listener.interactive,
+        //   enabled: listener.enabled,
+        //   patterns: listener.patterns,
+        //   ...(found.owner === EXTENSION_OWNER && {
+        //     handler: getHandler(listener.type, listener.data, _emitter),
+        //   }),
+        // });
       }
     }
 
@@ -360,9 +376,10 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
   return {
     name,
     version,
-    setup: (instance, emitter) => {
+    setup: (instance, emitter, pluginHooks) => {
       _instance = instance;
       _emitter = emitter;
+      _pluginHooks = pluginHooks;
       registerInstance(instance);
       start();
     },
@@ -371,6 +388,38 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
     },
     getTabId: () => {
       return Promise.all(promises).then(() => tabId);
+    },
+    handleAddInterceptor: (listener) => {
+      if (listener.type !== "default") return false;
+      _instance.intercept(listener.patterns, getHandler(listener.data), {
+        id: listener.id,
+        owner: listener.owner,
+        interactive: listener.interactive,
+        enabled: listener.enabled,
+        type: listener.type,
+        data: listener.data,
+      });
+
+      return true;
+    },
+    handleUpdateInterceptor: (listener) => {
+      if (listener.type !== "default") return false;
+      const found = _instance.getListener(listener.id);
+      if (!found) {
+        return false;
+      }
+
+      _instance.updateListener(listener.id, {
+        // owner: listener.owner,
+        interactive: listener.interactive,
+        enabled: listener.enabled,
+        patterns: listener.patterns,
+        // handler: getHandler(listener.data),
+        ...(found.owner === EXTENSION_OWNER && {
+          handler: getHandler(listener.data),
+        }),
+      });
+      return true;
     },
   };
 }

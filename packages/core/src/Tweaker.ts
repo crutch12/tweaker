@@ -148,10 +148,10 @@ export class Tweaker<
   protected readonly eventEmitter = new EventEmitter<{
     value: (options: ValueEventOptions) => void;
     "value.update": (id: string, options: Partial<ValueEventOptions>) => void;
-    "intercept.new": (listener: TweakerInterceptor<TweakerKey, any>) => void;
-    "intercept.update": (listener: TweakerInterceptor<TweakerKey, any>) => void;
-    "intercept.remove": (listener: TweakerInterceptor<TweakerKey, any>) => void;
-    interceptors: (listener: TweakerInterceptor<TweakerKey, any>[]) => void;
+    "intercept.new": (listener: TweakerAnyInterceptor) => void;
+    "intercept.update": (listener: TweakerAnyInterceptor) => void;
+    "intercept.remove": (listener: TweakerAnyInterceptor) => void;
+    interceptors: (listener: TweakerAnyInterceptor[]) => void;
   }>();
 
   constructor({
@@ -191,7 +191,7 @@ export class Tweaker<
 
   private setup() {
     Object.values(this.plugins).forEach((plugin) => {
-      plugin.setup(this as Tweaker, this.eventEmitter);
+      plugin.setup(this as Tweaker, this.eventEmitter, this.pluginHooks);
     });
     const promises = Object.values(this.plugins).map((plugin) =>
       plugin.ready(),
@@ -544,46 +544,65 @@ export class Tweaker<
   ): T["plugins"][Key] {
     return this.plugins[name as string] as T["plugins"][Key];
   }
+
+  protected pluginHooks = {
+    addInterceptor: (interceptor: TweakerAnyInterceptor) => {
+      for (const plugin of Object.values(this.plugins)) {
+        const handled = plugin.handleAddInterceptor?.(interceptor) ?? false;
+        if (handled) {
+          break;
+        }
+      }
+    },
+    updateInterceptor: (interceptor: TweakerAnyInterceptor) => {
+      for (const plugin of Object.values(this.plugins)) {
+        const handled = plugin.handleUpdateInterceptor?.(interceptor) ?? false;
+        if (handled) {
+          break;
+        }
+      }
+    },
+  };
 }
 
-const tw = new Tweaker<{
-  patterns: {
-    "users.replace": string;
-    "meta.*": number;
-    "meta.users.*": boolean;
-  };
-}>({ name: "123" });
+// const tw = new Tweaker<{
+//   patterns: {
+//     "users.replace": string;
+//     "meta.*": number;
+//     "meta.users.*": boolean;
+//   };
+// }>({ name: "123" });
 
-tw.value("users.replace", "scs");
-tw.value("meta.123", Math.random());
-tw.value("meta.users.123", true);
+// tw.value("users.replace", "scs");
+// tw.value("meta.123", Math.random());
+// tw.value("meta.users.123", true);
 
-tw.intercept("users.replace", (key, value) => {
-  return "123";
-});
+// tw.intercept("users.replace", (key, value) => {
+//   return "123";
+// });
 
-tw.intercept("meta.*", (key, value) => {
-  return Math.random();
-});
+// tw.intercept("meta.*", (key, value) => {
+//   return Math.random();
+// });
 
-tw.intercept([`meta.*`, "meta.use1rs.456"], (key, value) => {
-  return Math.random();
-});
+// tw.intercept([`meta.*`, "meta.use1rs.456"], (key, value) => {
+//   return Math.random();
+// });
 
-const tw2 = new Tweaker({ name: "123" });
+// const tw2 = new Tweaker({ name: "123" });
 
-const num = tw2.value("users.replace", Math.random(), {
-  samples: [
-    {
-      id: "",
-      value: () => 1,
-    },
-  ],
-});
+// const num = tw2.value("users.replace", Math.random(), {
+//   samples: [
+//     {
+//       id: "",
+//       value: () => 1,
+//     },
+//   ],
+// });
 
-tw2.intercept("users.replace", (key, value) => {
-  return Math.random();
-});
-tw2.intercept("users.repla1ce", () => {
-  return Math.random();
-});
+// tw2.intercept("users.replace", (key, value) => {
+//   return Math.random();
+// });
+// tw2.intercept("users.repla1ce", () => {
+//   return Math.random();
+// });

@@ -17,6 +17,7 @@
     }
   },
   "dependencies": {
-    "@tweaker/core": "workspace:*"
+    "@tweaker/core": "workspace:*",
+    "json5": "^2.2.3"
   }
 }
