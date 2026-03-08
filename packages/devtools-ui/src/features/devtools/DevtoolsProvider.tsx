@@ -6,7 +6,7 @@ export interface DevtoolsContextProps {
   viewSourceCode: (file: string, line: number, column: number) => void;
   reloadApp: () => void;
   url?: string;
-  canReinstallExtension?: boolean;
+  reinstallExtension?: () => void;
 }
 
 const DevtoolsContext = createContext<DevtoolsContextProps>({
@@ -15,7 +15,7 @@ const DevtoolsContext = createContext<DevtoolsContextProps>({
   viewSourceCode: () => {},
   reloadApp: () => {},
   url: undefined,
-  canReinstallExtension: false,
+  reinstallExtension: undefined,
 });
 
 export function DevtoolsContextProvider({
@@ -25,7 +25,7 @@ export function DevtoolsContextProvider({
   viewSourceCode,
   reloadApp,
   url,
-  canReinstallExtension,
+  reinstallExtension,
 }: DevtoolsContextProps & { children: ReactNode }) {
   const value = useMemo(
     () => ({
@@ -34,7 +34,7 @@ export function DevtoolsContextProvider({
       viewSourceCode,
       reloadApp,
       url,
-      canReinstallExtension,
+      reinstallExtension,
     }),
     [
       tabId,
@@ -42,7 +42,7 @@ export function DevtoolsContextProvider({
       viewSourceCode,
       reloadApp,
       url,
-      canReinstallExtension,
+      reinstallExtension,
     ],
   );
 

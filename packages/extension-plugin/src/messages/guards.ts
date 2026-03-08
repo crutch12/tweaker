@@ -1,7 +1,12 @@
 import { ExtensionBackgroundMessages } from "./types/ExtensionBackgroundMessages";
 import { ExtensionDevtoolsMessages } from "./types/ExtensionDevtoolsMessages";
 import { ExtensionPluginMessages } from "./types/ExtensionPluginMessages";
-import { EXTENSION_DEVTOOLS_SOURCE, EXTENSION_PLUGIN_SOURCE } from "../const";
+import {
+  EXTENSION_APP_SOURCE,
+  EXTENSION_DEVTOOLS_SOURCE,
+  EXTENSION_PLUGIN_SOURCE,
+} from "../const";
+import { ExtensionAppMessages } from "./types/ExtensionAppMessages";
 
 export function isPluginMessage(
   message: unknown,
@@ -45,6 +50,15 @@ export function isForPluginMessage(
     "target" in message &&
     message.target === EXTENSION_PLUGIN_SOURCE
   )
+    return true;
+  return false;
+}
+
+export function isExtensionAppMessage(
+  message: unknown,
+): message is ExtensionAppMessages.Message {
+  if (!message || typeof message !== "object") return false;
+  if ("source" in message && message.source === EXTENSION_APP_SOURCE)
     return true;
   return false;
 }

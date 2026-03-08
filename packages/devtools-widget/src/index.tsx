@@ -4,7 +4,7 @@ import { TweakerDevTools, TweakerDevToolsProps } from "@tweaker/devtools-ui";
 
 export interface RenderWidgetOptions {
   tabId?: number;
-  canReinstallExtension?: boolean;
+  reinstallExtension?: TweakerDevToolsProps["reinstallExtension"];
   canViewSourceCode?: TweakerDevToolsProps["canViewSourceCode"];
   viewSourceCode?: TweakerDevToolsProps["viewSourceCode"];
   url?: TweakerDevToolsProps["url"];
@@ -17,7 +17,7 @@ export function renderWidget(
     canViewSourceCode,
     viewSourceCode,
     url,
-    canReinstallExtension,
+    reinstallExtension,
   }: RenderWidgetOptions = {},
 ) {
   if (!container) throw new Error("container is required");
@@ -33,7 +33,7 @@ export function renderWidget(
           viewSourceCode={viewSourceCode}
           reloadApp={reloadApp}
           url={url}
-          canReinstallExtension={canReinstallExtension}
+          reinstallExtension={reinstallExtension}
         />
       </StrictMode>,
     );

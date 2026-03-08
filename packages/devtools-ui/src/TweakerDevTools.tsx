@@ -23,7 +23,7 @@ const reloadWindow = () => {
 export interface TweakerDevToolsProps {
   container?: HTMLElement;
   tabId?: number;
-  canReinstallExtension?: boolean;
+  reinstallExtension?: DevtoolsContextProps["reinstallExtension"];
   canViewSourceCode?: DevtoolsContextProps["canViewSourceCode"];
   viewSourceCode?: DevtoolsContextProps["viewSourceCode"];
   reloadApp?: DevtoolsContextProps["reloadApp"];
@@ -37,7 +37,7 @@ export function TweakerDevTools({
   canViewSourceCode,
   reloadApp,
   url,
-  canReinstallExtension,
+  reinstallExtension,
 }: TweakerDevToolsProps) {
   const documentNode = useMemo(() => {
     return container?.getRootNode() as Document;
@@ -51,7 +51,7 @@ export function TweakerDevTools({
           canViewSourceCode={canViewSourceCode ?? false}
           reloadApp={reloadApp ?? reloadWindow}
           url={url}
-          canReinstallExtension={canReinstallExtension}
+          reinstallExtension={reinstallExtension}
         >
           <ContainerQueryRootProvider documentNode={documentNode}>
             <ThemeProvider>

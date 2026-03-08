@@ -141,15 +141,7 @@ export function App() {
     setFilterPatterns(pattenrs ? serializePatterns(pattenrs) : undefined);
   }, []);
 
-  const { tabId, reloadApp, url, canReinstallExtension } = useDevtools();
-
-  const reinstallExtension = () => {
-    sendMessageToPlugin(
-      "extension:reinstall",
-      { timestamp: Date.now() },
-      tabId,
-    );
-  };
+  const { tabId, reloadApp, url, reinstallExtension } = useDevtools();
 
   const host = useMemo(() => {
     if (url) return new URL(url).host;
@@ -503,7 +495,7 @@ export function App() {
           )}
         </Flex>
         <Flex gap="4" align="center" wrap="wrap">
-          {canReinstallExtension && (
+          {reinstallExtension && (
             <IconButton
               color="red"
               size="2"

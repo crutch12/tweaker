@@ -8,6 +8,8 @@ import {
   ExtensionBackgroundMessages,
   isPluginMessage,
   isDevtoolsMessage,
+  EXTENSION_APP_SOURCE,
+  isExtensionAppMessage,
 } from "@tweaker/extension-plugin";
 import { version } from "../../package.json";
 
@@ -211,12 +213,22 @@ chrome.runtime.onMessage.addListener((message: unknown, sender): boolean => {
         });
       });
       break;
+    default:
+      sendMessageToPlugin(message.tabId, _message);
+  }
+
+  return false;
+});
+
+// extension (only) -> background
+chrome.runtime.onMessage.addListener((message: unknown, sender): boolean => {
+  if (!isExtensionAppMessage(message)) return false;
+
+  switch (message.type) {
     case "extension:reinstall": {
       reinstallExtension(message.tabId);
       break;
     }
-    default:
-      sendMessageToPlugin(message.tabId, _message);
   }
 
   return false;
@@ -227,6 +239,8 @@ async function reinstallExtension(tabId: number) {
   const newTab = await chrome.tabs.create({ url: tab.url, index: tab.index });
   await chrome.tabs.remove(tabId);
   await chrome.tabs.update(newTab.id!, { active: true });
+  await chrome.storage.local.clear();
+  await chrome.storage.session.clear();
   chrome.runtime.reload();
 }
 

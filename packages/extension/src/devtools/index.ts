@@ -2,6 +2,7 @@ import "../extension-polyfill";
 import debounce from "../utils/debounce";
 import { getBrowserType } from "@tweaker/core/utils";
 import { normalizeUrlIfValid } from "../utils/normalizeUrlIfValid";
+import { isExtensionAppMessage } from "@tweaker/extension-plugin";
 
 const evalScripts = {
   checkIfTweakerPresentInInspectedWindow: () =>
@@ -145,6 +146,21 @@ chrome.devtools.network.onNavigated.addListener(onNavigatedToOtherPage);
 mountTweakerDevToolsWhenTweakerHasLoaded();
 
 loadTabUrl();
+
+// extension (only) -> devtools script
+chrome.runtime.onMessage.addListener((message: unknown, sender): boolean => {
+  if (!isExtensionAppMessage(message)) return false;
+
+  switch (message.type) {
+    case "extension:reinstall": {
+      localStorage.clear();
+      sessionStorage.clear();
+      break;
+    }
+  }
+
+  return false;
+});
 
 // const currentTabId = chrome.devtools.inspectedWindow.tabId;
 

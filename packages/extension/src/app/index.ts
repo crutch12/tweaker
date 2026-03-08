@@ -4,6 +4,10 @@ import { renderWidget } from "@tweaker/devtools-widget";
 import "@tweaker/styles/radix-ui.css";
 import "@tweaker/devtools-ui/styles.css";
 import { subscribeDevtoolsSearch } from "./devtoolsSearch";
+import {
+  EXTENSION_APP_SOURCE,
+  ExtensionAppMessages,
+} from "@tweaker/extension-plugin";
 
 const urlParams = new URLSearchParams(window.location.search);
 
@@ -26,7 +30,14 @@ setTimeout(() => {
       canViewSourceCode: window.__TWEAKER_DEVTOOLS__?.canViewSourceCode,
       viewSourceCode: window.__TWEAKER_DEVTOOLS__?.viewSourceCode,
       url: window.__TWEAKER_DEVTOOLS__?.url,
-      canReinstallExtension: true,
+      reinstallExtension: () => {
+        const message: ExtensionAppMessages.ReinstallMessage = {
+          type: "extension:reinstall",
+          source: EXTENSION_APP_SOURCE,
+          tabId,
+        };
+        chrome.runtime.sendMessage(message);
+      },
     });
   }
 }, 100);
