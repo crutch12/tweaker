@@ -5,6 +5,8 @@ import styled from "@emotion/styled";
 import { ExtensionPluginMessages } from "@tweaker/extension-plugin";
 import { HoverCardContent } from "../../components/base/HoverCardContent";
 import type { InterceptorId } from "@tweaker/core";
+import { MessageRowProps } from "./MessageRow";
+import { getColorName } from "../../utils/colors";
 
 const DataListLabel = styled(DataList.Label)`
   &::before {
@@ -21,19 +23,29 @@ const DataListValue = styled(DataList.Value)`
 function MessageTweakedInfo({
   id,
   interceptorId,
-}: {
-  id?: string;
-  interceptorId?: InterceptorId;
-}) {
+  type,
+}: Partial<Pick<MessageRowProps["message"], "id" | "interceptorId" | "type">>) {
   return (
-    <DataList.Root>
+    <DataList.Root size="1">
       {id && (
         <DataList.Item align="center">
           <DataListLabel>Message ID</DataListLabel>
           <DataListValue>
-            <Badge>
+            <Badge size="1">
               <Text size="1" weight="bold">
                 {id}
+              </Text>
+            </Badge>
+          </DataListValue>
+        </DataList.Item>
+      )}
+      {type && (
+        <DataList.Item align="center">
+          <DataListLabel>Type</DataListLabel>
+          <DataListValue>
+            <Badge color={getColorName(type)} size="1">
+              <Text size="1" weight="bold">
+                {type}
               </Text>
             </Badge>
           </DataListValue>
@@ -43,7 +55,7 @@ function MessageTweakedInfo({
         <DataList.Item align="center">
           <DataListLabel>Interceptor ID</DataListLabel>
           <DataListValue>
-            <Badge color="cyan">
+            <Badge color="cyan" size="1">
               <Text size="1" weight="bold">
                 {interceptorId}
               </Text>
@@ -55,7 +67,7 @@ function MessageTweakedInfo({
   );
 }
 
-export function MessageTweakedInfoPopover({
+export function MessageInfoPopover({
   message,
 }: {
   message: ExtensionPluginMessages.ValueMessage["payload"];
@@ -64,14 +76,11 @@ export function MessageTweakedInfoPopover({
     <HoverCard.Root>
       <HoverCard.Trigger>
         <ButtonIcon cursor="default">
-          <MoreInfoIcon size="medium" />
+          <MoreInfoIcon size="small" />
         </ButtonIcon>
       </HoverCard.Trigger>
       <HoverCardContent maxWidth="300px">
-        <MessageTweakedInfo
-          interceptorId={message.interceptorId}
-          id={message.id}
-        />
+        <MessageTweakedInfo {...message} />
       </HoverCardContent>
     </HoverCard.Root>
   );

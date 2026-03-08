@@ -11,7 +11,7 @@ import { SourceCodePopover } from "../../components/SourceCodePopover";
 import { ButtonIcon } from "../../components/ButtonIcon";
 import { SelectIcon, ExportIcon } from "@devtools-ds/icon";
 import { Flex, Text, Box } from "@radix-ui/themes";
-import { MessageTweakedInfoPopover } from "./MessageTweakedInfoPopover";
+import { MessageInfoPopover } from "./MessageInfoPopover";
 import type { InterceptorId } from "@tweaker/core";
 import cn from "classnames";
 
@@ -107,20 +107,20 @@ export function MessageRow({
             data={originalValueData}
           />
         </Table.Cell>
-        {message.tweaked ? (
-          <Table.Cell>
-            <Flex align="center" gap="1" justify="between">
-              {message.error && (
-                <Text
-                  color="gray"
-                  size="1"
-                  className={css`
-                    cursor: default;
-                  `}
-                >
-                  error
-                </Text>
-              )}
+        <Table.Cell>
+          <Flex align="center" gap="1" justify="between">
+            {message.error && (
+              <Text
+                color="gray"
+                size="1"
+                className={css`
+                  cursor: default;
+                `}
+              >
+                error
+              </Text>
+            )}
+            {message.tweaked ? (
               <Box title={stringifiedResult} overflow="hidden" flexGrow="1">
                 <ObjectInspector
                   className={styles.ObjectInspector}
@@ -131,29 +131,25 @@ export function MessageRow({
                   data-tweaker-devtools
                 />
               </Box>
-              {message.interceptorId && (
-                <MessageTweakedInfoPopover message={message} />
-              )}
-            </Flex>
-          </Table.Cell>
-        ) : (
-          <Table.Cell>
-            <Text
-              size="1"
-              color="gray"
-              className={cn(css`
-                cursor: default;
-              `)}
-            >
-              empty
-            </Text>
-          </Table.Cell>
-        )}
+            ) : (
+              <Text
+                size="1"
+                color="gray"
+                className={cn(css`
+                  cursor: default;
+                `)}
+              >
+                empty
+              </Text>
+            )}
+            <MessageInfoPopover message={message} />
+          </Flex>
+        </Table.Cell>
         <Table.Cell title={timestampTitle}>
           <Text size="1">{message.timestamp}</Text>
         </Table.Cell>
         <Table.Cell>
-          <Flex gap="2" align="center">
+          <Flex gap="1" align="center">
             <ButtonIcon
               title={`Create interceptor for ${message.key} (${message.name})`}
               onClick={onTweakClick}
