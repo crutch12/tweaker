@@ -1,10 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "sonner";
 import { App } from "./App";
 import { ContainerQueryRootProvider } from "./components/container-query/ContainerQueryRootProvider";
 
 import "./styles/index.css";
-import { useMemo } from "react";
+import { useMemo, lazy, Suspense } from "react";
 import { ColorSchemeProvider } from "./components/theme/ColorSchemeProvider";
 import { ThemeProvider } from "./components/theme/ThemeProvider";
 import {
@@ -19,6 +18,10 @@ const emptyFn = () => {};
 const reloadWindow = () => {
   window.location.reload();
 };
+
+const Toaster = lazy(() =>
+  import("./libs/sonner").then((r) => ({ default: r.Toaster })),
+);
 
 export interface TweakerDevToolsProps {
   container?: HTMLElement;
@@ -56,11 +59,13 @@ export function TweakerDevTools({
           <ContainerQueryRootProvider documentNode={documentNode}>
             <ThemeProvider>
               <App />
-              <Toaster
-                toastOptions={{
-                  unstyled: true,
-                }}
-              />
+              <Suspense>
+                <Toaster
+                  toastOptions={{
+                    unstyled: true,
+                  }}
+                />
+              </Suspense>
             </ThemeProvider>
           </ContainerQueryRootProvider>
         </DevtoolsContextProvider>

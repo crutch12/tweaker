@@ -5,8 +5,8 @@ import {
   Cross1Icon,
   CheckIcon,
 } from "@radix-ui/react-icons";
-import { toast } from "sonner";
 import { ReactNode } from "react";
+import type { toast } from "sonner";
 
 export type ToastType = "success" | "error" | "info" | "warning";
 
@@ -14,9 +14,10 @@ interface ToastProps {
   t: string | number;
   message: ReactNode;
   type: ToastType;
+  dismiss: (typeof toast)["dismiss"];
 }
 
-export function RadixToast({ t, message, type }: ToastProps) {
+export function RadixToast({ t, message, type, dismiss }: ToastProps) {
   const config = {
     success: {
       color: "green",
@@ -65,7 +66,7 @@ export function RadixToast({ t, message, type }: ToastProps) {
         color="gray"
         highContrast
         size="1"
-        onClick={() => toast.dismiss(t)}
+        onClick={() => dismiss(t)}
         style={{
           position: "absolute",
           top: "var(--space-2)",
