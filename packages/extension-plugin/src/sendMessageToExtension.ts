@@ -28,7 +28,7 @@ export function sendMessageToExtension<
 
 export function notifyExtensionInit<T>(
   instance: Tweaker,
-  interceptors: InterceptorPayload<unknown>[],
+  interceptors: InterceptorPayload[],
 ) {
   sendMessageToExtension("init", {
     name: instance.name,
@@ -39,7 +39,7 @@ export function notifyExtensionInit<T>(
 }
 
 export function notifyExtensionInterceptors<T>(
-  listeners: InterceptorPayload<unknown>[],
+  listeners: InterceptorPayload[],
 ) {
   sendMessageToExtension("interceptors", listeners);
 }

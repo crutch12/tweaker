@@ -1,4 +1,10 @@
-const bodyTypes = ["json", "text", "blob", "formData", "arrayBuffer"] as const;
+export const bodyTypes = [
+  "json",
+  "text",
+  "blob",
+  "formData",
+  "arrayBuffer",
+] as const;
 
 type BodyType = (typeof bodyTypes)[number];
 

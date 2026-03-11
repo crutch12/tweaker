@@ -1,1 +1,1 @@
-export const FETCH_PLUGIN_VALUE_TYPE = "fetch";
+export const FETCH_VALUE_TYPE = "fetch";

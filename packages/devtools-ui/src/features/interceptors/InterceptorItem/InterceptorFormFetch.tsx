@@ -26,13 +26,14 @@ import {
 import { Tooltip, TooltipStyles } from "../../../components/base/Tooltip";
 import { ButtonIcon } from "../../../components/ButtonIcon";
 import { InfoIcon } from "@devtools-ds/icon";
-import { EXTENSION_OWNER } from "@tweaker/extension-plugin";
+import { EXTENSION_OWNER, InterceptorPayload } from "@tweaker/extension-plugin";
 import { parsePatterns, serializePatterns } from "../../../utils/pattern";
 import { css } from "@emotion/css";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { isJsSyntaxValid } from "../../../utils/isJsSyntaxValid";
 import { SelectContent } from "../../../components/base/SelectContent";
 import JSON5 from "json5";
+import { bodyTypes, FetchInterceptor } from "@tweaker/fetch-plugin";
 
 const ExpressionCodeBlock = lazy(() =>
   import("../ExpressionCodeBlock").then((r) => ({
@@ -89,7 +90,13 @@ function FetchMethodSelect(props: Select.RootProps) {
   );
 }
 
-function FetchResponseBodySelect(props: Select.RootProps) {
+function FetchResponseBodySelect(
+  props: Omit<Select.RootProps, "value" | "defaultValue" | "onValueChange"> & {
+    value?: (typeof bodyTypes)[number];
+    defaultValue?: (typeof bodyTypes)[number];
+    onValueChange?(value: (typeof bodyTypes)[number]): void;
+  },
+) {
   return (
     <Select.Root defaultValue="json" {...props}>
       <Select.Trigger />
@@ -106,9 +113,11 @@ function FetchResponseBodySelect(props: Select.RootProps) {
   );
 }
 
-export interface InterceptorFormFetchProps extends InterceptorItemProps {
-  data: ExtensionInterceptor["data"];
-  setData: Dispatch<SetStateAction<ExtensionInterceptor["data"]>>;
+export interface InterceptorFormFetchProps extends InterceptorItemProps<
+  InterceptorPayload<FetchInterceptor>
+> {
+  data: FetchInterceptor["data"];
+  setData: Dispatch<SetStateAction<FetchInterceptor["data"]>>;
   patterns: string;
   setPatterns: Dispatch<SetStateAction<string>>;
   hasChanges: boolean;
@@ -127,7 +136,7 @@ export function InterceptorFormFetch({
   const [initialData, setInitialData] = useState(() => interceptor.data);
 
   const [method, setMethod] = useState(() => patternsToState(patterns).method);
-  const [bodyType, setBodyType] = useState("json");
+  const [bodyType, setBodyType] = useState<(typeof bodyTypes)[number]>("json");
 
   const actualizeCodeExpression = useEffectEvent((force: boolean) => {
     if (
@@ -159,8 +168,8 @@ export function InterceptorFormFetch({
   }, [patterns]);
 
   const onHightLight = useEffectEvent(
-    (interceptor: ExtensionInterceptor | undefined) => {
-      onHightLightInterceptor?.(interceptor);
+    (_interceptor: typeof interceptor | undefined) => {
+      onHightLightInterceptor?.(_interceptor);
     },
   );
 

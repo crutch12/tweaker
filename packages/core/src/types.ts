@@ -2,8 +2,6 @@ export type TweakerKey = string;
 
 export type InterceptorId = string | number;
 
-export type TweakerValueType = "default" | "fetch";
-
 export interface InterceptorBase {
   /**
    * Unique interceptor id
@@ -13,7 +11,10 @@ export interface InterceptorBase {
    * If staticId is provided, extension-plugin can persist this interceptor
    */
   staticId?: InterceptorId;
-  type: TweakerValueType;
+  /**
+   * @default "default"
+   */
+  type: string;
   /**
    * "Creator" of interceptor (e.g. 'tweaker', 'extension')
    * @default 'tweaker'
@@ -36,6 +37,14 @@ export interface InterceptorBase {
    */
   data?: Record<string, any>;
 }
+
+export type TypedInterceptorBase<
+  T extends string,
+  D extends Record<string, any>,
+> = Omit<InterceptorBase, "type" | "data"> & {
+  type: T;
+  data?: D;
+};
 
 export interface TweakerInterceptor<K, V> extends InterceptorBase {
   handler: TweakHandler<K, V>;

@@ -12,13 +12,15 @@ import {
   keyMatchesPatterns,
 } from "@tweaker/core/utils";
 import JSON5 from "json5";
+import { isFetchInterceptor } from "./FetchInterceptor";
+import { FETCH_VALUE_TYPE } from "./const";
 
 function getHandler(
   data: TweakerAnyInterceptor["data"],
   emitter: Tweaker["eventEmitter"],
 ): TweakHandler<string, Response> {
   return (key, response, ctx) => {
-    if (ctx.type !== "fetch") return ctx.bypass;
+    if (ctx.type !== FETCH_VALUE_TYPE) return ctx.bypass;
 
     return handleResponse(response, async (bodyType, value) => {
       let mock = data?.[bodyType]?.static;
@@ -106,7 +108,7 @@ export function fetchPlugin({
           }),
           {
             id,
-            type: "fetch",
+            type: FETCH_VALUE_TYPE,
           },
         );
 
@@ -131,41 +133,35 @@ export function fetchPlugin({
       return Promise.all(promises).then(() => true);
     },
     handleAddInterceptor: (listener) => {
-      if (listener.type !== "fetch") return false;
-      _instance.intercept(
-        listener.patterns,
-        getHandler(listener.data, _emitter),
-        {
-          id: listener.id,
-          owner: listener.owner,
-          interactive: listener.interactive,
-          enabled: listener.enabled,
-          type: listener.type,
-          data: listener.data,
-        },
-      );
-
-      return true;
+      if (isFetchInterceptor(listener)) {
+        _instance.intercept(
+          listener.patterns,
+          getHandler(listener.data, _emitter),
+          {
+            ...listener,
+          },
+        );
+        return true;
+      }
+      return false;
     },
     handleUpdateInterceptor: (listener) => {
-      if (listener.type !== "fetch") return false;
       const found = _instance.getListener(listener.id);
       if (!found) {
         return false;
       }
 
-      if (listener.type === "fetch") {
+      if (isFetchInterceptor(listener)) {
         _instance.updateListener(listener.id, {
-          // owner: listener.owner,
           interactive: listener.interactive,
           enabled: listener.enabled,
           patterns: listener.patterns,
+          data: listener.data,
           handler: getHandler(listener.data, _emitter),
-          // ...(found.owner === EXTENSION_OWNER && {
-          // }),
         });
         return true;
       }
+
       return false;
     },
   };

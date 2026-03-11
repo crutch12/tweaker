@@ -1,6 +1,6 @@
 import type { EXTENSION_PLUGIN_SOURCE } from "../../const";
 import type { InterceptorPayload } from "../../types";
-import type { InterceptorId, TweakerValueType } from "@tweaker/core";
+import type { InterceptorId } from "@tweaker/core";
 
 interface PluginAnyMessage<T, P> {
   source: typeof EXTENSION_PLUGIN_SOURCE;
@@ -31,7 +31,7 @@ export namespace ExtensionPluginMessages {
     {
       name: string;
       enabled: boolean;
-      interceptors: InterceptorPayload<unknown>[];
+      interceptors: InterceptorPayload[];
       timestamp: number;
     }
   >;
@@ -42,7 +42,7 @@ export namespace ExtensionPluginMessages {
       id: string;
       name: string;
       key: string;
-      type: TweakerValueType;
+      type: string;
       originalValue: unknown;
       result: unknown;
       timestamp: number;
@@ -60,12 +60,12 @@ export namespace ExtensionPluginMessages {
 
   export type InterceptorsMessage = PluginAnyMessage<
     "interceptors",
-    InterceptorPayload<unknown>[]
+    InterceptorPayload[]
   >;
 
   export type NewInterceptMessage = PluginAnyMessage<
     "new-intercept",
-    InterceptorPayload<unknown>
+    InterceptorPayload
   >;
 
   export type RemoveInterceptMessage = PluginAnyMessage<

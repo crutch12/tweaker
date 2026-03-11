@@ -2,7 +2,10 @@ import { Table } from "@devtools-ds/table";
 import { ObjectInspector } from "@devtools-ds/object-inspector";
 import safeStringify from "fast-safe-stringify";
 import { css, keyframes } from "@emotion/css";
-import { ExtensionPluginMessages } from "@tweaker/extension-plugin";
+import {
+  ExtensionPluginMessages,
+  MANUAL_INTERCEPTOR_TYPE,
+} from "@tweaker/extension-plugin";
 import { getTextColor } from "../../utils/colors";
 import { deserializeError, isErrorLike } from "serialize-error";
 import { useEffectEvent, useMemo, useRef } from "react";
@@ -12,12 +15,20 @@ import { ButtonIcon } from "../../components/ButtonIcon";
 import { SelectIcon, ExportIcon } from "@devtools-ds/icon";
 import { Flex, Text, Box } from "@radix-ui/themes";
 import { MessageInfoPopover } from "./MessageInfoPopover";
-import type { InterceptorId } from "@tweaker/core";
+import { DEFAULT_VALUE_TYPE, type InterceptorId } from "@tweaker/core";
 import cn from "classnames";
+import { notify } from "../notifications/notify";
+import {
+  FETCH_INTERCEPTOR_TYPE,
+  FETCH_VALUE_TYPE,
+} from "@tweaker/fetch-plugin";
 
 export interface MessageRowProps {
   message: ExtensionPluginMessages.ValueMessage["payload"];
-  onTweak?: (payload: ExtensionPluginMessages.ValueMessage["payload"]) => void;
+  onTweak?: (
+    payload: ExtensionPluginMessages.ValueMessage["payload"],
+    interceptorType: string,
+  ) => void;
   onGoToInterceptorClick?: (interceptorId: InterceptorId) => void;
 }
 
@@ -37,7 +48,19 @@ export function MessageRow({
   const appColor = useMemo(() => getTextColor(message.name), [message.name]);
 
   const onTweakClick = useEffectEvent(() => {
-    onTweak?.(message);
+    switch (message.type) {
+      case DEFAULT_VALUE_TYPE: {
+        onTweak?.(message, MANUAL_INTERCEPTOR_TYPE);
+        break;
+      }
+      case FETCH_VALUE_TYPE: {
+        onTweak?.(message, FETCH_INTERCEPTOR_TYPE);
+        break;
+      }
+      default:
+        console.error(`Unknown type ${message.type}`, message);
+        notify(`Unknown type ${message.type}`, "error");
+    }
   });
 
   const onGoToClick = useEffectEvent(() => {

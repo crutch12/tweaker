@@ -10,9 +10,10 @@ import {
   ExtensionPluginMessages,
   EXTENSION_OWNER,
   isForDevtoolsMessage,
+  MANUAL_INTERCEPTOR_TYPE,
 } from "@tweaker/extension-plugin";
 import { generateNumberId, groupBy } from "@tweaker/core/utils";
-import type { InterceptorId } from "@tweaker/core";
+import { DEFAULT_VALUE_TYPE, type InterceptorId } from "@tweaker/core";
 import { version, name } from "../package.json";
 import { useInterceptorsStore } from "./features/interceptors/useInterceptorsStore";
 import { css } from "@emotion/css";
@@ -236,13 +237,16 @@ export function App() {
   }, [tabId]);
 
   const createInterceptorByMessage = useCallback(
-    (message: ExtensionPluginMessages.ValueMessage["payload"]) => {
+    (
+      message: ExtensionPluginMessages.ValueMessage["payload"],
+      interceptorType: string,
+    ) => {
       const id = generateNumberId();
-      const data = getDefaultInterceptorData(message.type);
+      const data = getDefaultInterceptorData(interceptorType);
       const interceptor: ExtensionInterceptor = {
         id,
         staticId: id,
-        type: message.type,
+        type: interceptorType,
         name: message.name,
         patterns: [message.key],
         // fromKey: message.key,
@@ -275,7 +279,7 @@ export function App() {
       const interceptor: ExtensionInterceptor = {
         id,
         staticId: id,
-        type: "default",
+        type: MANUAL_INTERCEPTOR_TYPE,
         name: name,
         patterns: [],
         // fromKey: message.key,
@@ -283,7 +287,7 @@ export function App() {
         // sampleId: undefined,
         interactive: false,
         enabled: true,
-        data: getDefaultInterceptorData("default"),
+        data: getDefaultInterceptorData(MANUAL_INTERCEPTOR_TYPE),
         // expression: undefined,
         owner: EXTENSION_OWNER,
         timestamp: Date.now(),
@@ -304,42 +308,26 @@ export function App() {
 
   const onInterceptorDuplicate = useCallback(
     (interceptor: ExtensionInterceptor) => {
-      {
-        if (interceptor.owner === EXTENSION_OWNER) {
-          const id = generateNumberId();
-          const newInterceptor: ExtensionInterceptor = {
-            id,
-            staticId: id,
-            type: interceptor.type,
-            name: interceptor.name,
-            patterns: interceptor.patterns,
-            interactive: interceptor.interactive,
-            enabled: false,
-            data: interceptor.data,
-            owner: EXTENSION_OWNER,
+      if (interceptor.owner === EXTENSION_OWNER) {
+        const id = generateNumberId();
+        const newInterceptor: ExtensionInterceptor = {
+          ...interceptor,
+          id,
+          staticId: id,
+          enabled: false,
+          timestamp: Date.now(),
+        };
+        addInterceptors([newInterceptor]);
+        sendMessageToPlugin(
+          "interceptors:add",
+          {
+            name: newInterceptor.name,
+            data: [newInterceptor],
             timestamp: Date.now(),
-          };
-          addInterceptors([newInterceptor]);
-          sendMessageToPlugin(
-            "interceptors:add",
-            {
-              name: newInterceptor.name,
-              data: [newInterceptor],
-              timestamp: Date.now(),
-            },
-            tabId,
-          );
-        } else {
-          sendMessageToPlugin(
-            "interceptors:duplicate",
-            {
-              name: interceptor.name,
-              data: [interceptor],
-              timestamp: Date.now(),
-            },
-            tabId,
-          );
-        }
+          },
+          tabId,
+        );
+      } else {
         sendMessageToPlugin(
           "interceptors:duplicate",
           {

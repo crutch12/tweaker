@@ -30,7 +30,7 @@ export namespace ExtensionDevtoolsMessages {
     {
       timestamp: number;
       enabled: boolean;
-      interceptors: InterceptorPayload<unknown>[];
+      interceptors: InterceptorPayload[];
     }
   >;
 
@@ -39,7 +39,7 @@ export namespace ExtensionDevtoolsMessages {
     {
       name: string;
       timestamp: number;
-      data: InterceptorPayload<unknown>[];
+      data: InterceptorPayload[];
     }
   >;
 
@@ -48,7 +48,7 @@ export namespace ExtensionDevtoolsMessages {
     {
       name: string;
       timestamp: number;
-      data: InterceptorPayload<unknown>[];
+      data: InterceptorPayload[];
     }
   >;
 
@@ -57,7 +57,7 @@ export namespace ExtensionDevtoolsMessages {
     {
       name: string;
       timestamp: number;
-      data: InterceptorPayload<unknown>[];
+      data: InterceptorPayload[];
     }
   >;
 
@@ -66,7 +66,7 @@ export namespace ExtensionDevtoolsMessages {
     {
       name: string;
       timestamp: number;
-      data: Pick<InterceptorPayload<unknown>, "id">[];
+      data: Pick<InterceptorPayload, "id">[];
     }
   >;
 
@@ -75,7 +75,7 @@ export namespace ExtensionDevtoolsMessages {
     {
       name: string;
       timestamp: number;
-      data: Pick<InterceptorPayload<unknown>, "id" | "data">[];
+      data: Pick<InterceptorPayload, "id" | "data">[];
     }
   >;
 

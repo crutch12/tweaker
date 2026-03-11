@@ -11,7 +11,10 @@ const emptyFn = () => {};
 export interface MessagesTableProps extends HTMLAttributes<HTMLElement> {
   messages: ExtensionPluginMessages.ValueMessage["payload"][];
   ref?: RefObject<any>;
-  onTweak?: (payload: ExtensionPluginMessages.ValueMessage["payload"]) => void;
+  onTweak?: (
+    payload: ExtensionPluginMessages.ValueMessage["payload"],
+    interceptorType: string,
+  ) => void;
   onGoToInterceptorClick?: (interceptorId: InterceptorId) => void;
 }
 

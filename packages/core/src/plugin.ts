@@ -1,5 +1,5 @@
 import { Tweaker } from "./Tweaker";
-import { TweakerInterceptor, TweakerKey } from "./types";
+import { InterceptorBase, TweakerInterceptor, TweakerKey } from "./types";
 
 export interface TweakerPlugin {
   name: string;
@@ -10,10 +10,6 @@ export interface TweakerPlugin {
     pluginHooks: Tweaker["pluginHooks"],
   ): void;
   ready(): Promise<boolean>;
-  handleAddInterceptor?(
-    interceptor: TweakerInterceptor<TweakerKey, any>,
-  ): boolean;
-  handleUpdateInterceptor?(
-    interceptor: TweakerInterceptor<TweakerKey, any>,
-  ): boolean;
+  handleAddInterceptor?(interceptor: InterceptorBase): boolean;
+  handleUpdateInterceptor?(interceptor: InterceptorBase): boolean;
 }

@@ -1,18 +1,19 @@
-import { TweakerValueType } from "@tweaker/core";
+import { MANUAL_INTERCEPTOR_TYPE } from "@tweaker/extension-plugin";
 import { ExtensionInterceptor } from "../features/interceptors/InterceptorItem/InterceptorItem";
+import { FETCH_INTERCEPTOR_TYPE } from "@tweaker/fetch-plugin";
 
 const RETURN_VALUE = "  return value";
 
 export function getDefaultInterceptorData(
-  type: TweakerValueType,
+  type: string,
 ): ExtensionInterceptor["data"] {
   switch (type) {
-    case "default": {
+    case MANUAL_INTERCEPTOR_TYPE: {
       return {
         expression: RETURN_VALUE,
       };
     }
-    case "fetch": {
+    case FETCH_INTERCEPTOR_TYPE: {
       return {
         json: {
           static: "{\n}",
@@ -35,6 +36,9 @@ export function getDefaultInterceptorData(
           expression: RETURN_VALUE,
         },
       };
+    }
+    default: {
+      throw new Error(`Unknown Interceptor type: ${type}`);
     }
   }
 }

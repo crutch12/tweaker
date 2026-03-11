@@ -170,6 +170,9 @@ importers:
       '@tweaker/extension-plugin':
         specifier: workspace:*
         version: link:../extension-plugin
+      '@tweaker/fetch-plugin':
+        specifier: workspace:*
+        version: link:../fetch-plugin
       '@tweaker/styles':
         specifier: workspace:*
         version: link:../styles

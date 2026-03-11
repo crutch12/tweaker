@@ -7,7 +7,11 @@ import {
   useRef,
   useState,
 } from "react";
-import { EXTENSION_OWNER, InterceptorPayload } from "@tweaker/extension-plugin";
+import {
+  EXTENSION_OWNER,
+  InterceptorPayload,
+  isManualInterceptor,
+} from "@tweaker/extension-plugin";
 import { getBackgroundColor, getTextColor } from "../../../utils/colors";
 import equal from "fast-deep-equal";
 import { Badge } from "../../../components/Badge";
@@ -35,22 +39,25 @@ import {
 import { useInterceptedCountsStore } from "../useInterceptedCountsStore";
 import { DefaultInterceptorForm } from "./InterceptorFormDefault";
 import { InterceptorFormFetch } from "./InterceptorFormFetch";
+import { isDefaultInterceptor } from "@tweaker/core";
+import { isFetchInterceptor } from "@tweaker/fetch-plugin";
+import { InterceptorFormManual } from "./InterceptorFormManual";
 
-export type ExtensionInterceptor = InterceptorPayload<unknown> & {
+export type ExtensionInterceptor = InterceptorPayload & {
   // sampleIds?: string[];
   // fromKey?: string;
   // sampleId?: string;
 };
 
-export interface InterceptorItemProps {
-  interceptor: ExtensionInterceptor;
-  onChange?: (interceptor: ExtensionInterceptor) => void;
-  onRemove?: (interceptor: ExtensionInterceptor) => void;
+export interface InterceptorItemProps<
+  T extends InterceptorPayload = InterceptorPayload,
+> {
+  interceptor: T;
+  onChange?: (interceptor: T) => void;
+  onRemove?: (interceptor: T) => void;
   onFilterMessages?: (patterns: string[]) => void;
-  onDuplicate?: (interceptor: ExtensionInterceptor) => void;
-  onHightLightInterceptor?: (
-    interceptor: ExtensionInterceptor | undefined,
-  ) => void;
+  onDuplicate?: (interceptor: T) => void;
+  onHightLightInterceptor?: (interceptor: T | undefined) => void;
 }
 
 export function InterceptorItem({
@@ -355,8 +362,21 @@ export function InterceptorItem({
               </Tooltip>
             </Flex>
           </Flex>
-          {interceptor.type === "default" && (
+          {isDefaultInterceptor(interceptor) && (
             <DefaultInterceptorForm
+              interceptor={interceptor}
+              onChange={onChange}
+              onRemove={onRemove}
+              onFilterMessages={onFilterMessages}
+              onDuplicate={onDuplicate}
+              onHightLightInterceptor={onHightLightInterceptor}
+              patterns={patterns}
+              setPatterns={setPatterns}
+              hasChanges={hasChanges}
+            />
+          )}
+          {isManualInterceptor(interceptor) && (
+            <InterceptorFormManual
               interceptor={interceptor}
               onChange={onChange}
               onRemove={onRemove}
@@ -370,7 +390,7 @@ export function InterceptorItem({
               hasChanges={hasChanges}
             />
           )}
-          {interceptor.type === "fetch" && (
+          {isFetchInterceptor(interceptor) && (
             <InterceptorFormFetch
               interceptor={interceptor}
               onChange={onChange}

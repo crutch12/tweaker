@@ -5,11 +5,11 @@ import {
   TweakerInterceptor,
   InterceptorId,
   TweakerAnyInterceptor,
-  TweakerValueType,
+  InterceptorBase,
 } from "./types";
 import { EventEmitter } from "eventemitter3";
 import { TweakerPlugin } from "./plugin";
-import { TWEAKER_OWNER } from "./const";
+import { DEFAULT_VALUE_TYPE, TWEAKER_OWNER } from "./const";
 import {
   generateNumberId,
   generateStringId,
@@ -17,6 +17,7 @@ import {
   keyMatchesPatterns,
 } from "./utils";
 import { registerInstance } from "./global";
+import { DEFAULT_INTERCEPTOR_TYPE } from "./interceptors";
 
 function debugResult<V, R>(key: TweakerKey, value: V, result: R) {
   try {
@@ -45,7 +46,7 @@ export interface InterceptOptions {
    */
   id?: InterceptorId;
   enabled?: boolean;
-  type?: TweakerValueType;
+  type?: string;
   data?: Record<string, any>;
 }
 
@@ -63,7 +64,7 @@ export interface TweakerSample<V> {
 
 export interface TweakerValueOptions<V> {
   id: string;
-  type: TweakerValueType;
+  type: string;
   samples: TweakerSample<V>[];
   params: Record<string | symbol, any>;
 }
@@ -102,7 +103,7 @@ export interface TweakerOptions<
 type ValueEventOptions = {
   id: string;
   key: string;
-  type: TweakerValueType;
+  type: string;
   tweaked: boolean;
   originalValue: unknown;
   interceptorId?: InterceptorId;
@@ -270,7 +271,7 @@ export class Tweaker<
       owner = TWEAKER_OWNER,
       enabled = true,
       interactive = false,
-      type = "default",
+      type = DEFAULT_INTERCEPTOR_TYPE,
       data,
     }: InterceptOptions = {},
   ): RemoveListener {
@@ -346,7 +347,7 @@ export class Tweaker<
     },
   ): [boolean, V | undefined] {
     const id = options.id ?? generateStringId();
-    const type = options.type ?? "default";
+    const type = options.type ?? DEFAULT_VALUE_TYPE;
     this.debug(key, "value", value);
 
     if (!this.enabled) {
@@ -383,7 +384,7 @@ export class Tweaker<
           id,
           bypass,
           params: options.params ?? {},
-          type: options.type ?? "default",
+          type,
         }) as V;
 
         if (result === bypass) {
@@ -546,7 +547,7 @@ export class Tweaker<
   }
 
   protected pluginHooks = {
-    addInterceptor: (interceptor: TweakerAnyInterceptor) => {
+    addInterceptor: (interceptor: InterceptorBase) => {
       for (const plugin of Object.values(this.plugins)) {
         const handled = plugin.handleAddInterceptor?.(interceptor) ?? false;
         if (handled) {
@@ -554,7 +555,7 @@ export class Tweaker<
         }
       }
     },
-    updateInterceptor: (interceptor: TweakerAnyInterceptor) => {
+    updateInterceptor: (interceptor: InterceptorBase) => {
       for (const plugin of Object.values(this.plugins)) {
         const handled = plugin.handleUpdateInterceptor?.(interceptor) ?? false;
         if (handled) {
