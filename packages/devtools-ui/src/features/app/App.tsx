@@ -15,7 +15,6 @@ import { generateNumberId, groupBy } from "@tweaker/core/utils";
 import { type InterceptorId } from "@tweaker/core";
 import { useInterceptorsStore } from "../interceptors/useInterceptorsStore";
 import { css } from "@emotion/css";
-import { sendMessageToPlugin } from "../../utils/sendMessageToPlugin";
 import { MessagesTableContainer } from "../messages/MessagesTableContainer";
 import { InterceptorsListContainer } from "../interceptors/InterceptorsListContainer";
 import { serializePatterns } from "../../utils/pattern";
@@ -30,6 +29,7 @@ import { InterceptorsHeader } from "../interceptors/InterceptorsHeader";
 import { MessagesHeader } from "../messages/MessagesHeader";
 import { MainContainer } from "./MainContainer";
 import { Footer } from "./Footer";
+import { useBridge } from "../devtools/BridgeProvider";
 
 export function App() {
   const interceptors = useDeferredValue(
@@ -78,17 +78,15 @@ export function App() {
     setFilterPatterns(pattenrs ? serializePatterns(pattenrs) : undefined);
   }, []);
 
-  const { tabId } = useDevtools();
+  const {
+    bridge: { sendMessageToPlugin, onPluginMessage },
+  } = useBridge();
 
   useEffect(() => {
     try {
-      sendMessageToPlugin(
-        "ping",
-        {
-          timestamp: Date.now(),
-        },
-        tabId,
-      );
+      sendMessageToPlugin("ping", {
+        timestamp: Date.now(),
+      });
     } catch {}
     return () => {
       // reset zustand state
@@ -96,17 +94,12 @@ export function App() {
       useInterceptorsStore.setState({ interceptors: [] });
       useMessagesStore.setState({ messages: [] });
     };
-  }, [tabId]);
+  }, [sendMessageToPlugin]);
 
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const handler = (message: unknown): boolean => {
-      if (!isForDevtoolsMessage(message)) return false;
-
-      const currentTabId = tabId;
-      if (message.tabId !== currentTabId) return false;
-
+    return onPluginMessage((message) => {
       switch (message.type) {
         case "value": {
           addMessasges([message.payload]);
@@ -150,15 +143,8 @@ export function App() {
           break;
         }
       }
-      return false;
-    };
-
-    chrome.runtime.onMessage.addListener(handler);
-
-    return () => {
-      chrome.runtime.onMessage.removeListener(handler);
-    };
-  }, [tabId]);
+    });
+  }, [onPluginMessage]);
 
   const createInterceptorByMessage = useCallback(
     (
@@ -184,17 +170,13 @@ export function App() {
         timestamp: Date.now(),
       };
       addInterceptors([interceptor]);
-      sendMessageToPlugin(
-        "interceptors:add",
-        {
-          name: interceptor.name,
-          data: [interceptor],
-          timestamp: Date.now(),
-        },
-        tabId,
-      );
+      sendMessageToPlugin("interceptors:add", {
+        name: interceptor.name,
+        data: [interceptor],
+        timestamp: Date.now(),
+      });
     },
-    [addInterceptors, tabId],
+    [addInterceptors, sendMessageToPlugin],
   );
 
   const onInterceptorCreate = useCallback(
@@ -217,17 +199,13 @@ export function App() {
         timestamp: Date.now(),
       };
       addInterceptors([interceptor]);
-      sendMessageToPlugin(
-        "interceptors:add",
-        {
-          name: interceptor.name,
-          data: [interceptor],
-          timestamp: Date.now(),
-        },
-        tabId,
-      );
+      sendMessageToPlugin("interceptors:add", {
+        name: interceptor.name,
+        data: [interceptor],
+        timestamp: Date.now(),
+      });
     },
-    [addInterceptors, tabId],
+    [addInterceptors, sendMessageToPlugin],
   );
 
   const onInterceptorDuplicate = useCallback(
@@ -242,69 +220,53 @@ export function App() {
           timestamp: Date.now(),
         };
         addInterceptors([newInterceptor]);
-        sendMessageToPlugin(
-          "interceptors:add",
-          {
-            name: newInterceptor.name,
-            data: [newInterceptor],
-            timestamp: Date.now(),
-          },
-          tabId,
-        );
+        sendMessageToPlugin("interceptors:add", {
+          name: newInterceptor.name,
+          data: [newInterceptor],
+          timestamp: Date.now(),
+        });
       } else {
-        sendMessageToPlugin(
-          "interceptors:duplicate",
-          {
-            name: interceptor.name,
-            data: [interceptor],
-            timestamp: Date.now(),
-          },
-          tabId,
-        );
+        sendMessageToPlugin("interceptors:duplicate", {
+          name: interceptor.name,
+          data: [interceptor],
+          timestamp: Date.now(),
+        });
       }
     },
-    [addInterceptors, tabId],
+    [addInterceptors, sendMessageToPlugin],
   );
 
   const onInterceptorChange = useCallback(
     (interceptor: ExtensionInterceptor) => {
       updateInterceptor(interceptor);
-      sendMessageToPlugin(
-        "interceptors:update",
-        {
-          name: interceptor.name,
-          data: [interceptor],
-          timestamp: Date.now(),
-        },
-        tabId,
-      );
+      sendMessageToPlugin("interceptors:update", {
+        name: interceptor.name,
+        data: [interceptor],
+        timestamp: Date.now(),
+      });
     },
-    [updateInterceptor, tabId],
+    [updateInterceptor, sendMessageToPlugin],
   );
 
   const onInterceptorRemove = useCallback(
     (interceptor: ExtensionInterceptor) => {
       removeInterceptors([interceptor]);
-      sendMessageToPlugin(
-        "interceptors:remove",
-        {
-          name: interceptor.name,
-          data: [interceptor],
-          timestamp: Date.now(),
-        },
-        tabId,
-      );
+      sendMessageToPlugin("interceptors:remove", {
+        name: interceptor.name,
+        data: [interceptor],
+        timestamp: Date.now(),
+      });
     },
-    [removeInterceptors, tabId],
+    [removeInterceptors, sendMessageToPlugin],
   );
 
   const clearMessages = () => {
-    sendMessageToPlugin("clear-messages", { timestamp: Date.now() }, tabId);
+    sendMessageToPlugin("clear-messages", { timestamp: Date.now() });
     setMessages([]);
   };
 
   const clearInterceptors = () => {
-    sendMessageToPlugin("clear-interceptors", { timestamp: Date.now() }, tabId);
+    sendMessageToPlugin("clear-interceptors", { timestamp: Date.now() });
     setInterceptors([]);
   };
 
@@ -322,15 +284,11 @@ export function App() {
     Object.entries(
       groupBy(updatedInterceptors, (interceptor) => interceptor.name),
     ).forEach(([name, data]) => {
-      sendMessageToPlugin(
-        "interceptors:update",
-        {
-          name,
-          data,
-          timestamp: Date.now(),
-        },
-        tabId,
-      );
+      sendMessageToPlugin("interceptors:update", {
+        name,
+        data,
+        timestamp: Date.now(),
+      });
     });
   };
 

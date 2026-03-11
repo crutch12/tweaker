@@ -9,7 +9,6 @@ import {
 } from "@radix-ui/themes";
 import { version, name } from "../../../package.json";
 import { BlueButton } from "../../components/BlueButton";
-import { sendMessageToPlugin } from "../../utils/sendMessageToPlugin";
 import { useDevtools } from "../devtools/DevtoolsProvider";
 import { useColorScheme } from "../../components/theme/ColorSchemeProvider";
 import { useMemo } from "react";
@@ -22,6 +21,7 @@ import {
   SunIcon,
 } from "@radix-ui/react-icons";
 import { homepage } from "../../../../../package.json";
+import { useBridge } from "../devtools/BridgeProvider";
 
 export function Header() {
   const reloadPage = () => {
@@ -58,6 +58,10 @@ export function Header() {
     return url.href;
   }, [tabId]);
 
+  const {
+    bridge: { sendMessageToPlugin },
+  } = useBridge();
+
   return (
     <Flex
       gap="1"
@@ -83,17 +87,13 @@ export function Header() {
         {false && (
           <BlueButton
             onClick={() =>
-              sendMessageToPlugin(
-                "init",
-                {
-                  // name: "test",
-                  timestamp: Date.now(),
-                  enabled: true,
-                  interceptors: [], // TODO: remove
-                  // data: ["Message from extension!"],
-                },
-                tabId,
-              )
+              sendMessageToPlugin("init", {
+                // name: "test",
+                timestamp: Date.now(),
+                enabled: true,
+                interceptors: [], // TODO: remove
+                // data: ["Message from extension!"],
+              })
             }
           >
             Send Message

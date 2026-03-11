@@ -5,7 +5,6 @@ import { ExtensionDevtoolsMessages } from "./messages/types";
 import {
   Tweaker,
   TWEAKER_OWNER,
-  InterceptorId,
   TweakHandler,
   isDefaultInterceptor,
   isSampleInterceptor,
@@ -14,16 +13,15 @@ import { registerInstance } from "./global";
 import { EXTENSION_OWNER } from "./const";
 import type { InterceptorPayload } from "./types";
 import {
-  sendMessageToExtension,
   notifyExtensionNewIntercept,
   notifyExtensionRemoveIntercept,
   notifyExtensionInit,
   notifyExtensionInterceptors,
-} from "./sendMessageToExtension";
+} from "./notifyExtension";
 import { isForPluginMessage } from "./messages";
 import { clone } from "@tweaker/core/utils";
 import { isManualInterceptor } from "./ManualInterceptor";
-// import { handleResponse } from "@tweaker/fetch-plugin";
+import { bridge } from "./bridge";
 
 function getHandler(
   data: InterceptorPayload["data"],
@@ -54,7 +52,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
 
   function start() {
     function notify(type: "ping" | "pong") {
-      sendMessageToExtension(type, {
+      bridge.sendMessageToExtension(type, {
         name: _instance.name,
         timestamp: Date.now(),
       });
@@ -184,32 +182,28 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
     }
 
     function subscribeForExtensionMessages() {
-      if (!("addEventListener" in globalThis)) return;
-
-      globalThis.addEventListener("message", async (event: MessageEvent) => {
-        if (!isForPluginMessage(event.data)) return;
-
+      bridge.onExtensionMessage(async (message) => {
         await readyPromise.finally();
 
-        switch (event.data.type) {
+        switch (message.type) {
           case "interceptors": {
-            handleInterceptors(event.data.payload.data);
+            handleInterceptors(message.payload.data);
             break;
           }
           case "interceptors:add": {
-            handleAddedInterceptors(event.data.payload.data);
+            handleAddedInterceptors(message.payload.data);
             break;
           }
           case "interceptors:update": {
-            handleUpdatedInterceptors(event.data.payload.data);
+            handleUpdatedInterceptors(message.payload.data);
             break;
           }
           case "interceptors:remove": {
-            handleRemovedInterceptors(event.data.payload.data);
+            handleRemovedInterceptors(message.payload.data);
             break;
           }
           case "interceptors:duplicate": {
-            handleDuplicatedInterceptors(event.data.payload.data);
+            handleDuplicatedInterceptors(message.payload.data);
             break;
           }
           case "clear-interceptors": {
@@ -241,7 +235,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
         }) => {
           const timestamp = Date.now();
           await readyPromise.finally();
-          sendMessageToExtension("value", {
+          bridge.sendMessageToExtension("value", {
             id,
             name: _instance.name,
             key,
@@ -261,7 +255,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
       _emitter.on("value.update", async (id, options) => {
         const timestamp = Date.now();
         await readyPromise.finally();
-        sendMessageToExtension("value:update", {
+        bridge.sendMessageToExtension("value:update", {
           id,
           timestamp,
           ...options,
@@ -282,23 +276,19 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
     }
 
     const readyPromise = new Promise<void>((resolve) => {
-      if (!("addEventListener" in globalThis)) return resolve();
-      notify("ping");
-      const handler = (event: MessageEvent) => {
-        if (!isForPluginMessage(event.data)) return;
-
-        if (event.data.type === "ping" || event.data.type === "pong") {
+      const unsub = bridge.onExtensionMessage((message) => {
+        if (message.type === "ping" || message.type === "pong") {
           notifyExtensionInit(_instance, getListeners());
         }
 
-        if (event.data.type === "init") {
-          tabId = event.data.tabId;
-          handleInterceptors(event.data.payload.interceptors);
-          globalThis.removeEventListener("message", handler);
+        if (message.type === "init") {
+          tabId = message.tabId;
+          handleInterceptors(message.payload.interceptors);
+          unsub();
           resolve();
         }
-      };
-      globalThis.addEventListener("message", handler);
+      });
+      notify("ping");
     }).then(() => ready());
 
     promises.push(readyPromise);

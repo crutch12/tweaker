@@ -10,6 +10,8 @@ import {
   DevtoolsContextProps,
   DevtoolsContextProvider,
 } from "./features/devtools/DevtoolsProvider";
+import { Bridge } from "@tweaker/extension-plugin";
+import { BridgeContextProvider } from "./features/devtools/BridgeProvider";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +33,7 @@ export interface TweakerDevToolsProps {
   viewSourceCode?: DevtoolsContextProps["viewSourceCode"];
   reloadApp?: DevtoolsContextProps["reloadApp"];
   url?: DevtoolsContextProps["url"];
+  bridge: Bridge;
 }
 
 export function TweakerDevTools({
@@ -41,6 +44,7 @@ export function TweakerDevTools({
   reloadApp,
   url,
   reinstallExtension,
+  bridge,
 }: TweakerDevToolsProps) {
   const documentNode = useMemo(() => {
     return container?.getRootNode() as Document;
@@ -48,27 +52,29 @@ export function TweakerDevTools({
   return (
     <QueryClientProvider client={queryClient}>
       <ColorSchemeProvider>
-        <DevtoolsContextProvider
-          tabId={tabId}
-          viewSourceCode={viewSourceCode ?? emptyFn}
-          canViewSourceCode={canViewSourceCode ?? false}
-          reloadApp={reloadApp ?? reloadWindow}
-          url={url}
-          reinstallExtension={reinstallExtension}
-        >
-          <ContainerQueryRootProvider documentNode={documentNode}>
-            <ThemeProvider>
-              <App />
-              <Suspense>
-                <Toaster
-                  toastOptions={{
-                    unstyled: true,
-                  }}
-                />
-              </Suspense>
-            </ThemeProvider>
-          </ContainerQueryRootProvider>
-        </DevtoolsContextProvider>
+        <BridgeContextProvider bridge={bridge}>
+          <DevtoolsContextProvider
+            tabId={tabId}
+            viewSourceCode={viewSourceCode ?? emptyFn}
+            canViewSourceCode={canViewSourceCode ?? false}
+            reloadApp={reloadApp ?? reloadWindow}
+            url={url}
+            reinstallExtension={reinstallExtension}
+          >
+            <ContainerQueryRootProvider documentNode={documentNode}>
+              <ThemeProvider>
+                <App />
+                <Suspense>
+                  <Toaster
+                    toastOptions={{
+                      unstyled: true,
+                    }}
+                  />
+                </Suspense>
+              </ThemeProvider>
+            </ContainerQueryRootProvider>
+          </DevtoolsContextProvider>
+        </BridgeContextProvider>
       </ColorSchemeProvider>
     </QueryClientProvider>
   );

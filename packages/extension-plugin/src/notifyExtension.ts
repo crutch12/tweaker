@@ -1,36 +1,12 @@
-import { version } from "../package.json";
-import { EXTENSION_PLUGIN_SOURCE } from "./const";
-import { ExtensionPluginMessages } from "./messages/types";
+import { bridge } from "./bridge";
 import { InterceptorPayload } from "./types";
 import { Tweaker, TweakerInterceptor, TweakerKey } from "@tweaker/core";
-
-/**
- * Devtools App -> Tweaker (plugin)
- * @param type
- * @param payload
- */
-export function sendMessageToExtension<
-  T extends ExtensionPluginMessages.Message["type"],
->(
-  type: T,
-  payload: Extract<ExtensionPluginMessages.Message, { type: T }>["payload"],
-) {
-  if ("postMessage" in globalThis) {
-    const message = {
-      source: EXTENSION_PLUGIN_SOURCE,
-      version,
-      type,
-      payload,
-    } as ExtensionPluginMessages.Message;
-    globalThis.postMessage(message, "*");
-  }
-}
 
 export function notifyExtensionInit<T>(
   instance: Tweaker,
   interceptors: InterceptorPayload[],
 ) {
-  sendMessageToExtension("init", {
+  bridge.sendMessageToExtension("init", {
     name: instance.name,
     enabled: instance.enabled,
     interceptors,
@@ -41,14 +17,14 @@ export function notifyExtensionInit<T>(
 export function notifyExtensionInterceptors<T>(
   listeners: InterceptorPayload[],
 ) {
-  sendMessageToExtension("interceptors", listeners);
+  bridge.sendMessageToExtension("interceptors", listeners);
 }
 
 export function notifyExtensionNewIntercept<T>(
   instance: Tweaker,
   listener: TweakerInterceptor<TweakerKey, T>,
 ) {
-  sendMessageToExtension("new-intercept", {
+  bridge.sendMessageToExtension("new-intercept", {
     id: listener.id,
     name: instance.name,
     type: listener.type,
@@ -66,7 +42,7 @@ export function notifyExtensionRemoveIntercept<T>(
   instance: Tweaker,
   listener: TweakerInterceptor<TweakerKey, T>,
 ) {
-  sendMessageToExtension("remove-intercept", {
+  bridge.sendMessageToExtension("remove-intercept", {
     name: instance.name,
     id: listener.id,
   });

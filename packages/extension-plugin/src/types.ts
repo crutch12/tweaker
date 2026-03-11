@@ -1,4 +1,6 @@
 import type { InterceptorBase } from "@tweaker/core";
+import { ExtensionDevtoolsMessages } from "./messages/types/ExtensionDevtoolsMessages";
+import { ExtensionPluginMessages } from "./messages/types/ExtensionPluginMessages";
 
 export type InterceptorPayload<T extends InterceptorBase = InterceptorBase> =
   T & {
@@ -39,3 +41,30 @@ export type InterceptorPayload<T extends InterceptorBase = InterceptorBase> =
 //   type: T;
 //   data?: D;
 // };
+
+export interface Bridge {
+  /**
+   * Devtools App -> Tweaker (plugin)
+   * @param type
+   * @param payload
+   */
+  sendMessageToPlugin: <T extends ExtensionDevtoolsMessages.Message["type"]>(
+    type: T,
+    payload: Extract<ExtensionDevtoolsMessages.Message, { type: T }>["payload"],
+  ) => Promise<any>;
+  /**
+   * Tweaker (plugin) -> Devtools App
+   * @param type
+   * @param payload
+   */
+  sendMessageToExtension: <T extends ExtensionPluginMessages.Message["type"]>(
+    type: T,
+    payload: Extract<ExtensionPluginMessages.Message, { type: T }>["payload"],
+  ) => Promise<any>;
+  onExtensionMessage: (
+    cb: (message: ExtensionDevtoolsMessages.Message) => any,
+  ) => () => void;
+  onPluginMessage: (
+    cb: (message: ExtensionPluginMessages.Message) => any,
+  ) => () => void;
+}

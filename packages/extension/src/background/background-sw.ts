@@ -127,18 +127,24 @@ chrome.runtime.onMessage.addListener((message: unknown, sender): boolean => {
       });
       break;
     }
-    case "value:update":
+    case "value:update": {
+      sendMessageToDevTools(tabId, message);
+
+      getTabUrl(tabId).then(async (url) => {
+        if (!url) return;
+        const storage = getMessagesStorage(url);
+        storage.updateValueMessage(message.payload.id, message);
+      });
+
+      break;
+    }
     case "value": {
       sendMessageToDevTools(tabId, message);
 
       getTabUrl(tabId).then(async (url) => {
         if (!url) return;
         const storage = getMessagesStorage(url);
-        if (message.type === "value") {
-          storage.saveValueMessage(message);
-        } else {
-          storage.updateValueMessage(message.payload.id, message);
-        }
+        storage.saveValueMessage(message);
 
         const tweakedCounterStorage = getTweakedCounterStorage(url);
 

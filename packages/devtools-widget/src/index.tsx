@@ -8,6 +8,7 @@ export interface RenderWidgetOptions {
   canViewSourceCode?: TweakerDevToolsProps["canViewSourceCode"];
   viewSourceCode?: TweakerDevToolsProps["viewSourceCode"];
   url?: TweakerDevToolsProps["url"];
+  bridge: TweakerDevToolsProps["bridge"];
 }
 
 export function renderWidget(
@@ -18,7 +19,8 @@ export function renderWidget(
     viewSourceCode,
     url,
     reinstallExtension,
-  }: RenderWidgetOptions = {},
+    bridge,
+  }: RenderWidgetOptions,
 ) {
   if (!container) throw new Error("container is required");
 
@@ -34,6 +36,7 @@ export function renderWidget(
           reloadApp={reloadApp}
           url={url}
           reinstallExtension={reinstallExtension}
+          bridge={bridge}
         />
       </StrictMode>,
     );
