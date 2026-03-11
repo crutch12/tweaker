@@ -6,7 +6,11 @@ import type {
   TweakHandler,
 } from "@tweaker/core";
 import { handleResponse } from "./handleResponse";
-import { clone, generateStringId } from "@tweaker/core/utils";
+import {
+  clone,
+  generateStringId,
+  keyMatchesPatterns,
+} from "@tweaker/core/utils";
 import JSON5 from "json5";
 
 function getHandler(
@@ -46,11 +50,23 @@ function getRequestUrl(request: RequestInfo | URL) {
   return new URL(request.url);
 }
 
+function formatUrl(url: URL) {
+  return `${url.host}${url.pathname}${url.search}`;
+}
+
 interface FetchPlugin extends TweakerPlugin {}
 
-export interface FetchPluginOptions {}
+export interface FetchPluginOptions {
+  /**
+   * Intercept only spicified globs
+   * @example ['localhost:3000/**']
+   */
+  filter?: string[];
+}
 
-export function fetchPlugin({}: FetchPluginOptions = {}): FetchPlugin {
+export function fetchPlugin({
+  filter = ["*/**"],
+}: FetchPluginOptions = {}): FetchPlugin {
   const promises: Promise<void>[] = [];
 
   let _instance: Tweaker;
@@ -63,12 +79,18 @@ export function fetchPlugin({}: FetchPluginOptions = {}): FetchPlugin {
 
     globalThis["fetch"] = (...args: Parameters<typeof originalFetch>) => {
       const [requestUrl, options] = args;
-      return originalFetch(requestUrl, options).then((response) => {
-        const method = (options?.method ?? "GET").toUpperCase();
-        const url = getRequestUrl(requestUrl);
-        const host = globalThis["location"]?.host === url.host ? "" : url.host;
-        const key = `${method} ${host}${url.pathname}${url.search}`;
+      const formattedUrl = formatUrl(getRequestUrl(requestUrl));
+      const method = (options?.method ?? "GET").toUpperCase();
+      const key = `${method} ${formattedUrl}`;
 
+      if (filter.length > 0) {
+        const matchesFilter = keyMatchesPatterns(formattedUrl, filter);
+        if (!matchesFilter) {
+          return originalFetch(requestUrl, options);
+        }
+      }
+
+      return originalFetch(requestUrl, options).then((response) => {
         const id = `fetch:${generateStringId()}`;
 
         const tweakedResponse = tweaker.value(

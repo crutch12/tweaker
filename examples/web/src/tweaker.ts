@@ -5,7 +5,9 @@ import { Dog, User } from "./Example";
 
 const plugins = {
   extension: extensionPlugin(),
-  fetch: fetchPlugin(),
+  fetch: fetchPlugin({
+    filter: ["localhost:*/**"],
+  }),
 };
 
 const tweaker = new Tweaker<{
