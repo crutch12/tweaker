@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { App } from "./App";
+import { App } from "./features/app/App";
 import { ContainerQueryRootProvider } from "./components/container-query/ContainerQueryRootProvider";
 
 import "./styles/index.css";

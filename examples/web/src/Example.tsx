@@ -231,7 +231,7 @@ function _Example() {
               .then(console.log);
           }}
         >
-          Fetch current page
+          Fetch data
         </button>
       </div>
       <pre>{JSON.stringify(entities, null, 2)}</pre>
