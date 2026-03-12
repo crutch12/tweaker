@@ -1,6 +1,6 @@
-import styled from "@emotion/styled";
 import { ReactNode, useEffect, useEffectEvent, useRef } from "react";
 import { css } from "@emotion/css";
+import cn from "classnames";
 
 import { Editor } from "prism-react-editor";
 import type { PrismEditor } from "prism-react-editor";
@@ -11,7 +11,6 @@ import "prism-react-editor/prism/languages/typescript";
 import "prism-react-editor/prism/languages/json";
 
 import "prism-react-editor/layout.css";
-import "prism-react-editor/themes/github-light.css";
 
 import {
   useDefaultCommands,
@@ -56,6 +55,7 @@ export interface ExpressionCodeBlockProps {
   readOnly?: boolean;
   disabled?: boolean;
   onSave?: () => void;
+  showBorders?: boolean;
 }
 
 export function ExpressionCodeBlock({
@@ -65,6 +65,7 @@ export function ExpressionCodeBlock({
   readOnly = false,
   disabled,
   onSave,
+  showBorders = true,
 }: ExpressionCodeBlockProps) {
   const ref = useRef<PrismEditor>(null);
 
@@ -87,15 +88,12 @@ export function ExpressionCodeBlock({
 
   return (
     <Editor
-      className={css`
-        opacity: ${disabled ? 0.5 : undefined};
-        cursor: ${disabled || readOnly ? "default" : undefined};
-
-        .pce-wrapper {
-          margin: 0;
-          overflow: ${disabled ? "hidden" : undefined};
-        }
-      `}
+      className={cn(
+        styles.Editor,
+        disabled && styles.Disabled,
+        readOnly && styles.ReadOnly,
+        showBorders && styles.Borders,
+      )}
       language={language}
       value={code}
       lineNumbers={false}
@@ -122,13 +120,14 @@ export function ExpressionCodeBlockContainer({
   children,
 }: ExpressionCodeBlockContainerProps) {
   return (
-    <ExpressionCodeBlockContainerStyled>
+    <div className={cn(styles.Borders)}>
       {codeBefore && (
         <ExpressionCodeBlock
           disabled
           language={language}
           readOnly
           code={codeBefore}
+          showBorders={false}
         />
       )}
       {children}
@@ -138,10 +137,32 @@ export function ExpressionCodeBlockContainer({
           language={language}
           readOnly
           code={codeAfter}
+          showBorders={false}
         />
       )}
-    </ExpressionCodeBlockContainerStyled>
+    </div>
   );
 }
 
-const ExpressionCodeBlockContainerStyled = styled.div``;
+const styles = {
+  Editor: css`
+    .pce-wrapper {
+      margin: 0;
+    }
+  `,
+  Disabled: css`
+    opacity: 0.5;
+    cursor: default;
+
+    .pce-wrapper {
+      overflow: hidden;
+    }
+  `,
+  ReadOnly: css`
+    cursor: default;
+  `,
+  Borders: css`
+    border: 1px solid var(--gray-a7);
+    border-radius: 3px;
+  `,
+};

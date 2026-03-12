@@ -323,6 +323,7 @@ export function InterceptorFormManual({
                 onSave={() =>
                   hasChanges && onChange?.({ ...interceptor, data })
                 }
+                showBorders={false}
               />
             </ExpressionCodeBlockContainer>
           </Suspense>
