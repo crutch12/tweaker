@@ -30,6 +30,7 @@ import JSON5 from "json5";
 import { bodyTypes, FetchInterceptor } from "@tweaker/fetch-plugin";
 import { PatternsControl } from "../controls/PatternsControl";
 import { SaveButtons } from "../controls/SaveButtons";
+import { useEditorCode } from "../useEditorCode";
 
 const ExpressionCodeBlock = lazy(() =>
   import("../../ExpressionCodeBlock").then((r) => ({
@@ -113,7 +114,7 @@ export interface InterceptorItemFetchFormProps extends InterceptorItemProps<
   InterceptorPayload<FetchInterceptor>
 > {
   data: FetchInterceptor["data"];
-  setData: Dispatch<SetStateAction<FetchInterceptor["data"]>>;
+  onDataChange: (value: FetchInterceptor["data"]) => void;
   hasChanges: boolean;
 }
 
@@ -122,36 +123,33 @@ export function InterceptorItemFetchForm({
   onChange,
   onHightLightInterceptor,
   data,
-  setData,
+  onDataChange,
   hasChanges,
 }: InterceptorItemFetchFormProps) {
-  const [initialData, setInitialData] = useState(() => interceptor.data);
+  const [bodyType, setBodyType] = useState<(typeof bodyTypes)[number]>("json");
+
+  const onCodeUpdate = useCallback(
+    (code: string | undefined) => {
+      onDataChange({
+        ...data,
+        [bodyType]: {
+          ...data?.[bodyType],
+          static: code,
+        },
+      });
+    },
+    [onDataChange, data, bodyType],
+  );
+
+  const { discardChanges, initialCode, updatesCount } = useEditorCode({
+    initialCode: interceptor.data?.[bodyType]?.static,
+    code: data?.[bodyType]?.static,
+    onCodeChange: onCodeUpdate,
+  });
 
   const [method, setMethod] = useState(
     () => patternsToState(serializePatterns(interceptor.patterns)).method,
   );
-  const [bodyType, setBodyType] = useState<(typeof bodyTypes)[number]>("json");
-
-  const actualizeCodeExpression = useEffectEvent((force: boolean) => {
-    if (
-      force ||
-      interceptor.data?.[bodyType]?.static !== data?.[bodyType]?.static
-    ) {
-      setUpdatesCount((v) => v + 1);
-      setInitialData(interceptor.data);
-      setData(interceptor.data);
-    }
-  });
-
-  useEffect(() => {
-    actualizeCodeExpression(false);
-  }, [interceptor.data?.[bodyType]?.static]);
-
-  const [updatesCount, setUpdatesCount] = useState(0);
-
-  const discardChanges = useCallback(() => {
-    actualizeCodeExpression(true);
-  }, []);
 
   const uniqueId = useMemo(() => {
     return `${interceptor.name}-${interceptor.id}`;
@@ -172,20 +170,6 @@ export function InterceptorItemFetchForm({
       patternsToState(serializePatterns(interceptor.patterns)).patterns,
     );
   }, [interceptor.patterns]);
-
-  const onCodeUpdate = useCallback(
-    (code: string) => {
-      setData((v) => ({
-        ...v,
-        [bodyType]: {
-          ...v?.[bodyType],
-          static: code,
-          // expression: v?.[bodyType]?.expression,
-        },
-      }));
-    },
-    [bodyType],
-  );
 
   const onMethodChange = useEffectEvent(() => {
     serializePatterns(interceptor.patterns) !==
@@ -322,7 +306,7 @@ export function InterceptorItemFetchForm({
           <ExpressionCodeBlock
             language="js"
             key={updatesCount}
-            code={initialData?.[bodyType]?.static ?? ""}
+            code={initialCode ?? ""}
             onUpdate={onCodeUpdate}
             readOnly={!interceptor.enabled}
             onSave={() => hasChanges && onChange?.({ ...interceptor, data })}

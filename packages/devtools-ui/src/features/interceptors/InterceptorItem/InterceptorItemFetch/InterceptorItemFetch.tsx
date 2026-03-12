@@ -13,7 +13,7 @@ function useFetchData({ interceptor }: UseFetchDataProps) {
   const [data, setData] = useState(() => interceptor.data);
 
   const hasChanges = useMemo(() => {
-    return !equal(interceptor.data, data);
+    return !equal([interceptor.data?.json?.static], [data?.json?.static]);
   }, [data, interceptor.data]);
 
   return { data, setData, hasChanges };
@@ -35,7 +35,7 @@ export function InterceptorItemFetch({ ...props }: InterceptorItemFetchProps) {
       <InterceptorItemFetchForm
         {...props}
         data={data}
-        setData={setData}
+        onDataChange={setData}
         hasChanges={hasChanges}
       />
     </InterceptorItem>

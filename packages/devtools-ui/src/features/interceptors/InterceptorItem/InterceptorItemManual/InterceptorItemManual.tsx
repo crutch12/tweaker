@@ -16,7 +16,7 @@ function useManualData({ interceptor }: UseManualDataProps) {
   const [data, setData] = useState(() => interceptor.data);
 
   const hasChanges = useMemo(() => {
-    return !equal(interceptor.data, data);
+    return !equal([interceptor.data?.expression], [data?.expression]);
   }, [data, interceptor.data]);
 
   return { data, setData, hasChanges };

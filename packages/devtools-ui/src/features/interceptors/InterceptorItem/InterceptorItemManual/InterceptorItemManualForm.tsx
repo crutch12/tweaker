@@ -22,6 +22,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { isJsSyntaxValid } from "../../../../utils/isJsSyntaxValid";
 import { PatternsControl } from "../controls/PatternsControl";
 import { SaveButtons } from "../controls/SaveButtons";
+import { useEditorCode } from "../useEditorCode";
 
 const ExpressionCodeBlock = lazy(() =>
   import("../../ExpressionCodeBlock").then((r) => ({
@@ -63,35 +64,25 @@ export function InterceptorItemManualForm({
   onPatternsChange,
   hasChanges,
 }: InterceptorItemManualFormProps) {
-  const [initialData, setInitialData] = useState(() => interceptor.data);
-
-  const actualizeCodeExpression = useEffectEvent((force: boolean) => {
-    if (force || interceptor.data?.expression !== data?.expression) {
-      setUpdatesCount((v) => v + 1);
-      setInitialData(interceptor.data);
-      onDataChange(interceptor.data);
-    }
-  });
-
-  useEffect(() => {
-    actualizeCodeExpression(false);
-  }, [interceptor.data?.expression]);
-
-  const onCodeUpdate = useCallback(
-    (code: string) => {
+  const onExpressionUpdate = useCallback(
+    (expression: string | undefined) => {
       onDataChange({
         ...data,
-        expression: code || undefined,
+        expression: expression || undefined,
       });
     },
     [onDataChange, data],
   );
 
-  const [updatesCount, setUpdatesCount] = useState(0);
-
-  const discardChanges = useCallback(() => {
-    actualizeCodeExpression(true);
-  }, []);
+  const {
+    discardChanges,
+    initialCode: initialExpression,
+    updatesCount,
+  } = useEditorCode({
+    initialCode: interceptor.data?.expression,
+    code: data?.expression,
+    onCodeChange: onExpressionUpdate,
+  });
 
   const { data: expressionError } = useQuery({
     queryKey: ["validateExpression", data?.expression],
@@ -236,8 +227,8 @@ export function InterceptorItemManualForm({
             >
               <ExpressionCodeBlock
                 key={updatesCount}
-                code={initialData?.expression ?? ""}
-                onUpdate={onCodeUpdate}
+                code={initialExpression ?? ""}
+                onUpdate={onExpressionUpdate}
                 readOnly={!interceptor.enabled}
                 onSave={() =>
                   hasChanges && onChange?.({ ...interceptor, data })
