@@ -15,26 +15,9 @@ export function getDefaultInterceptorData(
     }
     case FETCH_INTERCEPTOR_TYPE: {
       return {
-        json: {
-          static: "{\n}",
-          expression: RETURN_VALUE,
-        },
-        text: {
-          static: "{}",
-          expression: RETURN_VALUE,
-        },
-        blob: {
-          static: undefined,
-          expression: RETURN_VALUE,
-        },
-        arrayBuffer: {
-          static: undefined,
-          expression: RETURN_VALUE,
-        },
-        formData: {
-          static: undefined,
-          expression: RETURN_VALUE,
-        },
+        json: '{\n  "value": "Hello world!"\n}',
+        text: "Hello world!",
+        expression: "  return response",
       };
     }
     default: {

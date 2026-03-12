@@ -24,7 +24,7 @@ export function useEditorCode({
   });
 
   useEffect(() => {
-    resetCode(false); // FIXME: with false works incorrectly
+    resetCode(true); // FIXME: with false works incorrectly
   }, [_initialCode]);
 
   const discardChanges = useCallback(() => {

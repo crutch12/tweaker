@@ -27,14 +27,20 @@ import { parsePatterns, serializePatterns } from "../../../../utils/pattern";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { SelectContent } from "../../../../components/base/SelectContent";
 import JSON5 from "json5";
-import { bodyTypes, FetchInterceptor } from "@tweaker/fetch-plugin";
+import { FetchInterceptor, FetchResponseType } from "@tweaker/fetch-plugin";
 import { PatternsControl } from "../controls/PatternsControl";
 import { SaveButtons } from "../controls/SaveButtons";
 import { useEditorCode } from "../useEditorCode";
+import { isJsSyntaxValid } from "../../../../utils/isJsSyntaxValid";
 
 const ExpressionCodeBlock = lazy(() =>
   import("../../ExpressionCodeBlock").then((r) => ({
     default: r.ExpressionCodeBlock,
+  })),
+);
+const ExpressionCodeBlockContainer = lazy(() =>
+  import("../../ExpressionCodeBlock").then((r) => ({
+    default: r.ExpressionCodeBlockContainer,
   })),
 );
 
@@ -89,9 +95,9 @@ function FetchMethodSelect(props: Select.RootProps) {
 
 function FetchResponseBodySelect(
   props: Omit<Select.RootProps, "value" | "defaultValue" | "onValueChange"> & {
-    value?: (typeof bodyTypes)[number];
-    defaultValue?: (typeof bodyTypes)[number];
-    onValueChange?(value: (typeof bodyTypes)[number]): void;
+    value?: FetchResponseType;
+    defaultValue?: FetchResponseType;
+    onValueChange?(value: FetchResponseType): void;
   },
 ) {
   return (
@@ -101,9 +107,7 @@ function FetchResponseBodySelect(
         <Select.Group>
           <Select.Item value="json">JSON</Select.Item>
           <Select.Item value="text">Text</Select.Item>
-          <Select.Item value="blob">Blob</Select.Item>
-          <Select.Item value="formData">Form Data</Select.Item>
-          <Select.Item value="arrayBuffer">Array Buffer</Select.Item>
+          <Select.Item value="expression">Expression</Select.Item>
         </Select.Group>
       </SelectContent>
     </Select.Root>
@@ -126,24 +130,21 @@ export function InterceptorItemFetchForm({
   onDataChange,
   hasChanges,
 }: InterceptorItemFetchFormProps) {
-  const [bodyType, setBodyType] = useState<(typeof bodyTypes)[number]>("json");
+  const [bodyType, setBodyType] = useState<FetchResponseType>("json");
 
   const onCodeUpdate = useCallback(
     (code: string | undefined) => {
       onDataChange({
         ...data,
-        [bodyType]: {
-          ...data?.[bodyType],
-          static: code,
-        },
+        [bodyType]: data?.[bodyType],
       });
     },
     [onDataChange, data, bodyType],
   );
 
   const { discardChanges, initialCode, updatesCount } = useEditorCode({
-    initialCode: interceptor.data?.[bodyType]?.static,
-    code: data?.[bodyType]?.static,
+    initialCode: interceptor.data?.[bodyType],
+    code: data?.[bodyType],
     onCodeChange: onCodeUpdate,
   });
 
@@ -185,16 +186,26 @@ export function InterceptorItemFetchForm({
   }, [method, interceptor.patterns]);
 
   const { data: expressionError } = useQuery({
-    queryKey: ["validateFetchExpression", data?.[bodyType]?.static, bodyType],
+    queryKey: ["validateFetchExpression", data?.[bodyType], bodyType],
     queryFn: () => {
-      if (!data?.[bodyType]?.static) return { valid: true, error: undefined };
-      const value = data?.[bodyType].static;
-      try {
-        JSON5.parse(value);
-        return { valid: true, error: undefined };
-      } catch (error) {
-        return { valid: false, error: error as Error };
+      if (!data?.[bodyType]) return { valid: true, error: undefined };
+
+      const value = data?.[bodyType];
+
+      if (bodyType === "json") {
+        try {
+          JSON5.parse(value);
+          return { valid: true, error: undefined };
+        } catch (error) {
+          return { valid: false, error: error as Error };
+        }
       }
+
+      if (bodyType === "expression") {
+        return isJsSyntaxValid("async () => {\n" + value + "\n}");
+      }
+
+      return { valid: true, error: undefined };
     },
     select: ({ error }) => {
       if (error) {
@@ -284,7 +295,10 @@ export function InterceptorItemFetchForm({
             </Text>
             <FetchResponseBodySelect
               value={bodyType}
-              onValueChange={setBodyType}
+              onValueChange={(v) => {
+                onDataChange(interceptor.data);
+                setBodyType(v);
+              }}
             />
           </Flex>
           {hasChanges && (
@@ -303,14 +317,33 @@ export function InterceptorItemFetchForm({
             </Flex>
           }
         >
-          <ExpressionCodeBlock
-            language="js"
-            key={updatesCount}
-            code={initialCode ?? ""}
-            onUpdate={onCodeUpdate}
-            readOnly={!interceptor.enabled}
-            onSave={() => hasChanges && onChange?.({ ...interceptor, data })}
-          />
+          {bodyType === "expression" ? (
+            <ExpressionCodeBlockContainer
+              codeBefore="async (key: string, response: Response, ctx: Context) => {"
+              codeAfter="}"
+              language="ts"
+            >
+              <ExpressionCodeBlock
+                key={updatesCount}
+                code={initialCode ?? ""}
+                onUpdate={onCodeUpdate}
+                readOnly={!interceptor.enabled}
+                onSave={() =>
+                  hasChanges && onChange?.({ ...interceptor, data })
+                }
+                showBorders={false}
+              />
+            </ExpressionCodeBlockContainer>
+          ) : (
+            <ExpressionCodeBlock
+              language={bodyType === "text" ? "text" : "js"}
+              key={updatesCount}
+              code={initialCode ?? ""}
+              onUpdate={onCodeUpdate}
+              readOnly={!interceptor.enabled}
+              onSave={() => hasChanges && onChange?.({ ...interceptor, data })}
+            />
+          )}
         </Suspense>
         {expressionError && (
           <Text size="2" color="red">

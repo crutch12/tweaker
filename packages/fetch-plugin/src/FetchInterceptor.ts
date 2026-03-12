@@ -2,29 +2,15 @@ import { TypedInterceptorBase, InterceptorBase } from "@tweaker/core";
 
 export const FETCH_INTERCEPTOR_TYPE = "fetch";
 
+export type FetchResponseType = "json" | "text" | "expression";
+
 export type FetchInterceptor = TypedInterceptorBase<
   typeof FETCH_INTERCEPTOR_TYPE,
   {
-    json?: {
-      static?: string;
-      expression?: string;
-    };
-    text?: {
-      static?: string;
-      expression?: string;
-    };
-    blob?: {
-      static?: string;
-      expression?: string;
-    };
-    formData?: {
-      static?: string;
-      expression?: string;
-    };
-    arrayBuffer?: {
-      static?: string;
-      expression?: string;
-    };
+    selected?: FetchResponseType;
+    status?: number;
+  } & {
+    [key in FetchResponseType]?: string;
   }
 >;
 

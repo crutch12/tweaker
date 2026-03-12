@@ -12,32 +12,50 @@ import {
   keyMatchesPatterns,
 } from "@tweaker/core/utils";
 import JSON5 from "json5";
-import { isFetchInterceptor } from "./FetchInterceptor";
+import { FetchInterceptor, isFetchInterceptor } from "./FetchInterceptor";
 import { FETCH_VALUE_TYPE } from "./const";
 
+type AsyncFunctionConstructor = new (
+  ...args: string[]
+) => (...args: any[]) => Promise<any>;
+
+const AsyncFunction = async function () {}
+  .constructor as AsyncFunctionConstructor;
+
 function getHandler(
-  data: TweakerAnyInterceptor["data"],
+  data: FetchInterceptor["data"],
   emitter: Tweaker["eventEmitter"],
 ): TweakHandler<string, Response> {
   return (key, response, ctx) => {
     if (ctx.type !== FETCH_VALUE_TYPE) return ctx.bypass;
 
-    return handleResponse(response, async (bodyType, value) => {
-      let mock = data?.[bodyType]?.static;
-      if (!mock) return value;
+    return handleResponse(response, async (responseType, value) => {
+      debugger;
+      const mockString = data?.[responseType];
+      if (!mockString) return value;
 
-      if (bodyType === "json") {
-        mock = JSON5.parse(mock);
+      let result;
+
+      switch (responseType) {
+        case "json":
+          result = JSON5.parse(mockString);
+          break;
+        case "text":
+          result = mockString;
+          break;
+        case "expression":
+          result = await new AsyncFunction("key", "value", "ctx", mockString)();
+          break;
       }
 
       emitter.emit("value.update", ctx.id, {
         result: {
           ...clone(response),
-          [bodyType]: mock,
+          body: result,
         },
       });
 
-      return mock;
+      return result;
     });
   };
 }
@@ -117,7 +135,7 @@ export function fetchPlugin({
             _emitter.emit("value.update", id, {
               originalValue: {
                 ...clone(response),
-                [bodyType]: value,
+                data: value,
               },
             });
             return value;

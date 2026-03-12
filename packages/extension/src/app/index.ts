@@ -56,7 +56,7 @@ const bridge: Bridge = {
 
       const result = cb(message);
 
-      if ("then" in result) {
+      if (typeof result === "object" && "then" in result) {
         result.then(sendResponse);
         return true;
       }
