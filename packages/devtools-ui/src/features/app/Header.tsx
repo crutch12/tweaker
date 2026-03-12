@@ -7,8 +7,7 @@ import {
   Separator,
   Text,
 } from "@radix-ui/themes";
-import { version, name } from "../../../package.json";
-import { BlueButton } from "../../components/BlueButton";
+import { version } from "../../../package.json";
 import { useDevtools } from "../devtools/DevtoolsProvider";
 import { useColorScheme } from "../../components/theme/ColorSchemeProvider";
 import { useMemo } from "react";
@@ -21,26 +20,8 @@ import {
   SunIcon,
 } from "@radix-ui/react-icons";
 import { homepage } from "../../../../../package.json";
-import { useBridge } from "../devtools/BridgeProvider";
 
 export function Header() {
-  const reloadPage = () => {
-    chrome.devtools.inspectedWindow.reload({
-      ignoreCache: true, // Equivalent to Shift + F5
-      userAgent: "Optional UA", // Can spoof user agents
-      injectedScript: "console.log('Reloaded!')", // Runs immediately after reload
-    });
-  };
-
-  const evalTweaker = () => {
-    chrome.devtools.inspectedWindow.eval(
-      "globalThis.__TWEAKER_DEVTOOLS_GLOBAL_HOOK__.version",
-      (result) => {
-        alert(result);
-      },
-    );
-  };
-
   const { colorScheme, setColorScheme } = useColorScheme();
 
   const toggleColorScheme = () => {
@@ -57,10 +38,6 @@ export function Header() {
     url.searchParams.set("tabId", String(tabId));
     return url.href;
   }, [tabId]);
-
-  const {
-    bridge: { sendMessageToPlugin },
-  } = useBridge();
 
   return (
     <Flex
@@ -80,25 +57,6 @@ export function Header() {
         <Text color="gray" size="1">
           v{version} ({date.toLocaleTimeString()})
         </Text>
-        {false && (
-          <BlueButton onClick={reloadPage}>Reload Current Page</BlueButton>
-        )}
-        {false && <BlueButton onClick={evalTweaker}>Eval Tweaker</BlueButton>}
-        {false && (
-          <BlueButton
-            onClick={() =>
-              sendMessageToPlugin("init", {
-                // name: "test",
-                timestamp: Date.now(),
-                enabled: true,
-                interceptors: [], // TODO: remove
-                // data: ["Message from extension!"],
-              })
-            }
-          >
-            Send Message
-          </BlueButton>
-        )}
       </Flex>
       <Flex gap="4" align="center" wrap="wrap">
         {reinstallExtension && (
