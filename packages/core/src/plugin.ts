@@ -13,3 +13,15 @@ export interface TweakerPlugin {
   handleAddInterceptor?(interceptor: InterceptorBase): boolean;
   handleUpdateInterceptor?(interceptor: InterceptorBase): boolean;
 }
+
+let allowExpressions: boolean | undefined = undefined;
+export function expressionsAllowed(): boolean {
+  if (typeof allowExpressions === "boolean") return allowExpressions;
+  try {
+    new Function("")();
+    allowExpressions = true;
+  } catch {
+    allowExpressions = false;
+  }
+  return allowExpressions;
+}

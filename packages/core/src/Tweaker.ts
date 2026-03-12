@@ -21,7 +21,7 @@ import { DEFAULT_INTERCEPTOR_TYPE } from "./interceptors";
 
 function debugResult<V, R>(key: TweakerKey, value: V, result: R) {
   try {
-    // throws if CSP doesn't allow run eval
+    // throws if CSP doesn't allow run "new Function"
     return new Function(
       "key",
       "value",

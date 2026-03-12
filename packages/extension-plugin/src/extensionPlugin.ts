@@ -1,4 +1,4 @@
-import { TweakerPlugin } from "@tweaker/core/plugin";
+import { expressionsAllowed, TweakerPlugin } from "@tweaker/core/plugin";
 import { generateNumberId, generateStringId } from "@tweaker/core/utils";
 import { version, name } from "../package.json";
 import { ExtensionDevtoolsMessages } from "./messages/types";
@@ -18,15 +18,16 @@ import {
   notifyExtensionInit,
   notifyExtensionInterceptors,
 } from "./notifyExtension";
-import { isForPluginMessage } from "./messages";
 import { clone } from "@tweaker/core/utils";
 import { isManualInterceptor } from "./ManualInterceptor";
 import { bridge } from "./bridge";
 
 function getHandler(
   data: InterceptorPayload["data"],
+  allowExpressions: boolean,
 ): TweakHandler<string, any> {
   return (key, value, ctx) => {
+    if (!allowExpressions) return ctx.bypass;
     return new Function("key", "value", "ctx", data?.expression ?? "")(
       key,
       value,
@@ -39,10 +40,28 @@ interface ExtensionPlugin extends TweakerPlugin {
   getTabId: () => Promise<number | undefined>;
 }
 
-export interface ExtensionPluginOptions {}
+export interface ExtensionPluginOptions {
+  /**
+   * Allows plugin to execute (new Function) manual js expressions received from extension.
+   * Always false, if CSP doesn't allow run "new Function"
+   * @default false
+   */
+  allowExpressions?: boolean;
+}
 
-export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugin {
+export function extensionPlugin({
+  allowExpressions = false,
+}: ExtensionPluginOptions = {}): ExtensionPlugin {
   const promises: Promise<void>[] = [];
+
+  if (allowExpressions) {
+    allowExpressions = expressionsAllowed();
+    if (!allowExpressions) {
+      console.warn(
+        `[${name}] CSP doesn't allow run "new Function" on this page, allowExpressions is set to "false"`,
+      );
+    }
+  }
 
   let _instance: Tweaker;
   let _emitter: Tweaker["eventEmitter"];
@@ -315,9 +334,13 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
     },
     handleAddInterceptor: (listener) => {
       if (isManualInterceptor(listener)) {
-        _instance.intercept(listener.patterns, getHandler(listener.data), {
-          ...listener,
-        });
+        _instance.intercept(
+          listener.patterns,
+          getHandler(listener.data, allowExpressions),
+          {
+            ...listener,
+          },
+        );
         return true;
       }
 
@@ -345,7 +368,7 @@ export function extensionPlugin({}: ExtensionPluginOptions = {}): ExtensionPlugi
           enabled: listener.enabled,
           patterns: listener.patterns,
           data: listener.data,
-          handler: getHandler(listener.data),
+          handler: getHandler(listener.data, allowExpressions),
         });
         return true;
       }

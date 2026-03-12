@@ -4,9 +4,10 @@ import { fetchPlugin } from "@tweaker/fetch-plugin";
 import { Dog, User } from "./Example";
 
 const plugins = {
-  extension: extensionPlugin(),
+  extension: extensionPlugin({ allowExpressions: true }),
   fetch: fetchPlugin({
     filter: ["localhost:*/**"],
+    allowExpressions: true,
   }),
 };
 

@@ -1,4 +1,4 @@
-import type { TweakerPlugin } from "@tweaker/core/plugin";
+import { expressionsAllowed, type TweakerPlugin } from "@tweaker/core/plugin";
 import { version, name } from "../package.json";
 import type {
   Tweaker,
@@ -64,12 +64,28 @@ export interface FetchPluginOptions {
    * @example ['localhost:3000/**']
    */
   filter?: string[];
+  /**
+   * Allows plugin to execute (new Function) manual js expressions received from extension.
+   * Always false, if CSP doesn't allow run "new Function"
+   * @default false
+   */
+  allowExpressions?: boolean;
 }
 
 export function fetchPlugin({
   filter = ["*/**"],
+  allowExpressions = false,
 }: FetchPluginOptions = {}): FetchPlugin {
   const promises: Promise<void>[] = [];
+
+  if (allowExpressions) {
+    allowExpressions = expressionsAllowed();
+    if (!allowExpressions) {
+      console.warn(
+        `[${name}] CSP doesn't allow run "new Function" on this page, allowExpressions is set to "false"`,
+      );
+    }
+  }
 
   let _instance: Tweaker;
   let _emitter: Tweaker["eventEmitter"];
