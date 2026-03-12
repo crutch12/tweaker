@@ -1,17 +1,7 @@
+import { Button, Code, Flex, Kbd, Skeleton, Text } from "@radix-ui/themes";
+import { InterceptorItemProps } from "../InterceptorItem";
 import {
-  Button,
-  Code,
-  Flex,
-  Kbd,
-  Skeleton,
-  Text,
-  TextField,
-} from "@radix-ui/themes";
-import { ExtensionInterceptor, InterceptorItemProps } from "./InterceptorItem";
-import {
-  Dispatch,
   lazy,
-  SetStateAction,
   Suspense,
   useCallback,
   useEffect,
@@ -19,26 +9,27 @@ import {
   useMemo,
   useState,
 } from "react";
-import { Tooltip, TooltipStyles } from "../../../components/base/Tooltip";
-import { ButtonIcon } from "../../../components/ButtonIcon";
+import { Tooltip, TooltipStyles } from "../../../../components/base/Tooltip";
+import { ButtonIcon } from "../../../../components/ButtonIcon";
 import { InfoIcon } from "@devtools-ds/icon";
 import {
   EXTENSION_OWNER,
   InterceptorPayload,
   ManualInterceptor,
 } from "@tweaker/extension-plugin";
-import { parsePatterns, serializePatterns } from "../../../utils/pattern";
-import { css } from "@emotion/css";
+import { parsePatterns } from "../../../../utils/pattern";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { isJsSyntaxValid } from "../../../utils/isJsSyntaxValid";
+import { isJsSyntaxValid } from "../../../../utils/isJsSyntaxValid";
+import { PatternsControl } from "../controls/PatternsControl";
+import { SaveButtons } from "../controls/SaveButtons";
 
 const ExpressionCodeBlock = lazy(() =>
-  import("../ExpressionCodeBlock").then((r) => ({
+  import("../../ExpressionCodeBlock").then((r) => ({
     default: r.ExpressionCodeBlock,
   })),
 );
 const ExpressionCodeBlockContainer = lazy(() =>
-  import("../ExpressionCodeBlock").then((r) => ({
+  import("../../ExpressionCodeBlock").then((r) => ({
     default: r.ExpressionCodeBlockContainer,
   })),
 );
@@ -56,9 +47,9 @@ export interface InterceptorFormManualProps extends InterceptorItemProps<
   InterceptorPayload<ManualInterceptor>
 > {
   data: ManualInterceptor["data"];
-  setData: Dispatch<SetStateAction<ManualInterceptor["data"]>>;
+  onDataChange: (value: ManualInterceptor["data"]) => void;
   patterns: string;
-  setPatterns: Dispatch<SetStateAction<string>>;
+  onPatternsChange: (value: string) => void;
   hasChanges: boolean;
 }
 
@@ -67,9 +58,9 @@ export function InterceptorFormManual({
   onChange,
   onHightLightInterceptor,
   data,
-  setData,
+  onDataChange,
   patterns,
-  setPatterns,
+  onPatternsChange,
   hasChanges,
 }: InterceptorFormManualProps) {
   const [initialData, setInitialData] = useState(() => interceptor.data);
@@ -78,7 +69,7 @@ export function InterceptorFormManual({
     if (force || interceptor.data?.expression !== data?.expression) {
       setUpdatesCount((v) => v + 1);
       setInitialData(interceptor.data);
-      setData(interceptor.data);
+      onDataChange(interceptor.data);
     }
   });
 
@@ -86,12 +77,15 @@ export function InterceptorFormManual({
     actualizeCodeExpression(false);
   }, [interceptor.data?.expression]);
 
-  const onCodeUpdate = useCallback((code: string) => {
-    setData((v) => ({
-      ...v,
-      expression: code || undefined,
-    }));
-  }, []);
+  const onCodeUpdate = useCallback(
+    (code: string) => {
+      onDataChange({
+        ...data,
+        expression: code || undefined,
+      });
+    },
+    [onDataChange, data],
+  );
 
   const [updatesCount, setUpdatesCount] = useState(0);
 
@@ -114,16 +108,8 @@ export function InterceptorFormManual({
     placeholderData: keepPreviousData,
   });
 
-  const uniqueId = useMemo(() => {
-    return `${interceptor.name}-${interceptor.id}`;
-  }, [interceptor]);
-
   const isByExtension = interceptor.owner === EXTENSION_OWNER;
   const canChangeExpression = isByExtension;
-
-  const patternsError = useMemo(() => {
-    return patterns.trim().length === 0;
-  }, [patterns]);
 
   const onHightLight = useEffectEvent(
     (_interceptor: typeof interceptor | undefined) => {
@@ -134,76 +120,24 @@ export function InterceptorFormManual({
   return (
     <Flex gap="2" wrap="wrap">
       <Flex direction="column" gap="2">
-        <Flex direction="column" gap="1">
-          <Flex align="center" gap="1">
-            <Text size="2" as="label" htmlFor={`${uniqueId}-patterns`}>
-              Patterns
-            </Text>
-            <Tooltip
-              content={
-                <Flex asChild direction="column" gap="1">
-                  <ul className={TooltipStyles.ContentList}>
-                    <li>
-                      <Text size="2">
-                        Write any valid glob (e.g.{" "}
-                        <Code variant="solid" color="yellow">
-                          *.*
-                        </Code>
-                        )
-                      </Text>
-                    </li>
-                    <li>
-                      <Text size="2">
-                        Separate multiple globs using{" "}
-                        <Code variant="solid" color="yellow">
-                          ,
-                        </Code>
-                      </Text>
-                    </li>
-                  </ul>
-                </Flex>
-              }
-            >
-              <ButtonIcon>
-                <InfoIcon size="medium" />
-              </ButtonIcon>
-            </Tooltip>
-          </Flex>
-          <TextField.Root
-            id={`${uniqueId}-patterns`}
-            type="text"
-            placeholder="Patterns"
-            value={patterns}
-            color={patternsError ? "red" : undefined}
-            variant={patternsError ? "soft" : undefined}
-            disabled={!interceptor.enabled}
-            onKeyDown={(ev) => {
-              if (ev.key === "Escape") {
-                ev.stopPropagation();
-                ev.currentTarget.blur();
-              }
-            }}
-            onChange={(ev) => {
-              setPatterns(ev.target.value);
-              onHightLight({
-                ...interceptor,
-                patterns: parsePatterns(ev.target.value),
-              });
-            }}
-            onBlur={() => {
-              serializePatterns(interceptor.patterns) !==
-                serializePatterns(parsePatterns(patterns)) &&
-                onChange?.({
-                  ...interceptor,
-                  patterns: parsePatterns(patterns),
-                });
-              onHightLight(undefined);
-            }}
-            className={css`
-              width: 250px;
-            `}
-          />
-        </Flex>
+        <PatternsControl
+          interceptor={interceptor}
+          patterns={patterns}
+          onPatternsChange={(value) => {
+            onPatternsChange(value);
+            onHightLight({
+              ...interceptor,
+              patterns: parsePatterns(value),
+            });
+          }}
+          onSave={() => {
+            onChange?.({
+              ...interceptor,
+              patterns: parsePatterns(patterns),
+            });
+            onHightLight(undefined);
+          }}
+        />
       </Flex>
       {canChangeExpression && (
         <Flex flexGrow="1" overflow="hidden" gap="1" direction="column">
@@ -280,25 +214,10 @@ export function InterceptorFormManual({
               </Tooltip>
             </Flex>
             {hasChanges && (
-              <Button
-                size="1"
-                radius="large"
-                color="indigo"
-                onClick={() => onChange?.({ ...interceptor, data })}
-              >
-                Save
-              </Button>
-            )}
-            {hasChanges && (
-              <Button
-                size="1"
-                radius="large"
-                color="orange"
-                variant="soft"
-                onClick={discardChanges}
-              >
-                Discard
-              </Button>
+              <SaveButtons
+                onSave={() => onChange?.({ ...interceptor, data })}
+                onDiscard={discardChanges}
+              />
             )}
           </Flex>
           <Suspense

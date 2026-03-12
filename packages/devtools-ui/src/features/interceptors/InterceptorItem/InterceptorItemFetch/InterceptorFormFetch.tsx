@@ -1,17 +1,13 @@
 import {
   Box,
-  BoxProps,
   Button,
   Code,
   Flex,
-  FlexProps,
-  Kbd,
   Select,
   Skeleton,
   Text,
-  TextField,
 } from "@radix-ui/themes";
-import { ExtensionInterceptor, InterceptorItemProps } from "./InterceptorItem";
+import { InterceptorItemProps } from "../InterceptorItem";
 import {
   Dispatch,
   lazy,
@@ -23,20 +19,20 @@ import {
   useMemo,
   useState,
 } from "react";
-import { Tooltip, TooltipStyles } from "../../../components/base/Tooltip";
-import { ButtonIcon } from "../../../components/ButtonIcon";
+import { Tooltip, TooltipStyles } from "../../../../components/base/Tooltip";
+import { ButtonIcon } from "../../../../components/ButtonIcon";
 import { InfoIcon } from "@devtools-ds/icon";
-import { EXTENSION_OWNER, InterceptorPayload } from "@tweaker/extension-plugin";
-import { parsePatterns, serializePatterns } from "../../../utils/pattern";
-import { css } from "@emotion/css";
+import { InterceptorPayload } from "@tweaker/extension-plugin";
+import { parsePatterns, serializePatterns } from "../../../../utils/pattern";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { isJsSyntaxValid } from "../../../utils/isJsSyntaxValid";
-import { SelectContent } from "../../../components/base/SelectContent";
+import { SelectContent } from "../../../../components/base/SelectContent";
 import JSON5 from "json5";
 import { bodyTypes, FetchInterceptor } from "@tweaker/fetch-plugin";
+import { PatternsControl } from "../controls/PatternsControl";
+import { SaveButtons } from "../controls/SaveButtons";
 
 const ExpressionCodeBlock = lazy(() =>
-  import("../ExpressionCodeBlock").then((r) => ({
+  import("../../ExpressionCodeBlock").then((r) => ({
     default: r.ExpressionCodeBlock,
   })),
 );
@@ -118,8 +114,6 @@ export interface InterceptorFormFetchProps extends InterceptorItemProps<
 > {
   data: FetchInterceptor["data"];
   setData: Dispatch<SetStateAction<FetchInterceptor["data"]>>;
-  patterns: string;
-  setPatterns: Dispatch<SetStateAction<string>>;
   hasChanges: boolean;
 }
 
@@ -129,13 +123,13 @@ export function InterceptorFormFetch({
   onHightLightInterceptor,
   data,
   setData,
-  patterns,
-  setPatterns,
   hasChanges,
 }: InterceptorFormFetchProps) {
   const [initialData, setInitialData] = useState(() => interceptor.data);
 
-  const [method, setMethod] = useState(() => patternsToState(patterns).method);
+  const [method, setMethod] = useState(
+    () => patternsToState(serializePatterns(interceptor.patterns)).method,
+  );
   const [bodyType, setBodyType] = useState<(typeof bodyTypes)[number]>("json");
 
   const actualizeCodeExpression = useEffectEvent((force: boolean) => {
@@ -163,10 +157,6 @@ export function InterceptorFormFetch({
     return `${interceptor.name}-${interceptor.id}`;
   }, [interceptor]);
 
-  const patternsError = useMemo(() => {
-    return patterns.trim().length === 0;
-  }, [patterns]);
-
   const onHightLight = useEffectEvent(
     (_interceptor: typeof interceptor | undefined) => {
       onHightLightInterceptor?.(_interceptor);
@@ -174,12 +164,14 @@ export function InterceptorFormFetch({
   );
 
   const [urlPatterns, setUrlPatterns] = useState(
-    () => patternsToState(patterns).patterns,
+    () => patternsToState(serializePatterns(interceptor.patterns)).patterns,
   );
 
   useEffect(() => {
-    setUrlPatterns(patternsToState(patterns).patterns);
-  }, [patterns]);
+    setUrlPatterns(
+      patternsToState(serializePatterns(interceptor.patterns)).patterns,
+    );
+  }, [interceptor.patterns]);
 
   const onCodeUpdate = useCallback(
     (code: string) => {
@@ -247,85 +239,62 @@ export function InterceptorFormFetch({
             <FetchMethodSelect value={method} onValueChange={setMethod} />
           </Box>
         </Flex>
-        <Flex direction="column" gap="1">
-          <Flex align="center" gap="1">
-            <Text size="2" as="label" htmlFor={`${uniqueId}-url-patterns`}>
-              Url patterns
-            </Text>
-            <Tooltip
-              content={
-                <Flex asChild direction="column" gap="1">
-                  <ul className={TooltipStyles.ContentList}>
-                    <li>
-                      <Text size="2">
-                        Write any valid url glob (e.g.{" "}
-                        <Code variant="solid" color="yellow">
-                          /**
-                        </Code>
-                        )
-                      </Text>
-                    </li>
-                    <li>
-                      <Text size="2">
-                        Don't add any protocol (e.g.{" "}
-                        <Code variant="solid" color="yellow">
-                          https://
-                        </Code>
-                        )
-                      </Text>
-                    </li>
-                    <li>
-                      <Text size="2">
-                        Separate multiple globs using{" "}
-                        <Code variant="solid" color="yellow">
-                          ,
-                        </Code>
-                      </Text>
-                    </li>
-                  </ul>
-                </Flex>
-              }
-            >
-              <ButtonIcon>
-                <InfoIcon size="medium" />
-              </ButtonIcon>
-            </Tooltip>
-          </Flex>
-          <TextField.Root
-            id={`${uniqueId}-url-patterns`}
-            type="text"
-            placeholder="Fetch Patterns"
-            value={urlPatterns}
-            color={patternsError ? "red" : undefined}
-            variant={patternsError ? "soft" : undefined}
-            disabled={!interceptor.enabled}
-            onKeyDown={(ev) => {
-              if (ev.key === "Escape") {
-                ev.stopPropagation();
-                ev.currentTarget.blur();
-              }
-            }}
-            onChange={(ev) => {
-              setUrlPatterns(ev.target.value);
-              onHightLight({
-                ...interceptor,
-                patterns: urlPatternsToPatterns(method, ev.target.value),
-              });
-            }}
-            onBlur={() => {
-              serializePatterns(interceptor.patterns) !==
-                serializePatterns(urlPatternsToPatterns(method, urlPatterns)) &&
-                onChange?.({
-                  ...interceptor,
-                  patterns: urlPatternsToPatterns(method, urlPatterns),
-                });
-              onHightLight(undefined);
-            }}
-            className={css`
-              width: 250px;
-            `}
-          />
-        </Flex>
+        <PatternsControl
+          interceptor={interceptor}
+          patterns={urlPatterns}
+          onPatternsChange={(value) => {
+            setUrlPatterns(value);
+
+            // onPatternsChange(
+            //   serializePatterns(urlPatternsToPatterns(method, urlPatterns)),
+            // );
+
+            onHightLight({
+              ...interceptor,
+              patterns: urlPatternsToPatterns(method, value),
+            });
+          }}
+          onSave={() => {
+            onChange?.({
+              ...interceptor,
+              patterns: urlPatternsToPatterns(method, urlPatterns),
+            });
+            onHightLight(undefined);
+          }}
+          label="Url Patterns"
+          tooltipContent={
+            <Flex asChild direction="column" gap="1">
+              <ul className={TooltipStyles.ContentList}>
+                <li>
+                  <Text size="2">
+                    Write any valid url glob (e.g.{" "}
+                    <Code variant="solid" color="yellow">
+                      /**
+                    </Code>
+                    )
+                  </Text>
+                </li>
+                <li>
+                  <Text size="2">
+                    Don't add any protocol (e.g.{" "}
+                    <Code variant="solid" color="yellow">
+                      https://
+                    </Code>
+                    )
+                  </Text>
+                </li>
+                <li>
+                  <Text size="2">
+                    Separate multiple globs using{" "}
+                    <Code variant="solid" color="yellow">
+                      ,
+                    </Code>
+                  </Text>
+                </li>
+              </ul>
+            </Flex>
+          }
+        />
       </Flex>
       <Flex flexGrow="1" overflow="hidden" gap="1" direction="column">
         <Flex align="center" gap="1">
@@ -339,25 +308,10 @@ export function InterceptorFormFetch({
             />
           </Flex>
           {hasChanges && (
-            <Button
-              size="1"
-              radius="large"
-              color="indigo"
-              onClick={() => onChange?.({ ...interceptor, data })}
-            >
-              Save
-            </Button>
-          )}
-          {hasChanges && (
-            <Button
-              size="1"
-              radius="large"
-              color="orange"
-              variant="soft"
-              onClick={discardChanges}
-            >
-              Discard
-            </Button>
+            <SaveButtons
+              onSave={() => onChange?.({ ...interceptor, data })}
+              onDiscard={discardChanges}
+            />
           )}
         </Flex>
         <Suspense

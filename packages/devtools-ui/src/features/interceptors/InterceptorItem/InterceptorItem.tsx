@@ -1,5 +1,6 @@
 import { css, keyframes } from "@emotion/css";
 import {
+  ReactNode,
   useDeferredValue,
   useEffect,
   useEffectEvent,
@@ -37,11 +38,30 @@ import {
   DrawingPinIcon,
 } from "@radix-ui/react-icons";
 import { useInterceptedCountsStore } from "../useInterceptedCountsStore";
-import { DefaultInterceptorForm } from "./InterceptorFormDefault";
-import { InterceptorFormFetch } from "./InterceptorFormFetch";
+import { DefaultInterceptorForm } from "./InterceptorItemDefault/InterceptorItemDefaultForm";
+import { InterceptorFormFetch } from "./InterceptorItemFetch/InterceptorFormFetch";
 import { isDefaultInterceptor } from "@tweaker/core";
 import { isFetchInterceptor } from "@tweaker/fetch-plugin";
-import { InterceptorFormManual } from "./InterceptorFormManual";
+import { InterceptorFormManual } from "./InterceptorItemManual/InterceptorFormManual";
+
+export interface UsePattersProps {
+  interceptor: InterceptorPayload;
+}
+
+export function usePatters({ interceptor }: UsePattersProps) {
+  const [patterns, setPatterns] = useState(() =>
+    serializePatterns(interceptor.patterns),
+  );
+
+  useEffect(() => {
+    setPatterns(serializePatterns(interceptor.patterns));
+  }, [interceptor.patterns]);
+
+  return {
+    patterns,
+    setPatterns,
+  };
+}
 
 export type ExtensionInterceptor = InterceptorPayload & {
   // sampleIds?: string[];
@@ -58,6 +78,8 @@ export interface InterceptorItemProps<
   onFilterMessages?: (patterns: string[]) => void;
   onDuplicate?: (interceptor: T) => void;
   onHightLightInterceptor?: (interceptor: T | undefined) => void;
+  hasChanges?: boolean;
+  children: ReactNode;
 }
 
 export function InterceptorItem({
@@ -67,6 +89,8 @@ export function InterceptorItem({
   onFilterMessages,
   onDuplicate,
   onHightLightInterceptor,
+  hasChanges,
+  children,
 }: InterceptorItemProps) {
   const [data, setData] = useState(() => interceptor.data);
 
@@ -80,10 +104,6 @@ export function InterceptorItem({
   useEffect(() => {
     setPatterns(serializePatterns(interceptor.patterns));
   }, [interceptor.patterns]);
-
-  const hasChanges = useMemo(() => {
-    return !equal(interceptor.data, data);
-  }, [data, interceptor.data]);
 
   const appColor = getTextColor(interceptor.name);
   const appBackgroundColor = getBackgroundColor(interceptor.name);
@@ -362,7 +382,8 @@ export function InterceptorItem({
               </Tooltip>
             </Flex>
           </Flex>
-          {isDefaultInterceptor(interceptor) && (
+          {children}
+          {/* {isDefaultInterceptor(interceptor) && (
             <DefaultInterceptorForm
               interceptor={interceptor}
               onChange={onChange}
@@ -371,8 +392,7 @@ export function InterceptorItem({
               onDuplicate={onDuplicate}
               onHightLightInterceptor={onHightLightInterceptor}
               patterns={patterns}
-              setPatterns={setPatterns}
-              hasChanges={hasChanges}
+              onPatternsChange={setPatterns}
             />
           )}
           {isManualInterceptor(interceptor) && (
@@ -384,9 +404,9 @@ export function InterceptorItem({
               onDuplicate={onDuplicate}
               onHightLightInterceptor={onHightLightInterceptor}
               data={data}
-              setData={setData}
+              onDataChange={setData}
               patterns={patterns}
-              setPatterns={setPatterns}
+              onPatternsChange={setPatterns}
               hasChanges={hasChanges}
             />
           )}
@@ -400,11 +420,9 @@ export function InterceptorItem({
               onHightLightInterceptor={onHightLightInterceptor}
               data={data}
               setData={setData}
-              patterns={patterns}
-              setPatterns={setPatterns}
               hasChanges={hasChanges}
             />
-          )}
+          )} */}
           <Badge
             position="bottom-right"
             appearance={
