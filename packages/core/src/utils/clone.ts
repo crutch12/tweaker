@@ -32,10 +32,12 @@ function safeClone<T>(val: T, seen = new WeakMap()): any {
       status: val.status,
       statusText: val.statusText,
       ok: val.ok,
+      bodyUsed: val.bodyUsed,
       redirected: val.redirected,
       type: val.type,
       headers: safeClone(val.headers),
     };
+    // val.
   }
   if (val instanceof Date) return new Date(val.getTime());
   if (val instanceof RegExp) return new RegExp(val.source, val.flags);
