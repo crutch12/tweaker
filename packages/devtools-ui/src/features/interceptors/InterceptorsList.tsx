@@ -1,9 +1,12 @@
 import { HTMLAttributes, RefObject } from "react";
-import {
-  ExtensionInterceptor,
-  InterceptorItem,
-} from "./InterceptorItem/InterceptorItem";
-import { Grid } from "@radix-ui/themes";
+import { ExtensionInterceptor } from "./InterceptorItem/InterceptorItem";
+import { Grid, Text } from "@radix-ui/themes";
+import { InterceptorItemDefault } from "./InterceptorItem/InterceptorItemDefault/InterceptorItemDefault";
+import { isDefaultInterceptor } from "@tweaker/core";
+import { isFetchInterceptor } from "@tweaker/fetch-plugin";
+import { InterceptorItemFetch } from "./InterceptorItem/InterceptorItemFetch/InterceptorItemFetch";
+import { isManualInterceptor } from "@tweaker/extension-plugin";
+import { InterceptorItemManual } from "./InterceptorItem/InterceptorItemManual/InterceptorItemManual";
 
 export interface InterceptorsListProps extends HTMLAttributes<HTMLElement> {
   interceptors: ExtensionInterceptor[];
@@ -34,17 +37,55 @@ export function InterceptorsList({
       gap="2"
       {...props}
     >
-      {interceptors.map((interceptor) => (
-        <InterceptorItem
-          key={interceptor.name + interceptor.id}
-          interceptor={interceptor}
-          onChange={onInterceptorChange}
-          onRemove={onInterceptorRemove}
-          onFilterMessages={onFilterMessages}
-          onDuplicate={onDuplicate}
-          onHightLightInterceptor={onHightLightInterceptor}
-        />
-      ))}
+      {interceptors.map((interceptor) => {
+        const key = interceptor.name + interceptor.id;
+
+        if (isDefaultInterceptor(interceptor)) {
+          return (
+            <InterceptorItemDefault
+              key={key}
+              interceptor={interceptor}
+              onChange={onInterceptorChange}
+              onRemove={onInterceptorRemove}
+              onFilterMessages={onFilterMessages}
+              onDuplicate={onDuplicate}
+              onHightLightInterceptor={onHightLightInterceptor}
+            />
+          );
+        }
+
+        if (isManualInterceptor(interceptor)) {
+          return (
+            <InterceptorItemManual
+              key={key}
+              interceptor={interceptor}
+              onChange={onInterceptorChange}
+              onRemove={onInterceptorRemove}
+              onFilterMessages={onFilterMessages}
+              onDuplicate={onDuplicate}
+              onHightLightInterceptor={onHightLightInterceptor}
+            />
+          );
+        }
+
+        if (isFetchInterceptor(interceptor)) {
+          return (
+            <InterceptorItemFetch
+              key={key}
+              interceptor={interceptor}
+              onChange={onInterceptorChange}
+              onRemove={onInterceptorRemove}
+              onFilterMessages={onFilterMessages}
+              onDuplicate={onDuplicate}
+              onHightLightInterceptor={onHightLightInterceptor}
+            />
+          );
+        }
+
+        return (
+          <Text color="red">Unknown interceptor type: ${interceptor.type}</Text>
+        );
+      })}
     </Grid>
   );
 }

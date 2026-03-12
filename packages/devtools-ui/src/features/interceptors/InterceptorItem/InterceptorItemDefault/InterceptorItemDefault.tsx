@@ -1,32 +1,23 @@
 import { InterceptorPayload } from "@tweaker/extension-plugin";
-import {
-  InterceptorItem,
-  InterceptorItemProps,
-  usePatters,
-} from "../InterceptorItem";
+import { InterceptorItem, InterceptorItemProps } from "../InterceptorItem";
 import { DefaultInterceptorForm } from "./InterceptorItemDefaultForm";
 import { DefaultInterceptor } from "@tweaker/core";
+import { useInterceptorPatterns } from "../useInterceptorPatterns";
 
 export interface InterceptorItemDefaultProps extends InterceptorItemProps<
   InterceptorPayload<DefaultInterceptor>
 > {}
 
 export function InterceptorItemDefault({
-  children,
   ...props
 }: InterceptorItemDefaultProps) {
-  const { patterns, setPatterns } = usePatters({
+  const { patterns, setPatterns } = useInterceptorPatterns({
     interceptor: props.interceptor,
   });
   return (
-    <InterceptorItem {...(props as Omit<InterceptorItemProps, "children">)}>
+    <InterceptorItem {...(props as InterceptorItemProps)}>
       <DefaultInterceptorForm
-        interceptor={props.interceptor}
-        onChange={props.onChange}
-        onRemove={props.onRemove}
-        onFilterMessages={props.onFilterMessages}
-        onDuplicate={props.onDuplicate}
-        onHightLightInterceptor={props.onHightLightInterceptor}
+        {...props}
         patterns={patterns}
         onPatternsChange={setPatterns}
       />

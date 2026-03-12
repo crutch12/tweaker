@@ -43,7 +43,7 @@ const ExpressionTypeDefinition = `type ExpressionCallback<T extends any> = (
   },
 ) => T | symbol`;
 
-export interface InterceptorFormManualProps extends InterceptorItemProps<
+export interface InterceptorItemManualFormProps extends InterceptorItemProps<
   InterceptorPayload<ManualInterceptor>
 > {
   data: ManualInterceptor["data"];
@@ -53,7 +53,7 @@ export interface InterceptorFormManualProps extends InterceptorItemProps<
   hasChanges: boolean;
 }
 
-export function InterceptorFormManual({
+export function InterceptorItemManualForm({
   interceptor,
   onChange,
   onHightLightInterceptor,
@@ -62,7 +62,7 @@ export function InterceptorFormManual({
   patterns,
   onPatternsChange,
   hasChanges,
-}: InterceptorFormManualProps) {
+}: InterceptorItemManualFormProps) {
   const [initialData, setInitialData] = useState(() => interceptor.data);
 
   const actualizeCodeExpression = useEffectEvent((force: boolean) => {

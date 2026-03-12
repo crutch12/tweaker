@@ -109,7 +109,7 @@ function FetchResponseBodySelect(
   );
 }
 
-export interface InterceptorFormFetchProps extends InterceptorItemProps<
+export interface InterceptorItemFetchFormProps extends InterceptorItemProps<
   InterceptorPayload<FetchInterceptor>
 > {
   data: FetchInterceptor["data"];
@@ -117,14 +117,14 @@ export interface InterceptorFormFetchProps extends InterceptorItemProps<
   hasChanges: boolean;
 }
 
-export function InterceptorFormFetch({
+export function InterceptorItemFetchForm({
   interceptor,
   onChange,
   onHightLightInterceptor,
   data,
   setData,
   hasChanges,
-}: InterceptorFormFetchProps) {
+}: InterceptorItemFetchFormProps) {
   const [initialData, setInitialData] = useState(() => interceptor.data);
 
   const [method, setMethod] = useState(
@@ -244,10 +244,6 @@ export function InterceptorFormFetch({
           patterns={urlPatterns}
           onPatternsChange={(value) => {
             setUrlPatterns(value);
-
-            // onPatternsChange(
-            //   serializePatterns(urlPatternsToPatterns(method, urlPatterns)),
-            // );
 
             onHightLight({
               ...interceptor,
