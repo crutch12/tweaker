@@ -12,6 +12,7 @@ export function handleResponse<T>(
   return new Proxy(response, {
     get(target, prop) {
       if (prop === "json") {
+        // FIXME: why??
         const value = target[prop];
 
         // We only care about body-reading methods
