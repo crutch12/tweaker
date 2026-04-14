@@ -69,3 +69,6 @@ export { tweaker };
 3. Open DevTools - Tweaker
 
 4. See logs and provide any value for intercepted code calls.
+
+![26-04-14_14 16 chrome_FJwXCYh0ps](https://github.com/user-attachments/assets/0b3a4748-98b8-4b6f-8284-f2d270278e58)
+
